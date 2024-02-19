@@ -9,8 +9,6 @@
 
 #include "mesh.h"
 
-//class ely::Shader;
-
 namespace ely
 {
     uint32_t TextureFromFile(const char* path, const std::string& directory, bool gamma = false);

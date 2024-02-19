@@ -1,56 +1,56 @@
 project "sandbox1"
 
-   location "%{prj.name}"   --This will create a new folder called sandbox that contains th  project files
-   kind "ConsoleApp" -- If don't want a console sindow to appear the need to set as a windows app (apparently)
-   language "C++"
-   cppdialect "C++17"
-   --staticruntime "on"
-   targetdir ("../bin/" .. output_dir .. "/%{prj.name}")
-   objdir ("../bin/intermediates/" .. output_dir .. "/%{prj.name}")
+    location "%{prj.name}"   --This will create a new folder called sandbox that contains th  project files
+    kind "ConsoleApp" -- If don't want a console window to appear the need to set as a windows app (apparently)
+    language "C++"
+    cppdialect "C++17"
+    staticruntime "off"
+    targetdir ("%{wks.location}/bin/" .. output_dir .. "/%{prj.name}")
+	objdir ("%{wks.location}/bin-int/" .. output_dir .. "/%{prj.name}")
 
-   files 
-   { 
+    files 
+    { 
         "src/**.h", 
         "src/**.cpp",
-   }
+    }
 
     includedirs
     {
         "src",
-	    "../elysian/src",
-        external_libs_dir .. "/GLEW/include",
-	    external_libs_dir .. "/GLFW/%{cfg.platform}/include",
-		external_libs_dir .. "/ASSIMP/%{cfg.platform}/include",
-        vendor_dir .. "/spdlog/include",
-        vendor_dir .. "/imgui_docking",
-		vendor_dir .. "/imgui_docking/backends",
-		vendor_dir,
+        "%{wks.location}/elysian/src",
+
+        "%{include_dir.glfw}",
+        "%{include_dir.glad}",
+        "%{include_dir.spdlog}",    
+        "%{include_dir.imgui}",
+        "%{include_dir.imgui_backends}",
+        "%{vendor_dir}", --for std_image & glm
+        "%{include_dir.assimp}",
     }
 
-   links
-   {
-    --dont need to specify libdirs for libs in the same workspace 
-    -- see premake docs
-      "elysian"
-   }
+    links
+    {
+        --dont need to specify libdirs for libs in the same workspace (see premake docs)
+        "elysian"
+    }
 
-   filter "system:windows"
-       systemversion "latest"
-       defines { "WINDOWS" }
+    filter "system:windows"
+        systemversion "latest"
+        defines { "WINDOWS" }
 
-   filter "configurations:Debug"
-       defines { "DEBUG" }
-       runtime "Debug"
-       symbols "on"
+    filter "configurations:Debug"
+        defines { "DEBUG" }
+        runtime "Debug"
+        symbols "on"
 
-   filter "configurations:Release"
-       defines { "RELEASE" }
-       runtime "Release"
-       optimize "on"
-       symbols "on"
+    filter "configurations:Release"
+        defines { "RELEASE" }
+        runtime "Release"
+        optimize "on"
+        symbols "off"
 
-   filter "configurations:Dist"
-       defines { "DIST" }
-       runtime "Release"
-       optimize "on"
-       symbols "Off"
+    filter "configurations:Dist"
+        defines { "DIST" }
+        runtime "Release"
+        optimize "on"
+        symbols "Off"

@@ -1,7 +1,7 @@
 #pragma once
-#include <GL\glew.h>
+#include <glad/glad.h>
 #include "elysian/kernal/base.h"
-#include <glm\glm.hpp>
+#include <glm/glm.hpp>
 
 /*
 TODO---------------------------

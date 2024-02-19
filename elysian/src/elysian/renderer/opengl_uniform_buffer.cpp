@@ -1,5 +1,5 @@
 #include "pch.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include "opengl_uniform_buffer.h"
 
 namespace ely

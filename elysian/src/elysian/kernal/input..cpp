@@ -1,5 +1,6 @@
 #include "pch.h"
-#include <GL\glew.h>  //only so that don't get error if include application.h  gl.h included before glew.h (from including application.h)
+//#include <GL\glew.h>  //only so that don't get error if include application.h  gl.h included before glew.h (from including application.h)
+#include <glad/glad.h>
 #include <GLFW\glfw3.h>
 #include "elysian/kernal/base.h"
 #include "elysian/kernal/input.h"

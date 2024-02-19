@@ -1,5 +1,5 @@
 #include "pch.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include "elysian/kernal/log.h"
 #include "elysian/renderer/opengl_shader.h"
 

@@ -1,9 +1,8 @@
 #include "pch.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include "opengl_vertex_array.h"
 #include "opengl_buffer_layout.h"
 #include "opengl_buffer.h"
-
 
 namespace ely
 {

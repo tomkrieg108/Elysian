@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "elysian/kernal/base.h"
-#include <GL\glew.h> //has to be included before glfg3.h
 #include "elysian/kernal/window.h"
 #include "elysian/kernal/log.h"
 #include "elysian/events/events.h"
@@ -31,18 +30,18 @@ namespace ely
 
 	void Window::Init(const WindowParams& params)
 	{
+		glfwSetErrorCallback(ErrorCallback);
 		if (!glfwInit())
 		{
 			CORE_ERROR("GLFW initalisation failed");
-			glfwSetErrorCallback(ErrorCallback); 
 			glfwTerminate();
 		} 
 		CORE_INFO("GLFW Initialised");
 		//NOTE: looks like the first 4 are applied by default first 4 hits a
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+		//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+		//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 		glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE);
 		glfwWindowHint(GLFW_CENTER_CURSOR, GL_TRUE);
 #ifdef DEBUG
@@ -135,8 +134,6 @@ namespace ely
 			//CORE_INFO("Window maximized");
 		});
 		
-		glewExperimental = GL_TRUE;
-
 	  glViewport(0, 0, m_params.buffer_width, m_params.buffer_height);
 		glfwSetWindowUserPointer(glfw_win, this);  //Used for setup of event handlers
 		SetCursorEnabled(params.cursor_enabled);

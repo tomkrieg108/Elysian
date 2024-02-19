@@ -1,5 +1,5 @@
 #pragma once
-#include <GL\glew.h> //has to be included first before <glfw3.h>
+#include <glad/glad.h>
 
 struct GLFWwindow;
 

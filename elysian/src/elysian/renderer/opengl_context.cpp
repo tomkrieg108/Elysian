@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "elysian/kernal/base.h"
-#include <GL\glew.h>
-#include <GLFW\glfw3.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "elysian/kernal/log.h"
 #include "opengl_context.h"
 
@@ -18,9 +18,10 @@ namespace ely
 	void OpenGLContext::Init()
 	{
 		glfwMakeContextCurrent(m_window_handle);
-		if (glewInit() != GLEW_OK)
+		int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+		if (!status)
 		{
-			CORE_ERROR("GLEW initalisation failed");
+			CORE_ERROR("Glad initalisation failed");
 			glfwDestroyWindow(m_window_handle);
 			glfwTerminate();
 		}

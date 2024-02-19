@@ -1,5 +1,6 @@
 #include "pch.h"
-#include <GL/glew.h>
+//#include <GL/glew.h>
+#include <glad/glad.h>
 #include "elysian/kernal/log.h"
 #include "opengl_framebuffer.h"
 

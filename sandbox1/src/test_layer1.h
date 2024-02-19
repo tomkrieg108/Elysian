@@ -2,7 +2,6 @@
 
 //TODO:  all these headers needed for an app into 1 header file (elysian.h)
 
-
 #include "elysian/kernal/window.h"
 #include "elysian/kernal/layer.h"
 #include "elysian/events/events.h"

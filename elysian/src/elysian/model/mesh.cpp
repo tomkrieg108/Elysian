@@ -2,7 +2,7 @@
 //based on
 //https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/mesh.h
 #include "pch.h"
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include "elysian/renderer/opengl_shader.h"
 #include "mesh.h"
 

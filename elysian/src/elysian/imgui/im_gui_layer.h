@@ -4,23 +4,6 @@
 
 namespace ely
 {
-	/*class Window;
-
-	class ImGuiLayer
-	{
-	public:
-		ImGuiLayer(Window const & window);
-		~ImGuiLayer() = default;
-		void Init();
-		void Render();
-		void Shutdown();
-		static bool WantCaptureMouse();
-		static bool WantCaptureKeyboard();
-	private:
-		void ImGuiUpdate();
-		Window const & m_window;
-	};*/
-
 	class ImGuiLayer : public Layer
 	{
 	public:

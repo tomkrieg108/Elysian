@@ -1,72 +1,55 @@
 project "elysian"
 
-    --This will create a new folder called elysian that contains that project files
-   location "%{prj.name}" 
-   kind "StaticLib"
-   language "C++"
-   cppdialect "C++17"
-   --staticruntime "on"
-   targetdir ("../bin/" .. output_dir .. "/%{prj.name}")
-   objdir ("../bin/intermediates/" .. output_dir .. "/%{prj.name}")
-   pchheader "pch.h"
-   pchsource "src/pch.cpp"
+    location "%{prj.name}"   --Creates a new folder 'elysian' containing project files
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++17"
+    staticruntime "off"
+    targetdir ("%{wks.location}/bin/" .. output_dir .. "/%{prj.name}")
+	objdir ("%{wks.location}/bin-int/" .. output_dir .. "/%{prj.name}")
+   
+    pchheader "pch.h"
+    pchsource "src/pch.cpp"
 
 -- refer to 'tokens' in premake docs for %{prj.name} this 
-
-   --note: relative paths should be relative to the location of this lua script
 
    files 
    { 
         "src/**.h", 
         "src/**.cpp", 
-		vendor_dir .. "/imgui_docking/*.cpp",
-	    vendor_dir .. "/imgui_docking/*.h",
-		vendor_dir .. "/imgui_docking/backends/imgui_impl_glfw.cpp",
-		vendor_dir .. "/imgui_docking/backends/imgui_impl_opengl3.cpp",
-		vendor_dir .. "/imgui_docking/backends/imgui_impl_glfw.h",
-		vendor_dir .. "/imgui_docking/backends/imgui_impl_opengl3.h",
-		vendor_dir .. "/stb_image/stb_image.cpp",
-		vendor_dir .. "/stb_image/stb_image.h",
+    
+	    "%{vendor_dir}/stb_image/stb_image.cpp",
+	    "%{vendor_dir}/stb_image/stb_image.h",
+
+        "%{vendor_dir}/glm/**.hpp",
+	    "%{vendor_dir}/glm/**.inl",
     }
 
    includedirs
    {
         "src",
-        external_libs_dir .. "/GLEW/include",
-	    external_libs_dir .. "/GLFW/%{cfg.platform}/include",
-		external_libs_dir .. "/ASSIMP/%{cfg.platform}/include",
-		vendor_dir .. "/imgui_docking",
-		vendor_dir .. "/imgui_docking/backends",
-        vendor_dir .. "/spdlog/include",
-		vendor_dir,
+        "%{include_dir.glfw}",
+        "%{include_dir.glad}",
+        "%{include_dir.spdlog}",    
+        "%{include_dir.imgui}",
+        "%{include_dir.imgui_backends}",
+        "%{vendor_dir}", --for std_image & glm
+        "%{include_dir.assimp}",
    }
-
-   libdirs 
-	{ 
-		external_libs_dir .. "/GLEW/lib/release/%{cfg.platform}",
-		external_libs_dir .. "/GLFW/%{cfg.platform}/lib-vc2022",
-		external_libs_dir .. "/ASSIMP/%{cfg.platform}/lib/release",
-	}
 
     links
 	{
-		"glew32s",
-		"glfw3",
+        "%{library.glfw}",
+        "glad",
 		"opengl32",
-		"assimp-vc143-mt", --64bit version
-
-        --//https://stackoverflow.com/questions/36017915/visual-studio-2015-default-additional-libraries
-
-        --these not needed ?
-        --"kernel32",
-		--"User32",
-		--"Gdi32",
-		--"Shell32",
+        "imgui",
+        "%{library.assimp}",
 	}
+
     defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
-        "GLEW_STATIC"
+        "GLFW_INCLUDE_NONE"
 	}
 
    filter "system:windows"
@@ -90,5 +73,9 @@ project "elysian"
        optimize "on"
        symbols "Off"
 
-   filter{	"files:../../../vendor/**" }
+   filter{	"files:../../vendor/**" }
 	   flags { "NoPCH" }	
+
+    -- Doesn't work!  
+    --filter{	"files:" .. vendor_dir .. "/**" }
+	   --flags { "NoPCH" }	   

@@ -1,5 +1,5 @@
 #pragma once
-#include <GL\glew.h>
+#include <glad/glad.h>
 
 namespace ely
 {
@@ -10,14 +10,10 @@ namespace ely
 			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_aniso);
 			// set the maximum!
 			glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_aniso);
-
-
 			Can generate a screenshot PNG using stbi_write_png()
 			 http://nothings.org/stb/stb_image_write.h
 			 Anton pg 205
 	*/
-
-
 
 	class OpenGLTexture2D
 	{
