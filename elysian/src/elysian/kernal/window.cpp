@@ -5,6 +5,7 @@
 #include "elysian/events/events.h"
 #include "elysian/events/event_dispatcher.h"
 #include "elysian/kernal/input.h"
+#include "elysian/renderer/opengl_renderer.h"
 
 namespace ely
 {
@@ -37,11 +38,6 @@ namespace ely
 			glfwTerminate();
 		} 
 		CORE_INFO("GLFW Initialised");
-		//NOTE: looks like the first 4 are applied by default first 4 hits a
-		//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-		//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 		glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE);
 		glfwWindowHint(GLFW_CENTER_CURSOR, GL_TRUE);
 #ifdef DEBUG
@@ -54,88 +50,94 @@ namespace ely
 		m_params.width = video_mode->width;
 		m_params.height = video_mode->height;
 
-		auto glfw_win = glfwCreateWindow(params.width, params.height, params.title.c_str(), NULL, NULL);
-		if (!glfw_win)
+		auto m_window = glfwCreateWindow(params.width, params.height, params.title.c_str(), NULL, NULL);
+		if (!m_window)
 		{
 			CORE_ERROR("GLFW window creation failed");
 			glfwTerminate();
 		}
 
-		m_context = new OpenGLContext(glfw_win);
+		m_context = new OpenGLContext(m_window);
 		m_context->Init();
 		
-		glfwGetFramebufferSize(glfw_win, &m_params.buffer_width, &m_params.buffer_height);
+		glfwGetFramebufferSize(m_window, &m_params.buffer_width, &m_params.buffer_height);
 		if(params.vsync_enabled)
 			glfwSwapInterval(1); // Enable vsync
 
 		//set callbacks
-		glfwSetMouseButtonCallback(glfw_win, [](GLFWwindow* window, int button, int action, int mods) {
+		glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			win->GetInput().MouseButtonPressed(button, action, mods);
 		});
 
-		glfwSetScrollCallback(glfw_win, [](GLFWwindow* window, double xoffset, double yoffset) {
+		glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xoffset, double yoffset) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			win->GetInput().MouseScrolled(xoffset, yoffset);
 		});
 
-		glfwSetCursorPosCallback(glfw_win, [](GLFWwindow* window, double xpos, double ypos) {
+		glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xpos, double ypos) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			win->GetInput().MouseMoved(xpos, ypos);
 		});
 
 
-		glfwSetKeyCallback(glfw_win, [](GLFWwindow* glfw_window, int key, int code, int action, int mode) {
+		glfwSetKeyCallback(m_window, [](GLFWwindow* glfw_window, int key, int code, int action, int mode) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(glfw_window));
 			win->GetInput().KeyAction(key, code, action, mode);
 		});
 
-		glfwSetWindowSizeCallback(glfw_win, [](GLFWwindow* window, int width, int height) {
+		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			win->m_params.width = width;
 			win->m_params.height = height;
 			glfwGetFramebufferSize(win->GetWindowHandle(), &(win->m_params.buffer_width), &(win->m_params.buffer_height));
-			glViewport(0, 0, win->m_params.buffer_width, win->m_params.buffer_height);
+
+			//TODO:  should be forwarded to renderer
+			OpenGLRenderer::SetViewport(win->m_params.buffer_width, win->m_params.buffer_height);
+			//glViewport(0, 0, win->m_params.buffer_width, win->m_params.buffer_height);
+
 			ely::EventWidowResize e{ (uint32_t)win->m_params.buffer_width, (uint32_t)win->m_params.buffer_height };
 			ely::EventDispatcher::Dispatch(e);
 		});
 
-		glfwSetFramebufferSizeCallback(glfw_win, [](GLFWwindow* window, int width, int height) {
+		glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
 			//CORE_INFO("Frame buffer resized");
 		});
 
-		glfwSetWindowCloseCallback(glfw_win, [](GLFWwindow* window) {
+		glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
 				//CORE_TRACE("Window closed");
 		});
 
 		
-		glfwSetCursorEnterCallback(glfw_win, [](GLFWwindow* window, int entered) {
+		glfwSetCursorEnterCallback(m_window, [](GLFWwindow* window, int entered) {
 				//CORE_INFO("Cursor enter / exit");
 		});
 
-		glfwSetCharCallback(glfw_win, [](GLFWwindow* window, unsigned int codepoint) {
+		glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int codepoint) {
 			//CORE_INFO("Char typed");
 		});
 
-		glfwSetWindowPosCallback(glfw_win, [](GLFWwindow* window, int xpos, int ypos) {
+		glfwSetWindowPosCallback(m_window, [](GLFWwindow* window, int xpos, int ypos) {
 			//CORE_INFO("Window moved");
 		});
 
 
-		glfwSetWindowFocusCallback(glfw_win, [](GLFWwindow* window, int focused) {
+		glfwSetWindowFocusCallback(m_window, [](GLFWwindow* window, int focused) {
 			//CORE_INFO("Window focus");
 		});
 
-		glfwSetWindowIconifyCallback(glfw_win, [](GLFWwindow* window, int iconified) {
+		glfwSetWindowIconifyCallback(m_window, [](GLFWwindow* window, int iconified) {
 			//CORE_INFO("Window iconified");
 		});
 
-		glfwSetWindowMaximizeCallback(glfw_win, [](GLFWwindow* window, int maximized) {
+		glfwSetWindowMaximizeCallback(m_window, [](GLFWwindow* window, int maximized) {
 			//CORE_INFO("Window maximized");
 		});
 		
-	  glViewport(0, 0, m_params.buffer_width, m_params.buffer_height);
-		glfwSetWindowUserPointer(glfw_win, this);  //Used for setup of event handlers
+	  //glViewport(0, 0, m_params.buffer_width, m_params.buffer_height);
+		OpenGLRenderer::SetViewport(m_params.buffer_width, m_params.buffer_height);
+
+		glfwSetWindowUserPointer(m_window, this);  //Used for setup of event handlers
 		SetCursorEnabled(params.cursor_enabled);
 		CORE_INFO("WINDOW CREATED:");
 		CORE_TRACE("   Width: {}, Height: {}, Buff Width: {}, Buff Height: {}", m_params.width, m_params.height, 
@@ -176,11 +178,13 @@ namespace ely
 			glfwSetWindowShouldClose(m_context->GetWindowHandle(), GL_TRUE);
 	}
 
-	void Window::ClearScreeen()
+	void Window::Clear()
 	{
-		//TODO:  should be in opengl_context (gl calls)
 		const glm::vec4& col = m_params.clear_colour;
-		glClearColor(col.r, col.g, col.b, col.a); 
+		//OpenGLRenderer::SetClearColor(col);
+		//OpenGLRenderer::ClearBuffers();
+
+		glClearColor(col.r, col.g, col.b, col.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 

@@ -2,6 +2,12 @@
 
 #include <glad/glad.h>
 
+//https://www.youtube.com/watch?v=jIJFM_pi6gQ&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT&index=31
+//Note: Cherno reckons you want to interleave the data in the vertex buffer rather than attach seperate buffers (~9:00)
+//layout is directly tied to the vertex shader
+//In this video he does it a bit differently than here (and probably better!)
+//Could potentially parse the shader code to determine the buffer layout
+
 namespace ely
 {
 	struct BufferElement

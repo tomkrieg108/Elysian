@@ -60,7 +60,7 @@ private:
 
 	ely::OpenGLUniformBuffer m_ubuff_camera;
 
-	std::unique_ptr<ely::Shader> m_cube_shader, m_grid_shader, m_light_shader, m_plane_shader, m_model_shader;
+	ely::Ref<ely::Shader> m_cube_shader, m_grid_shader, m_light_shader, m_plane_shader, m_model_shader;
 
 
 	//cube parameters

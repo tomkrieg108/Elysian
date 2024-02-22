@@ -39,5 +39,6 @@ private:
 	ely::OpenGLTexture2D* m_texture = nullptr;
 	ely::OpenGLTexture2D* m_texture_srgb = nullptr;
 	ely::OpenGLFramebuffer* m_framebuffer = nullptr;
-	std::unique_ptr<ely::Shader> m_gamma_test_shader;
+	
+	ely::Ref<ely::Shader> m_gamma_test_shader;
 };

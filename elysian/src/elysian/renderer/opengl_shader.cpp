@@ -14,18 +14,89 @@ Material* material = new Material(shader)
 queries all the data that the shader needs
 renderer will set the uniforms related to transforms, projections, light properties etc.
 material sets the uniforms related to the surface properties
+
+2 components to shader data - stuff related to the environment, stuff related to the object being rendered, as well as camera info
+
+https://www.youtube.com/watch?v=akxevYYWd9g&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT&index=33
 */
 
 namespace ely
 {
-	std::string const ShaderBuilder::s_shader_path = std::string{ "../../assets/shaders/" };
-
-	ShaderBuilder& ShaderBuilder::BuildShader(const ShaderType type, const std::string& filename)
+	uint32_t ShaderBuilder::GetOpenGLShaderType(ShaderType type)
 	{
-		const auto filepath = ShaderBuilder::s_shader_path + filename;
-		auto info = Compile(static_cast<uint32_t>(type), filepath);
+		switch (type)
+		{
+			case ShaderType::Vertex: return GL_VERTEX_SHADER;
+			case ShaderType::Fragment: return GL_FRAGMENT_SHADER;
+			case ShaderType::TesselationControl: return GL_TESS_CONTROL_SHADER;
+			case ShaderType::TesselationEvaluation: return GL_TESS_EVALUATION_SHADER;
+			case ShaderType::Geometry: return GL_GEOMETRY_SHADER;
+			case ShaderType::Compute: return GL_COMPUTE_SHADER;
+		};
+		return 0;
+	}
+
+	ShaderBuilder& ShaderBuilder::Add(const ShaderType type, const std::string& filename)
+	{
+		const auto filepath = ShaderRepo::s_shader_asset_path + filename;
+		//auto info = Compile(static_cast<uint32_t>(type), filepath);
+		auto info = Compile(GetOpenGLShaderType(type), filepath);
 		m_shader_list.push_back(info);
 		return *this;
+	}
+
+	Ref<Shader> ShaderBuilder::Build(const std::string& name)
+	{
+		auto shader = std::make_unique<Shader>();
+		uint32_t program = glCreateProgram();
+
+		shader->m_name = name;
+		shader->m_program_id = program;
+		bool success = true;
+
+		bool compile_errors = false;
+		for (auto& shader_info : m_shader_list)
+		{
+			if (shader_info.compile_success)
+				glAttachShader(program, shader_info.id);
+			else
+				compile_errors = true;
+		}
+
+		if (compile_errors)
+		{
+			CORE_ERROR("Compilation errors in 1 or more shaders: {}", name);
+			OutputShaderInfoLog();
+			success = false;
+		}
+
+		glLinkProgram(program);
+		int32_t result = GL_FALSE;
+		glGetProgramiv(program, GL_LINK_STATUS, &result);
+		if (result == GL_FALSE)
+		{
+			CORE_ERROR("Linking error for shader: {}", name);
+			success = false;
+		}
+
+#ifdef DEBUG
+		result = GL_FALSE;
+		glValidateProgram(program);
+		glGetProgramiv(program, GL_VALIDATE_STATUS, &result);
+		if (result == GL_FALSE)
+		{
+			CORE_ERROR("Validation error for shader: {}", name);
+			success = false;
+		}
+#endif
+
+		shader->m_build_success = success;
+
+		for (auto& shader_info : m_shader_list)
+			glDeleteShader(shader_info.id);
+
+		m_shader_list.clear();
+		return shader;
 	}
 
 	std::string ShaderBuilder::ReadSource(const std::string& filepath)
@@ -73,62 +144,6 @@ namespace ely
 		return info;
 	}
 
-
-	std::unique_ptr<Shader> ShaderBuilder::BuildProgram(const std::string& name)
-	{
-		auto shader = std::make_unique<Shader>();
-		uint32_t program = glCreateProgram();
-
-		shader->m_name = name;
-		shader->m_program_id = program;
-		bool success = true;
-
-		bool compile_errors = false;
-		for (auto& shader_info : m_shader_list)
-		{
-			if (shader_info.compile_success)
-				glAttachShader(program, shader_info.id);
-			else
-				compile_errors = true;
-		}
-
-		if (compile_errors)
-		{
-			CORE_ERROR("Compilation errors in 1 or more shaders: {}", name);
-			OutputShaderInfoLog();
-			success = false;
-		}
-		
-		glLinkProgram(program);
-		int32_t result = GL_FALSE;
-		glGetProgramiv(program, GL_LINK_STATUS, &result);
-		if (result == GL_FALSE)
-		{
-			CORE_ERROR("Linking error for shader: {}", name);
-			success = false;
-		}
-
-#ifdef DEBUG
-		//validation check in debug mode only
-		result = GL_FALSE;
-		glValidateProgram(program);
-		glGetProgramiv(program, GL_VALIDATE_STATUS, &result);
-		if (result == GL_FALSE)
-		{
-			CORE_ERROR("Validation error for shader: {}", name);
-			success = false;
-		}
-#endif
-		
-		shader->m_build_success = success;
-
-		for (auto& shader_info : m_shader_list)
-			glDeleteShader(shader_info.id);
-
-		m_shader_list.clear();
-		return shader;
-	}
-
 	void ShaderBuilder::OutputShaderInfoLog()
 	{
 		for (auto& shader_info : m_shader_list)
@@ -144,7 +159,34 @@ namespace ely
 			}
 		}
 	}
+
+
 //-------------------------------------------------------------------------------------------------------------------------------
+
+	ShaderSource::ShaderSource(std::initializer_list<ShaderSourceFile> souce_files) :
+		src{ souce_files}
+	{
+	}
+
+	void ShaderSource::Add(ShaderSourceFile source_file)
+	{
+		src.push_back(source_file);
+	}
+
+	/*Ref<Shader> Shader::Create(const std::string& filepath, const std::string& name)
+	{
+		
+	}*/
+
+	Ref<Shader> Shader::Create(const ShaderSource& shader_source, const std::string& name)
+	{
+		ShaderBuilder builder;
+
+		for (const auto& source_file : shader_source.src)
+			builder.Add(source_file.first, source_file.second);
+	
+		return builder.Build(name);
+	}
 
 	void Shader::Bind()
 	{
@@ -327,6 +369,88 @@ namespace ely
 		}
 	}
 
+	//----------------------------------------------------------------------------------------------------------
+
+	std::unordered_map<std::string, Ref<Shader>> ShaderRepo::m_shader_repo{};
+	std::string const ShaderRepo::s_shader_asset_path = std::string{ "../../assets/shaders/" };
+
+	void ShaderRepo::Init()
+	{
+		ShaderRepo::LoadDefaultShaders();
+	}
+
+	Ref<Shader> ShaderRepo::Load(const ShaderSource& shader_source, const std::string& name)
+	{
+		//TODO: assert that shader doesn't already exist
+		Ref<Shader> shader = Shader::Create(shader_source, name);
+		m_shader_repo[name] = shader;
+		return shader;
+	}
+
+	Ref<Shader> ShaderRepo::Get(const std::string& name)
+	{
+		//TODO: assert that shader exists
+		return m_shader_repo[name];
+	}
+
+	bool ShaderRepo::Exists(const std::string& name)
+	{
+		return m_shader_repo.find(name) != m_shader_repo.end();
+	}
+
+	void ShaderRepo::LoadDefaultShaders()
+	{
+		ShaderSource shader_source =
+		{
+			{ShaderType::Vertex, "4.2.lighting_maps.vs"},
+			{ShaderType::Fragment, "4.2.lighting_maps.fs"}
+		};
+		ShaderRepo::Load(shader_source, "cube_shader");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "2.1.light_cube.vs"},
+			{ShaderType::Fragment, "2.1.light_cube.fs"}
+		};
+		ShaderRepo::Load(shader_source, "light_cube");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "1.colors.vs"},
+			{ShaderType::Fragment, "1.colors.fs"}
+		};
+		ShaderRepo::Load(shader_source, "basic_lighting_colors");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "1.model_loading.vs"},
+			{ShaderType::Fragment, "1.model_loading.fs"}
+		};
+		ShaderRepo::Load(shader_source, "model_loading");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "coords.vs"},
+			{ShaderType::Fragment, "coords.fs"}
+		};
+		ShaderRepo::Load(shader_source, "coord_sys");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "gamma.vs"},
+			{ShaderType::Fragment, "gamma.fs"}
+		};
+		ShaderRepo::Load(shader_source, "gamma_correction");
+	}
+
+	//-----------------------------------------------------------------------------------------------------------
+	//TODO - put this stuff in a utils file
+
 	const std::string GLTypeToString(GLenum type)
 	{
 		switch (type)
@@ -369,5 +493,4 @@ namespace ely
 			CORE_INFO("Val: {}: ", val);
 		}
 	}
-
 }

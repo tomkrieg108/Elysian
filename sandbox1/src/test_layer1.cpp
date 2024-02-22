@@ -2,8 +2,9 @@
 
 #include "elysian/events/event_dispatcher.h"
 #include "elysian/renderer/opengl_shader.h"
-#include "elysian/model/mesh_basic.h"
+#include "elysian/model/mesh_primitives.h"
 #include "elysian/kernal/log.h"
+#include "elysian/renderer/opengl_renderer.h"
 #include "test_layer1.h"
 
 #include <glm/glm.hpp>
@@ -12,6 +13,8 @@
 
 #include <cmath>
 
+//TODO:  want to set this up so that there are no references to any openGL calls
+
 TestLayer1::TestLayer1(ely::Window& window) :
 	m_window{ window },
 	m_camera_controller(window.AspectRatio()),
@@ -19,16 +22,16 @@ TestLayer1::TestLayer1(ely::Window& window) :
 	m_framebuffer(window.BufferWidth(), window.BufferHeight()),
 	m_framebuffer_alt(window.BufferWidth(), window.BufferHeight())
 {
+
+	//TODO - this event stuff shouldn't be in the app
 	ely::EventDispatcher::SetCallback(this, &TestLayer1::OnKeyPressed);
 	ely::EventDispatcher::SetCallback(this, &TestLayer1::OnMouseMoved);
 	ely::EventDispatcher::SetCallback(this, &TestLayer1::OnMouseScrolled);
 	ely::EventDispatcher::SetCallback(this, &TestLayer1::OnWindowResize);
 	ely::EventDispatcher::SetCallback(this, &TestLayer1::OnMouseButtonPressed);
 
-	glLineWidth(1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS); // AOGL p20
-	glEnable(GL_LINE_SMOOTH);
+	//TODO this stuff should be in renderer module
+	ely::OpenGLRenderer::SetLineWidth(1.0);
 	
 	//buffer setup
 	m_vbo_grid = ely::MeshPrimitive::GetGridVertexBuffer(20.0f, 1.0f);
@@ -57,17 +60,11 @@ TestLayer1::TestLayer1(ely::Window& window) :
 	m_vao_camera_alt_coords.AddVertexBuffer(*m_vbo_camera_alt_coords);
 
 	//shader setup
-	ely::ShaderBuilder shader_builder;
-
-	m_cube_shader = shader_builder.BuildShader(ely::ShaderType::Vertex, "4.2.lighting_maps.vs").BuildShader(ely::ShaderType::Fragment, "4.2.lighting_maps.fs").BuildProgram("Cube shader");
-
-	m_light_shader = shader_builder.BuildShader(ely::ShaderType::Vertex, "2.1.light_cube.vs").BuildShader(ely::ShaderType::Fragment, "2.1.light_cube.fs").BuildProgram("light source shader");
-
-	m_grid_shader = shader_builder.BuildShader(ely::ShaderType::Vertex, "coords.vs").BuildShader(ely::ShaderType::Fragment, "coords.fs").BuildProgram("Grid / Coords shader");
-
-	m_plane_shader = shader_builder.BuildShader(ely::ShaderType::Vertex, "1.colors.vs").BuildShader(ely::ShaderType::Fragment, "1.colors.fs").BuildProgram("basic lighting colours");
-
-	m_model_shader = shader_builder.BuildShader(ely::ShaderType::Vertex, "1.model_loading.vs").BuildShader(ely::ShaderType::Fragment, "1.model_loading.fs").BuildProgram("Model Loading");
+	m_cube_shader = ely::ShaderRepo::Get("cube_shader");
+	m_light_shader = ely::ShaderRepo::Get("light_cube");
+	m_grid_shader = ely::ShaderRepo::Get("coord_sys");
+	m_plane_shader = ely::ShaderRepo::Get("basic_lighting_colors");
+	m_model_shader = ely::ShaderRepo::Get("model_loading");
 
 	//TODO investigate glGetActiveUniformBlockiv()
 	//TODO these gl calls should be part of the OpenGLUniformBuffer class
@@ -144,7 +141,7 @@ void TestLayer1::OnUpdate(double time_step)
 	//-----------------------------------------------------------------------------------
 	//Render to screen (main camera)
 	//-----------------------------------------------------------------------------------
-	glLineWidth(1.0f);
+	ely::OpenGLRenderer::SetLineWidth(1.0);
 
 	//grid
 	m_grid_shader->Bind();
@@ -242,11 +239,12 @@ void TestLayer1::OnUpdate(double time_step)
 	//-----------------------------------------------------------------------------------
 	//Render to framebuffer (main camera)
 	//-----------------------------------------------------------------------------------
-	glLineWidth(2.0f);
+	
 	m_framebuffer.Bind();
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
+	ely::OpenGLRenderer::SetLineWidth(1.0);
+	ely::OpenGLRenderer::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+	ely::OpenGLRenderer::ClearBuffers();
+	
 	//grid
 	m_grid_shader->Bind();
 	m_grid_shader->SetUniformMat4f("u_model", glm::mat4(1.0f));
@@ -296,8 +294,9 @@ void TestLayer1::OnUpdate(double time_step)
 	//render to framebuffer alt
 	//------------------------------------------------------------------------------------------
 	m_framebuffer_alt.Bind();
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	ely::OpenGLRenderer::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+	ely::OpenGLRenderer::ClearBuffers();
+	
 
 	//grid
 	m_grid_shader->Bind();

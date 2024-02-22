@@ -3,7 +3,7 @@
 #include "elysian/renderer/opengl_buffer_layout.h"
 #include "elysian/renderer/opengl_buffer.h"
 #include "elysian/kernal/log.h"
-#include "mesh_basic.h"
+#include "mesh_primitives.h"
 #include <cmath>
 
 namespace ely

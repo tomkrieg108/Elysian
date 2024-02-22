@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "elysian/kernal/application.h"
 #include "elysian/kernal/log.h"
+#include "elysian/renderer/opengl_renderer.h"
+#include "elysian/renderer/opengl_shader.h"
 #include "elysian/imgui/im_gui_layer.h"
 
 namespace ely
@@ -14,6 +16,10 @@ namespace ely
 		Window::WindowParams params;
 		params.title = true;
 		m_window = Window::Create(params);
+
+		OpenGLRenderer::Init();
+		ShaderRepo::Init();
+
 		m_imgui_layer = new ImGuiLayer();
 		PushOverlay(m_imgui_layer);
 	}
@@ -59,7 +65,7 @@ namespace ely
 			if (m_window->IsMinimised())
 				continue;
 
-			m_window->ClearScreeen();
+			m_window->Clear();
 
 			this->OnUpdate(delta_time);
 

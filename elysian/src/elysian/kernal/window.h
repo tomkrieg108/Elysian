@@ -1,5 +1,5 @@
 #pragma once
-
+#include "base.h"
 #include "elysian/renderer/opengl_context.h" //must be included before<GLFW\glfw3.h>
 #include "elysian/kernal/input.h"
 #include <GLFW/glfw3.h>
@@ -43,7 +43,7 @@ namespace ely
 		void SetClearColour(glm::vec4 clear_colour) { m_params.clear_colour = clear_colour; }
 		void ToggleCursorEnabled();
 		bool IsMinimised() const;
-		void ClearScreeen();
+		void Clear();
 		bool ShouldClose();
 		void OnUpdate();
 		void ShutDown();
@@ -55,6 +55,7 @@ namespace ely
 		static void ErrorCallback(int error, const char* description);
 
 	private:
+		GLFWwindow* m_window;
 		OpenGLContext* m_context = nullptr;
 		WindowParams m_params;
 		Input m_input;

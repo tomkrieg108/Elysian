@@ -2,8 +2,9 @@
 
 #include "elysian/events/event_dispatcher.h"
 #include "elysian/renderer/opengl_shader.h"
-#include "elysian/model/mesh_basic.h"
+#include "elysian/model/mesh_primitives.h"
 #include "elysian/kernal/log.h"
+#include "elysian/renderer/opengl_renderer.h"
 #include "gamma_correction_test.h"
 
 #include <glm/glm.hpp>
@@ -51,7 +52,7 @@ GammaTestLayer::GammaTestLayer(ely::Window& window) :
 
 	//shader setup
 	ely::ShaderBuilder shader_builder;
-	m_gamma_test_shader = shader_builder.BuildShader(ely::ShaderType::Vertex, "gamma.vs").BuildShader(ely::ShaderType::Fragment, "gamma.fs").BuildProgram("Gamma Test Shader");
+	m_gamma_test_shader = shader_builder.Add(ely::ShaderType::Vertex, "gamma.vs").Add(ely::ShaderType::Fragment, "gamma.fs").Build("Gamma Test Shader");
 	m_gamma_test_shader->OutputInfo();
 }
 
@@ -70,7 +71,7 @@ void GammaTestLayer::OnUpdate(double time_step)
 	//-----------------------------------------------------------------------------------
 	//Render to screen (main camera)
 	//-----------------------------------------------------------------------------------
-	glLineWidth(1.0f);
+	ely::OpenGLRenderer::SetLineWidth(1.0f);
 
 	//grid
 	m_gamma_test_shader->Bind();
@@ -122,9 +123,8 @@ void GammaTestLayer::OnUpdate(double time_step)
 	/////////////////////////////////////////////////////////////////////////////////
 
 	m_framebuffer->Bind();
-	m_window.ClearScreeen();
-	//glClearColor(0.4f, 0.0f, 0.4f, 1.0f); //magenta
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	m_window.Clear();
+	
 
 	//Uncorrected gray-scale script (res: appears linear on screen, but isn't)
 	vs_gamma_enabled = false;
