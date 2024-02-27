@@ -20,4 +20,22 @@ namespace ely
 		uint32_t m_vertex_count = 0;
 	};
 
+	//-----------------------------------------------------------
+
+	class OpenGLIndexBuffer
+	{
+	public:
+		OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
+		~OpenGLIndexBuffer();
+
+		void Bind() const;
+		void Unbind() const;
+
+		uint32_t GetIndexCount() const { return m_index_count; }
+
+	private:
+		uint32_t m_id = 0;
+		uint32_t m_index_count = 0;
+	};
+
 }

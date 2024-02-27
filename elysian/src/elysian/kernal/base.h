@@ -4,6 +4,9 @@
 
 //platform detection / check
 #ifdef _WIN32
+//Next 2 lines prevent the APENTRY redef warnings
+#define  WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #define PLATFORM_WINDOWS
 #else
 #error "Unsupported platform!"

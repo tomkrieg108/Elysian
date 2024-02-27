@@ -1,56 +1,30 @@
 #pragma once
-
-//based on
-//https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/mesh.h
-
-
-static constexpr uint32_t MAX_BONE_INFLUENCE = 4;
+#include "elysian/kernal/base.h"
+#include "elysian/renderer/opengl_buffer.h"
+#include "elysian/renderer/opengl_buffer_layout.h"
+#include "elysian/renderer/opengl_vertex_array.h"
+#include "material.h"
 
 namespace ely
 {
-    class Shader;
+	/*
+	Mesh should contain Vertex data (defining geometry, Material data (defining surface properties)
+	And maybe a shader
+	*/
 
-    struct Vertex
-    {
-        glm::vec3 Position;
-        glm::vec3 Normal;
-        glm::vec2 TexCoords;
-        glm::vec3 Tangent;
-        glm::vec3 Bitangent;
-        //bone indexes which will influence this vertex
-        int32_t m_BoneIDs[MAX_BONE_INFLUENCE];
-        //weights from each bone
-        float m_Weights[MAX_BONE_INFLUENCE];
-    };
+	class Mesh
+	{
+	public:
+		Mesh(const OpenGLVertexBuffer& vertex_buffer, const BufferLayout& layout, const Material& material) :
+			m_layout{layout}, m_material{material}
+		{
+			m_vao.AddVertexBuffer(vertex_buffer);
+		}
 
-    struct TextureStruct 
-    {
-        unsigned int id;
-        std::string type;
-        std::string path;
-    };
-
-    class Mesh 
-    {
-    public:
-        // mesh Data
-        std::vector<Vertex>       vertices;
-        std::vector<unsigned int> indices;
-        std::vector<TextureStruct>      textures;
-        unsigned int VAO;
-
-        // constructor
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<TextureStruct> textures);
-
-        // render the mesh
-        void Draw(Shader& shader);
-
-    private:
-        // render data 
-        unsigned int VBO, EBO;
-
-        // initializes all the buffer objects/arrays
-        void setupMesh();
-    };
+	private:
+		BufferLayout m_layout;
+		Material m_material;
+		OpenGLVertexArray m_vao;
+	};
+	
 }
-

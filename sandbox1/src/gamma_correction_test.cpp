@@ -182,22 +182,22 @@ void GammaTestLayer::OnImGuiRender()
 	{
 		float tex_height = 400.0f;
 		float tex_width = tex_height * m_window.AspectRatio();
-		ImTextureID tex_id = (void *)(m_texture->GetId());
-		ImGui::Image(tex_id, ImVec2((int)tex_width, (int)tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
+		uint64_t tex_id = (uint64_t)(m_texture_srgb->GetId());
+		ImGui::Image((void*)tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 	}
 	if (ImGui::CollapsingHeader("Texture (SRGB enabled)"))
 	{
 		float tex_height = 400.0f;
 		float tex_width = tex_height * m_window.AspectRatio();
-		ImTextureID tex_id = (void*)(m_texture_srgb->GetId());
-		ImGui::Image(tex_id, ImVec2((int)tex_width, (int)tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
+		uint64_t tex_id = (uint64_t)(m_texture_srgb->GetId());
+		ImGui::Image((void *)tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 	}
 	if (ImGui::CollapsingHeader("Framebuffer (SRGB enabled)"))
 	{
 		float tex_height = 400.0f;
 		float tex_width = tex_height * m_window.AspectRatio();
-		ImTextureID tex_id = (void*)(m_framebuffer->GetColourAttachmentID());
-		ImGui::Image(tex_id, ImVec2((int)tex_width, (int)tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
+		uint64_t tex_id = (uint64_t)(m_texture_srgb->GetId());
+		ImGui::Image((void *)tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 	}
 }
 

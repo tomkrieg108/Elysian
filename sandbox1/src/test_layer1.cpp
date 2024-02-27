@@ -2,9 +2,11 @@
 
 #include "elysian/events/event_dispatcher.h"
 #include "elysian/renderer/opengl_shader.h"
+#include "elysian/model/mesh.h"
 #include "elysian/model/mesh_primitives.h"
 #include "elysian/kernal/log.h"
 #include "elysian/renderer/opengl_renderer.h"
+
 #include "test_layer1.h"
 
 #include <glm/glm.hpp>
@@ -30,8 +32,10 @@ TestLayer1::TestLayer1(ely::Window& window) :
 	ely::EventDispatcher::SetCallback(this, &TestLayer1::OnWindowResize);
 	ely::EventDispatcher::SetCallback(this, &TestLayer1::OnMouseButtonPressed);
 
-	//TODO this stuff should be in renderer module
+
 	ely::OpenGLRenderer::SetLineWidth(1.0);
+
+	auto cube_mesh = ely::MeshPrimitive::GetCubeMesh();
 	
 	//buffer setup
 	m_vbo_grid = ely::MeshPrimitive::GetGridVertexBuffer(20.0f, 1.0f);
@@ -93,8 +97,10 @@ TestLayer1::TestLayer1(ely::Window& window) :
 	m_ubuff_camera.Init(sizeof(glm::mat4) * 2, binding);
 
 	//texture setup
-	m_diffuse_map_tex = new ely::OpenGLTexture2D("container2.png");
-	m_specular_map_tex = new ely::OpenGLTexture2D("container2_specular.png");
+	//m_diffuse_map_tex = new ely::OpenGLTexture2D("container2.png");
+	//m_specular_map_tex = new ely::OpenGLTexture2D("container2_specular.png");
+	m_diffuse_map_tex = ely::Texture2DRepo::Get("container2.png").get();
+	m_specular_map_tex = ely::Texture2DRepo::Get("container2_specular.png").get();
 
 	// shader configuration
 	// --------------------
@@ -116,7 +122,7 @@ TestLayer1::TestLayer1(ely::Window& window) :
 	m_plane_shader->SetUniformMat4f("u_model", m_model_plane);
 
 	//load model
-	m_model = new ely::Model{ "../../assets/models/nanosuit/nanosuit.obj" };
+	//m_model = new lgl::Model{ "../../assets/models/nanosuit/nanosuit.obj" };
 
 	m_cube_shader->OutputInfo();
 	m_light_shader->OutputInfo();
@@ -165,7 +171,7 @@ void TestLayer1::OnUpdate(double time_step)
 	m_cube_shader->Bind();
 	//rotate the box on local axis
 	glm::vec3 rot_axis = glm::vec3(1, 1, 1);
-	float angle = time_step; // 1/60 radians 
+	float angle = (float)time_step; // 1/60 radians 
 	m_cube_model = glm::rotate(m_cube_model, angle, rot_axis);
 
 	//orbit box about world y axis
@@ -227,21 +233,21 @@ void TestLayer1::OnUpdate(double time_step)
 	glDrawArrays(GL_TRIANGLES, 0, m_vbo_square_xz->GetVertexCount());
 
 	//draw the loaded model
-	m_model_shader->Bind();
-	m_model_shader->SetUniformMat4f("projection", m_camera_controller.GetCamera().GetProjMatrix());
-	m_model_shader->SetUniformMat4f("view", m_camera_controller.GetCamera().GetViewMatrix());
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-	m_model_shader->SetUniformMat4f("model", model);
-	m_model->Draw(*m_model_shader);
+	//m_model_shader->Bind();
+	//m_model_shader->SetUniformMat4f("projection", m_camera_controller.GetCamera().GetProjMatrix());
+	//m_model_shader->SetUniformMat4f("view", m_camera_controller.GetCamera().GetViewMatrix());
+	//glm::mat4 model = glm::mat4(1.0f);
+	//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+	//model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+	//m_model_shader->SetUniformMat4f("model", model);
+	//m_model->Draw(*m_model_shader);
 
 	//-----------------------------------------------------------------------------------
 	//Render to framebuffer (main camera)
 	//-----------------------------------------------------------------------------------
 	
 	m_framebuffer.Bind();
-	ely::OpenGLRenderer::SetLineWidth(1.0);
+	ely::OpenGLRenderer::SetLineWidth(2.0);
 	ely::OpenGLRenderer::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	ely::OpenGLRenderer::ClearBuffers();
 	
@@ -294,6 +300,7 @@ void TestLayer1::OnUpdate(double time_step)
 	//render to framebuffer alt
 	//------------------------------------------------------------------------------------------
 	m_framebuffer_alt.Bind();
+	ely::OpenGLRenderer::SetLineWidth(2.0);
 	ely::OpenGLRenderer::SetClearColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 	ely::OpenGLRenderer::ClearBuffers();
 	
@@ -378,15 +385,17 @@ void TestLayer1::OnImGuiRender()
 	{
 		float tex_height = 400.0f;
 		float tex_width = tex_height * m_window.AspectRatio();
-		ImTextureID tex_id = (void*)(m_framebuffer.GetColourAttachmentID());
-		ImGui::Image(tex_id, ImVec2((int)tex_width, (int)tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
+		uint64_t color_attachment_id = (uint64_t)m_framebuffer.GetColourAttachmentID(); //uint64_t to stop compiler warning
+		ImTextureID tex_id = (void*)color_attachment_id;
+		ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 	}
 	if (ImGui::CollapsingHeader("Framebuffer - alt camera"))
 	{
-		float tex_height = 400.0f;
+		float tex_height = 400.0;
 		float tex_width = tex_height * m_window.AspectRatio();
-		ImTextureID tex_id = (void*)(m_framebuffer_alt.GetColourAttachmentID());
-		ImGui::Image(tex_id, ImVec2((int)tex_width, (int)tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
+		uint64_t color_attachment_id = (uint64_t)m_framebuffer_alt.GetColourAttachmentID();
+		ImTextureID tex_id = (void*)color_attachment_id;
+		ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 	}
 }
 

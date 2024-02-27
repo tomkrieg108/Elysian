@@ -112,11 +112,9 @@ namespace ely
 		return glm::normalize(glm::vec3(m_model[1][0], m_model[1][1], m_model[1][2]));
 	}
 
-	void OrthoCamera::SetAspectRatio(float width, float height)
+	void OrthoCamera::SetAspectRatio(float aspect_ratio)
 	{
-		if (height == 0.0f)
-			m_aspect_ratio = 1.0f;
-		else
-			m_aspect_ratio = width / height;
+		//TODO assert aspect ratio in valid range
+		m_aspect_ratio = aspect_ratio;
 	}
 }

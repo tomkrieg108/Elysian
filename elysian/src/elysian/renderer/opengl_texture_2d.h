@@ -65,4 +65,20 @@ namespace ely
 		
 	};
 
+	//-----------------------------------------------------------------------------------
+	//TODO - make as a template class?
+	class Texture2DRepo
+	{
+	public:
+		static void Init();
+		static Ref<OpenGLTexture2D> Load(const std::string& name);
+		static Ref<OpenGLTexture2D> Get(const std::string& name);
+		static bool Exists(const std::string& name);
+
+	private:
+		static void LoadTextures();
+		static std::unordered_map<std::string, Ref<OpenGLTexture2D>> m_texture2d_repo;
+		static const std::string s_texture_asset_path;
+	};
+
 }

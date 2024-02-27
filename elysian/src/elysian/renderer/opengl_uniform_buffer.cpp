@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "elysian/kernal/base.h"
 #include <glad/glad.h>
 #include "opengl_uniform_buffer.h"
 

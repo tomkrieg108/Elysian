@@ -7,10 +7,14 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include "mesh.h"
+#include "elysian/renderer/opengl_shader_utils.h"
+#include "elysian/renderer/opengl_shader.h"
+#include "mesh_lgl.h"
 
-namespace ely
+namespace lgl
 {
+    //class ely::Shader;
+
     uint32_t TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
 
     class Model
@@ -26,7 +30,7 @@ namespace ely
         Model(std::string const& path, bool gamma = false);
 
         // draws the model, and thus all its meshes
-        void Draw(Shader& shader);
+        void Draw(ely::Shader& shader);
 
     private:
         // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.

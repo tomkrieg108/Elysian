@@ -15,26 +15,24 @@ ely::OrthoCameraController::OrthoCameraController(glm::vec4 extent) :
   m_camera{extent}
 {
 	const Window& window = Application::GetInstance().GetWindow();
-	m_camera.SetAspectRatio(window.Width(), window.Height());
+	m_camera.SetAspectRatio(window.AspectRatio());
 }
 
 ely::OrthoCameraController::OrthoCameraController(glm::vec4 extent, glm::vec3 position) :
   m_camera{extent, position}
 {
 	const Window& window = Application::GetInstance().GetWindow();
-	m_camera.SetAspectRatio(window.Width(), window.Height());
+	m_camera.SetAspectRatio(window.AspectRatio());
 }
 
 void ely::OrthoCameraController::MoveUp(float amount)
 {
 	m_camera.m_model = glm::translate(m_camera.m_model, glm::vec3(0, amount, 0));
-	//m_camera.m_model[3][1] += amount;
 }
 
 void ely::OrthoCameraController::MoveRight(float amount)
 {
 	m_camera.m_model = glm::translate(m_camera.m_model, glm::vec3(amount, 0, 0));
-	//m_camera.m_model[3][0] += amount;
 }
 
 void ely::OrthoCameraController::MoveVertically(float amount)
@@ -93,7 +91,9 @@ void ely::OrthoCameraController::OnMouseScrolled(EventMouseScrolled& e)
 
 void ely::OrthoCameraController::OnWindowResize(EventWidowResize& e)
 {
-	m_camera.SetAspectRatio((float)e.buffer_width, (float)e.buffer_height);
+	//TODO assert e.buffer_height not zero and aspect ratio in valid range
+	float aspect_ration = (float)e.buffer_width / (float)e.buffer_height;
+	m_camera.SetAspectRatio(aspect_ration);
 }
 
 void ely::OrthoCameraController::OnMouseButtonPressed(EventMouseButtonPressed& e)

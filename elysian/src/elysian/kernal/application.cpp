@@ -2,6 +2,7 @@
 #include "elysian/kernal/application.h"
 #include "elysian/kernal/log.h"
 #include "elysian/renderer/opengl_renderer.h"
+#include "elysian/renderer/opengl_texture_2d.h"
 #include "elysian/renderer/opengl_shader.h"
 #include "elysian/imgui/im_gui_layer.h"
 
@@ -18,6 +19,7 @@ namespace ely
 		m_window = Window::Create(params);
 
 		OpenGLRenderer::Init();
+		Texture2DRepo::Init();
 		ShaderRepo::Init();
 
 		m_imgui_layer = new ImGuiLayer();

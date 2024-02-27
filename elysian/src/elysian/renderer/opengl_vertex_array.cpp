@@ -1,10 +1,13 @@
 #include "pch.h"
+#include "elysian/kernal/base.h"
 #include <glad/glad.h>
 #include "opengl_vertex_array.h"
 #include "opengl_buffer_layout.h"
+#include "elysian/renderer/opengl_shader_utils.h"
 #include "opengl_buffer.h"
 
 namespace ely
+
 {
 	OpenGLVertexArray::OpenGLVertexArray()
 	{
@@ -31,20 +34,26 @@ namespace ely
 		glBindVertexArray(m_id);
 		vertex_buffer.Bind();
 		const auto& layout = vertex_buffer.GetLayout();
-		uint32_t offset = 0;
-		for (auto& element : layout.getElements())
+		for (const auto& element : layout.GetElements())
 		{
 			glEnableVertexAttribArray(m_buffer_index);
-			if (element.type == GL_FLOAT)
+			if (ShaderUtils::OpenGLBaseTypeIsFloat(element.data_type) )
 			{
-				glVertexAttribPointer(m_buffer_index, element.count, element.type,
-					element.normalised ? GL_TRUE : GL_FALSE, layout.getStride(), (const void*)(offset));
+				glVertexAttribPointer(m_buffer_index, 
+					ShaderUtils::GetComponentCount(element.data_type),
+					ShaderUtils::ShaderDataTypeToOpenGLBaseType(element.data_type),
+					element.normalized ? GL_TRUE : GL_FALSE, 
+					layout.GetStride(), 
+					(const void*)(element.offset));
 			}
 			else
 			{
-				glVertexAttribIPointer(m_buffer_index, element.count, element.type, layout.getStride(), (const void*)(offset));
+				glVertexAttribIPointer(m_buffer_index,
+					ShaderUtils::GetComponentCount(element.data_type),
+					ShaderUtils::ShaderDataTypeToOpenGLBaseType(element.data_type),
+					layout.GetStride(),
+					(const void*)(element.offset));
 			}
-			offset += element.NumBytes();
 			++m_buffer_index;
 		}
 		m_vertex_buffers.push_back(vertex_buffer);

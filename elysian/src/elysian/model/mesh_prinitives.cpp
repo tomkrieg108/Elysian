@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "elysian/kernal/base.h"
 #include <glad/glad.h>
 #include "elysian/renderer/opengl_buffer_layout.h"
 #include "elysian/renderer/opengl_buffer.h"
@@ -210,55 +211,29 @@ namespace ely
      0.0f,  0.0f,  0.0f,
   };
 
-  
-  MeshBasic::MeshBasic(const std::vector<float>& vertex_data, const BufferLayout& layout) :
-    m_vertex_buffer{ new OpenGLVertexBuffer((void*)vertex_data.data(), vertex_data.size()*sizeof(float), layout)}
-	{
-	}
-
-  MeshBasic::~MeshBasic()
-	{
-    delete m_vertex_buffer;
-	}
-
+ //note that sizeof() operator returns size_t which is a 64 bit unsigned int
   OpenGLVertexBuffer* const MeshPrimitive::GetCubeVertexBuffer(DataType data_type)
   {
-    BufferLayout layout;
-    OpenGLVertexBuffer* vertex_buffer = nullptr;
-    if (data_type == DataType::VERTICIES)
+    BufferLayout layout =
     {
-      layout.push<float>(3);
-      vertex_buffer = new OpenGLVertexBuffer((void*)cube_vertices, sizeof(cube_vertices), layout);
-    }
-      
-    else if (data_type == DataType::UVS)
-    {
-      layout.push<float>(2);
-      vertex_buffer = new OpenGLVertexBuffer((void*)cube_uvs, sizeof(cube_uvs), layout);
-    }
-    else if (data_type == DataType::NORMALS)
-    {
-      layout.push<float>(3);
-      vertex_buffer = new OpenGLVertexBuffer((void*)cube_normals, sizeof(cube_normals), layout);
-    }
-    else
-    {
-      layout.push<float>(3); //positions
-      layout.push<float>(3); //normals
-      layout.push<float>(2); //UV's
-      vertex_buffer = new OpenGLVertexBuffer((void*)cube_texture_mapped, sizeof(cube_texture_mapped), layout);
-    }
+      {"a_position", ShaderDataType::Float3},
+      {"a_normal", ShaderDataType::Float3},
+      {"a_tex_coords", ShaderDataType::Float2},
+    };
+
+    OpenGLVertexBuffer* vertex_buffer = new OpenGLVertexBuffer((void*)cube_texture_mapped, (int32_t)sizeof(cube_texture_mapped), layout);
     return vertex_buffer;
   }
 
   OpenGLVertexBuffer* const MeshPrimitive::GetSquareXZVertexBuffer()
   {
-    BufferLayout layout;
-    OpenGLVertexBuffer* vertex_buffer = nullptr;
-
-    layout.push<float>(3);
-    vertex_buffer = new OpenGLVertexBuffer((void*)square_xz, sizeof(square_xz), layout);
+    BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3}
+    };
+    OpenGLVertexBuffer* vertex_buffer = new OpenGLVertexBuffer((void*)square_xz, (int32_t)sizeof(square_xz), layout);
     return vertex_buffer;
+
   }
 
   OpenGLVertexBuffer* const MeshPrimitive::GetGrayScaleStripBuffer(bool gamma_corrected)
@@ -277,17 +252,21 @@ namespace ely
       float col_2 = ::pow(col, inv_gamma);
       for (auto i = 0; i < size; i += 3)
       {
-        vertices.push_back(square_xz[i] + x);      //x
+        vertices.push_back(square_xz[i] + x);  //x
         vertices.push_back(square_xz[i + 1]);  //y
         vertices.push_back(square_xz[i + 2]);  //z
         vertices.insert(std::cend(vertices), { col_2,col_2,col_2,1.0f });
       }
       col += col_delta;
     }
-    BufferLayout layout;
-    layout.push<float>(3); //position
-    layout.push<float>(4); //colour
-    return new OpenGLVertexBuffer(vertices.data(), vertices.size() * sizeof(float), layout);
+
+    BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
+      {"a_color", ShaderDataType::Float4}
+    };
+    return new OpenGLVertexBuffer(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
+
   }
 
   OpenGLVertexBuffer* const MeshPrimitive::GetGridVertexBuffer(float grid_size, float unit_size)
@@ -316,10 +295,14 @@ namespace ely
       vertices.insert(std::cend(vertices), { x,y,z, col,col,col,1.0f });
       x += unit_size;
     }
-    BufferLayout layout;
-    layout.push<float>(3); //position
-    layout.push<float>(4); //colour
-    return new OpenGLVertexBuffer(vertices.data(), vertices.size() * sizeof(float), layout);
+
+    BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
+      {"a_color", ShaderDataType::Float4}
+    };
+
+    return new OpenGLVertexBuffer(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
   }
 
   OpenGLVertexBuffer* const MeshPrimitive::GetCoordSystemVertexBuffer(const glm::mat4& model_mat, float size)
@@ -338,10 +321,54 @@ namespace ely
     vertices.insert(std::cend(vertices), { 0,0,0, 0,0,1,1 }); //origin z
     vertices.insert(std::cend(vertices), { s * m[2][0], s * m[2][1], s * m[2][2], 0,0,1,1 }); //terminal z
 
-    BufferLayout layout;
-    layout.push<float>(3); //position
-    layout.push<float>(4); //colour
-    return new OpenGLVertexBuffer(vertices.data(), vertices.size() * sizeof(float), layout);
+    BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
+      {"a_color", ShaderDataType::Float4}
+    };
+    return new OpenGLVertexBuffer(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
   }
 
+  /*Ref<Mesh> MeshPrimitive::GetMesh(PrimitiveType primitive_type)
+  {
+    auto mesh = CreateRef<Mesh>();
+    return mesh;
+  }*/
+
+ Ref<Mesh> MeshPrimitive::GetCubeMesh()
+  {
+    MaterialSpecification material_spec =
+    {
+      {"u_albedo_map", ShaderDataType::Sampler2D},
+      {"u_specular_map", ShaderDataType::Sampler2D},
+      {"u_shininess", ShaderDataType::Float}
+    };
+
+    MaterialData material_data =
+    {
+      {"u_albedo_map", (uint32_t)0}, //without the case its interpreted as int
+      {"u_specular_map", (uint32_t)1},
+      {"u_shininess", 32.0f}
+    };
+
+    MaterialData material_data2;
+    material_data.SetValue("u_albedo_map", (uint32_t)0)
+      .SetValue("u_specular_map", (uint32_t)1)
+      .SetValue("u_specular_map", 32.0f);
+    
+    Material material(ShaderRepo::Get("cube_shader"), material_spec, material_data);
+
+    BufferLayout buffer_layout =
+    {
+      {"a_position", ShaderDataType::Float3},
+      {"a_normal", ShaderDataType::Float3},
+      {"a_tex_coords", ShaderDataType::Float2},
+    };
+
+    OpenGLVertexBuffer vbo = OpenGLVertexBuffer((void*)cube_texture_mapped, (int32_t)sizeof(cube_texture_mapped), buffer_layout);
+
+    auto mesh = CreateRef<Mesh>(vbo, buffer_layout, material);
+
+    return mesh;
+  }
 }

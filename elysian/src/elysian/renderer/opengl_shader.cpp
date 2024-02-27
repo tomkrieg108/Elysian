@@ -1,10 +1,12 @@
 #include "pch.h"
+#include "elysian/kernal/base.h"
 #include <glad/glad.h>
 #include "elysian/kernal/log.h"
+#include "opengl_shader_utils.h"
 #include "elysian/renderer/opengl_shader.h"
 
 
-//TODO
+//NOTE
 /*
 Save the uniform locations for each uniform straight after compiling the shader rather than caching them
 
@@ -22,6 +24,8 @@ https://www.youtube.com/watch?v=akxevYYWd9g&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHP
 
 namespace ely
 {
+	// ShaderBuilder --------------------------------------------------------------------------------------------
+
 	uint32_t ShaderBuilder::GetOpenGLShaderType(ShaderType type)
 	{
 		switch (type)
@@ -47,7 +51,8 @@ namespace ely
 
 	Ref<Shader> ShaderBuilder::Build(const std::string& name)
 	{
-		auto shader = std::make_unique<Shader>();
+		//auto shader = std::make_unique<Shader>();
+		auto shader = CreateRef<Shader>();
 		uint32_t program = glCreateProgram();
 
 		shader->m_name = name;
@@ -117,7 +122,7 @@ namespace ely
 
 	ShaderBuilder::ShaderInfo ShaderBuilder::Compile(uint32_t type, const std::string& filepath)
 	{
-		//TODO
+		//NOTE
 		/*
 		Can do this :
 			glBindAttribLocation (shader_programme, 0, "vertex_position");
@@ -161,7 +166,7 @@ namespace ely
 	}
 
 
-//-------------------------------------------------------------------------------------------------------------------------------
+	// ShaderSource --------------------------------------------------------------------------------------------
 
 	ShaderSource::ShaderSource(std::initializer_list<ShaderSourceFile> souce_files) :
 		src{ souce_files}
@@ -173,6 +178,9 @@ namespace ely
 		src.push_back(source_file);
 	}
 
+	// Shader --------------------------------------------------------------------------------------------
+
+	//TODO: - option to have all shaders in a single file (vs, fs etc)
 	/*Ref<Shader> Shader::Create(const std::string& filepath, const std::string& name)
 	{
 		
@@ -322,8 +330,6 @@ namespace ely
 		}
 	}
 
-	
-
 	void Shader::OutputInfo()
 	{
 #ifndef DEBUG
@@ -360,16 +366,16 @@ namespace ely
 		CORE_INFO("GL_ACTIVE_ATTRIBUTES {}", m_attributes.size());
 		for (auto& item : m_attributes)
 		{
-			CORE_TRACE("   {}: {}, loc = {}", item.name, GLTypeToString(item.gl_type), item.location);
+			CORE_TRACE("   {}: {}, loc = {}", item.name, ShaderUtils::OpenGLTypeTypeToString(item.gl_type), item.location);
 		}
 		CORE_INFO("GL_ACTIVE_UNIFORMS {}", m_uniforms.size());
 		for (auto& item : m_uniforms)
 		{
-			CORE_TRACE("   {}: {}, loc = {}", item.name, GLTypeToString(item.gl_type), item.location);
+			CORE_TRACE("   {}: {}, loc = {}", item.name, ShaderUtils::OpenGLTypeTypeToString(item.gl_type), item.location);
 		}
 	}
 
-	//----------------------------------------------------------------------------------------------------------
+	// ShaderRepo --------------------------------------------------------------------------------------------
 
 	std::unordered_map<std::string, Ref<Shader>> ShaderRepo::m_shader_repo{};
 	std::string const ShaderRepo::s_shader_asset_path = std::string{ "../../assets/shaders/" };
@@ -448,49 +454,4 @@ namespace ely
 		ShaderRepo::Load(shader_source, "gamma_correction");
 	}
 
-	//-----------------------------------------------------------------------------------------------------------
-	//TODO - put this stuff in a utils file
-
-	const std::string GLTypeToString(GLenum type)
-	{
-		switch (type)
-		{
-			case GL_BOOL: return std::string("GL_BOOL");
-			case GL_INT: return std::string("GL_INT");
-			case GL_FLOAT: return std::string("GL_FLOAT");
-			case GL_FLOAT_VEC2: return std::string("GL_FLOAT_VEC2");
-			case GL_FLOAT_VEC3: return std::string("GL_FLOAT_VEC3"); 
-			case GL_FLOAT_VEC4: return std::string("GL_FLOAT_VEC4");
-			case GL_FLOAT_MAT2: return std::string("GL_FLOAT_MAT2");
-			case GL_FLOAT_MAT3: return std::string("GL_FLOAT_MAT3");
-			case GL_FLOAT_MAT4: return std::string("GL_FLOAT_MAT4");
-			case GL_SAMPLER_2D: return std::string("GL_SAMPLER_2D");
-			case GL_SAMPLER_3D: return std::string("GL_SAMPLER_3D");
-			case GL_SAMPLER_CUBE: return std::string("GL_SAMPLER_CUBE");
-			case GL_SAMPLER_2D_SHADOW: return std::string("GL_SAMPLER_2D_SHADOW");
-			default: return std::string("OTHER");
-		}
-	}
-
-	void DisplayUniformValue(uint32_t program, int location, GLenum type)
-	{
-		if (type == GL_INT)
-		{
-			int val = 0;
-			glGetUniformiv(program, location, &val);
-			CORE_INFO("Val: {}: ", val);
-		}
-		if (type == GL_SAMPLER_2D)
-		{
-			int val = 0;
-			glGetUniformiv(program, location, &val);
-			CORE_INFO("Val: {}: ", val);
-		}
-		if (type == GL_FLOAT)
-		{
-			float val = 0;
-			glGetUniformfv(program, location, &val);
-			CORE_INFO("Val: {}: ", val);
-		}
-	}
 }

@@ -2,14 +2,15 @@
 //https://learnopengl.com/code_viewer_gh.php?code=includes/learnopengl/model.h
 
 #include "pch.h"
+#include "elysian/kernal/base.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 #include <stb_image/stb_image.h>
+#include "elysian/renderer/opengl_shader.h"
+#include "model_lgl.h"
 
-#include "model.h"
-
-namespace ely
+namespace lgl
 {
     Model::Model(std::string const& path, bool gamma) : m_gammaCorrection(gamma)
     {
@@ -17,7 +18,7 @@ namespace ely
     }
 
     // draws the model, and thus all its meshes
-    void Model::Draw(Shader& shader)
+    void Model::Draw(ely::Shader& shader)
     {
         for (uint32_t i = 0; i < m_meshes.size(); i++)
             m_meshes[i].Draw(shader);
@@ -41,6 +42,7 @@ namespace ely
 
         // process ASSIMP's root node recursively
         processNode(scene->mRootNode, scene);
+        int a = 2;
     }
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).

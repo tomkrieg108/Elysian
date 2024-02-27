@@ -1,23 +1,17 @@
 #pragma once
+#include "elysian/kernal/base.h"
 #include <glm/glm.hpp>
 #include "elysian/renderer/opengl_buffer.h"
+#include "mesh.h"
 
 namespace ely
 {
-	//class OpenGLVertexBuffer;
-	//class BufferLayout;
 
-	class MeshBasic
+	enum class PrimitiveType
 	{
-	public:
-		MeshBasic(const std::vector<float>& vertex_data, const BufferLayout& layout);
-		~MeshBasic();
-
-	private:
-		OpenGLVertexBuffer* m_vertex_buffer = nullptr;
+		Quad, Cube, Line, Grid
 	};
-
-
+	
 	class MeshPrimitive
 	{
 	public:
@@ -29,6 +23,13 @@ namespace ely
 
 		static OpenGLVertexBuffer* const GetSquareXZVertexBuffer();
 		static OpenGLVertexBuffer* const GetGrayScaleStripBuffer(bool gamma_corrected);
+
+		//static Ref<Mesh> GetMesh(PrimitiveType primitive_type);
+
+		static Ref<Mesh> GetCubeMesh();
+
+	private:
+		
 	};
 
-} 
+}

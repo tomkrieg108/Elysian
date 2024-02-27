@@ -5,6 +5,7 @@
 #include "elysian/events/events.h"
 #include "elysian/camera/ortho_camera_controller.h"
 #include "elysian/renderer/opengl_shader.h"
+#include "elysian/renderer/opengl_shader_utils.h"
 #include "elysian/renderer/opengl_texture_2d.h"
 #include "elysian/renderer/opengl_vertex_array.h"
 #include "elysian/renderer/opengl_buffer.h"

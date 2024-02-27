@@ -1,16 +1,16 @@
 #pragma once
 #include "elysian/kernal/base.h"
+#include "elysian/renderer/opengl_shader_utils.h"
 #include <glm/glm.hpp>
 
 /*
 TODO---------------------------
-check to see if any of the shader programs have been built already before creating.
-If it has been then return that shader
-
-redo the validation check function and program info function - see Anton (shaders chapter)
 
 Can setup 'hot reloading' of shader on the fly
+class names should be prefixed with OpenGL
 */
+
+
 
 namespace ely
 {
@@ -21,6 +21,7 @@ namespace ely
 		Vertex, Fragment, TesselationControl, TesselationEvaluation, Geometry, Compute
 	};
 
+	
 	class ShaderBuilder
 	{
 	public:
@@ -68,7 +69,7 @@ namespace ely
 	};
 
 	//------------------------------------------------------------------------------------------------
-
+	
 	class Shader
 	{
 		friend class ShaderBuilder;
@@ -97,9 +98,8 @@ namespace ely
 		bool BuildSuccess() const { return m_build_success; }
 		void OutputInfo();
 
-		//static Ref<Shader> Create(const std::string& filepath, const std::string& name);
-		static Ref<Shader> Create(const ShaderSource& shader_source, const std::string& name);	//if split into multiple files
-
+		//static Ref<Shader> Create(const std::string& filepath, const std::string& name);			//For a single file
+		static Ref<Shader> Create(const ShaderSource& shader_source, const std::string& name);	//If split into multiple files
 
 	private:
 
@@ -124,13 +124,10 @@ namespace ely
 	};
 
 	//------------------------------------------------------------------------------------------------
-
+	//TODO - make as a template class? - similar type of thing for textures, models etc
 	class ShaderRepo
 	{
 	public:
-		ShaderRepo() = default;
-		~ShaderRepo() = default;
-
 		static void Init();
 		static Ref<Shader> Load(const ShaderSource& shader_source, const std::string& name);
 		static Ref<Shader> Get(const std::string& name);
@@ -143,10 +140,5 @@ namespace ely
 
 		friend ShaderBuilder;
 	};
-
-	//------------------------------------------------------------------------------------------------
-
-	const std::string GLTypeToString(uint32_t type);
-	void DisplayUniformValue(uint32_t program, int location, uint32_t type);
 
 }

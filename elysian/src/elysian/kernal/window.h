@@ -28,10 +28,10 @@ namespace ely
 		~Window();
 		Window(const WindowParams& initial_params); //Compile error if made private (due to unique_pointer<Window>
 
-		int Height() const { return m_params.height; } ;
-		int Width() const { return m_params.width; }
-		int BufferHeight() const { return m_params.buffer_height; };
-		int BufferWidth() const { return m_params.buffer_width; };
+		uint32_t Height() const { return m_params.height; } ;
+		uint32_t Width() const { return m_params.width; }
+		uint32_t BufferHeight() const { return m_params.buffer_height; };
+		uint32_t BufferWidth() const { return m_params.buffer_width; };
 		float AspectRatio() const {
 			return (float)BufferWidth() / (float)BufferHeight();
 		}

@@ -19,7 +19,7 @@ namespace ely
 		const glm::mat4& GetModelMatrix() const;
 
 		void SetPosition(glm::vec3& position);
-		void SetAspectRatio(float width, float height);
+		void SetAspectRatio(float aspect_ratio);
 
 		glm::vec3 GetPosition() const;
 		glm::vec3 GetFront() const;

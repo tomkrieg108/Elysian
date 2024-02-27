@@ -7,13 +7,14 @@
 #include "elysian/events/events.h"
 #include "elysian/camera/perspective_camera_controller.h"
 #include "elysian/renderer/opengl_shader.h"
+#include "elysian/renderer/opengl_shader_utils.h"
 #include "elysian/renderer/opengl_texture_2d.h"
 #include "elysian/renderer/opengl_vertex_array.h"
 #include "elysian/renderer/opengl_buffer.h"
 #include "elysian/renderer/opengl_framebuffer.h"
 #include "elysian/renderer/opengl_uniform_buffer.h"
 
-#include "elysian/model/model.h"
+#include "elysian/model/model_lgl.h"
 
 
 class TestLayer1 : public ely::Layer
@@ -78,7 +79,7 @@ private:
 
 	glm::mat4 m_model_plane = glm::mat4(1.0); // model matrix of the yellow square!
 
-	ely::Model* m_model = nullptr;
+	lgl::Model* m_model = nullptr;
 };
 
 

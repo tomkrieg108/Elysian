@@ -1,9 +1,9 @@
 #pragma once
 
+#include "opengl_buffer.h"
+
 namespace ely
 {
-	class OpenGLVertexBuffer;
-
 	class OpenGLVertexArray
 	{
 	public:
@@ -21,6 +21,4 @@ namespace ely
 		uint32_t m_buffer_index = 0;
 		std::vector<OpenGLVertexBuffer> m_vertex_buffers;
 	};
-
-
 }
