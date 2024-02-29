@@ -21,6 +21,7 @@ namespace ely
 		OpenGLRenderer::Init();
 		Texture2DRepo::Init();
 		ShaderRepo::Init();
+		MaterialRepo::Init();
 
 		m_imgui_layer = new ImGuiLayer();
 		PushOverlay(m_imgui_layer);

@@ -77,7 +77,7 @@ namespace ely
 
 	private:
 		static void LoadTextures();
-		static std::unordered_map<std::string, Ref<OpenGLTexture2D>> m_texture2d_repo;
+		static std::unordered_map<std::string, Ref<OpenGLTexture2D>> s_texture2d_repo;
 		static const std::string s_texture_asset_path;
 	};
 

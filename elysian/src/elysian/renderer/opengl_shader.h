@@ -10,7 +10,10 @@ Can setup 'hot reloading' of shader on the fly
 class names should be prefixed with OpenGL
 */
 
-
+/*
+TODO use consistent naming for GLSL shader names (attributes, uniforms, the name of the shader itself) and
+buffer layouts, materials etc
+*/
 
 namespace ely
 {
@@ -87,9 +90,9 @@ namespace ely
 		void SetUniform2f(const std::string& name, float v0, float v1);
 		void SetUniform3f(const std::string& name, float v0, float v1, float v2);
 		void SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
-		void SetUniform2f(const std::string& name, glm::vec2& data);
-		void SetUniform3f(const std::string& name, glm::vec3& data);
-		void SetUniform4f(const std::string& name, glm::vec4& data);
+		void SetUniform2f(const std::string& name, const glm::vec2& data);
+		void SetUniform3f(const std::string& name, const glm::vec3& data);
+		void SetUniform4f(const std::string& name, const glm::vec4& data);
 		void SetUniform1i(const std::string& name, int v0);
 		void SetUniformMat4f(const std::string& name, const glm::mat4& matrix);
 

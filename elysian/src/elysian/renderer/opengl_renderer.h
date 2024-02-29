@@ -1,8 +1,17 @@
 #pragma once
+#include "elysian/kernal/base.h"
+#include "elysian/model/mesh.h"
 #include "opengl_shader.h"
+#include "opengl_shader.h"
+
 
 namespace ely
 {
+	enum class DrawMode
+	{
+		Triangles, Lines
+	};
+
 	class OpenGLRenderer
 	{
 	public:
@@ -13,8 +22,10 @@ namespace ely
 		static void ClearBuffers();
 		static void SetLineWidth(float width);
 	
+		static void DrawMesh(Ref<Mesh> mesh, Ref<Shader> shader, DrawMode = DrawMode::Triangles);
+
 	private:
-	
+		static uint32_t GetOpenGLDrawMode(DrawMode draw_mode);
 	};
 }
 

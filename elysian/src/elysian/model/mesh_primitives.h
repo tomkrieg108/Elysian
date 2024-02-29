@@ -6,7 +6,6 @@
 
 namespace ely
 {
-
 	enum class PrimitiveType
 	{
 		Quad, Cube, Line, Grid
@@ -15,19 +14,20 @@ namespace ely
 	class MeshPrimitive
 	{
 	public:
-		enum class DataType { VERTICIES, UVS, NORMALS, TEXTURE_MAPPED};
-
-		static OpenGLVertexBuffer* const GetCubeVertexBuffer(DataType data_type = DataType::TEXTURE_MAPPED);
+		
+		//TODO - better if these return Ref<OpenGLVertexBuffer> 
+		static OpenGLVertexBuffer* const GetCubeVertexBuffer();
 		static OpenGLVertexBuffer* const GetGridVertexBuffer(float grid_size, float unit_size);
 		static OpenGLVertexBuffer* const GetCoordSystemVertexBuffer(const glm::mat4& model_mat, float size);
 
 		static OpenGLVertexBuffer* const GetSquareXZVertexBuffer();
 		static OpenGLVertexBuffer* const GetGrayScaleStripBuffer(bool gamma_corrected);
 
-		//static Ref<Mesh> GetMesh(PrimitiveType primitive_type);
-
 		static Ref<Mesh> GetCubeMesh();
-
+		static Ref<Mesh> GetQuadMesh();
+		static Ref<Mesh> GetGridMesh(float grid_size, float unit_size);
+		static Ref<Mesh> GetCoordSystemMesh(const glm::mat4& model_mat, float size);
+		
 	private:
 		
 	};

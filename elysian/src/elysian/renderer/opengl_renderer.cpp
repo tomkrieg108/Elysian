@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "elysian/kernal/base.h"
+#include "elysian/model/mesh.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include "opengl_renderer.h"
@@ -39,6 +40,33 @@ namespace ely
 	void OpenGLRenderer::SetLineWidth(float width)
 	{
 		glLineWidth(width);
+	}
+
+	void OpenGLRenderer::DrawMesh(Ref<Mesh> mesh, Ref<Shader> shader, DrawMode draw_mode)
+	{
+		auto& material = mesh->GetMaterial();
+		const auto& vao = mesh->GetVertexArray();
+
+		shader->Bind();
+		material.UploadDataToShader(shader);
+		vao.Bind();
+
+		//TODO - handle multiple vbos
+		auto& vbo = vao.GetVertexBuffers()[0];
+		glDrawArrays(GetOpenGLDrawMode(draw_mode), 0, vbo.GetVertexCount());
+	}
+
+
+	uint32_t OpenGLRenderer::GetOpenGLDrawMode(DrawMode draw_mode)
+	{
+		switch (draw_mode)
+		{
+		case DrawMode::Triangles: return GL_TRIANGLES;
+		case DrawMode::Lines: return GL_LINES;
+		}
+
+		//TODO assert unknown draw mode
+		return GL_TRIANGLES;
 	}
 
 }

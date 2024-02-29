@@ -141,8 +141,8 @@ namespace ely
 	//----------------------------------------------------------------------------------------------------------
 	//Texture2D Repo
 
-	std::unordered_map<std::string, Ref<OpenGLTexture2D>> Texture2DRepo::m_texture2d_repo{};
-	std::string const Texture2DRepo::s_texture_asset_path = std::string{ "../../assets/textures/" };
+	std::unordered_map<std::string, Ref<OpenGLTexture2D>> Texture2DRepo::s_texture2d_repo{};
+	std::string const Texture2DRepo::s_texture_asset_path = std::string{ "../../assets/textures/" }; //TODO - duplicated from OpenGLTexture2D
 
 	void Texture2DRepo::Init()
 	{
@@ -152,19 +152,19 @@ namespace ely
 	Ref<OpenGLTexture2D> Texture2DRepo::Load(const std::string& name)
 	{
 		//TODO: assert that texture doesn't already exist
-		m_texture2d_repo[name] = CreateRef<OpenGLTexture2D>(name);
-		return m_texture2d_repo[name];
+		s_texture2d_repo[name] = CreateRef<OpenGLTexture2D>(name);
+		return s_texture2d_repo[name];
 	}
 
 	Ref<OpenGLTexture2D> Texture2DRepo::Get(const std::string& name)
 	{
 		//TODO: assert that texture exists
-		return m_texture2d_repo[name];
+		return s_texture2d_repo[name];
 	}
 
 	bool Texture2DRepo::Exists(const std::string& name)
 	{
-		return m_texture2d_repo.find(name) != m_texture2d_repo.end();
+		return s_texture2d_repo.find(name) != s_texture2d_repo.end();
 	}
 
 	void Texture2DRepo::LoadTextures()

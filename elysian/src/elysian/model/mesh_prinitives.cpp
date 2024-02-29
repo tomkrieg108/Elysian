@@ -3,193 +3,72 @@
 #include <glad/glad.h>
 #include "elysian/renderer/opengl_buffer_layout.h"
 #include "elysian/renderer/opengl_buffer.h"
+#include "elysian/renderer/opengl_texture_2d.h"
 #include "elysian/kernal/log.h"
 #include "mesh_primitives.h"
 #include <cmath>
 
 namespace ely
 {
-  static float cube_vertices[] = 
+ 
+  static float cube_vertices[] =
   {
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
+    // positions          // normals          // uv coords
+   -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+    0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+   -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+   -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-    -0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
+   -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+    0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+   -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+   -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
+   -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+   -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+   -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+   -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+   -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+   -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+    0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-    -0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f, -0.5f,
-     0.5f, -0.5f,  0.5f,
-     0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f,  0.5f,
-    -0.5f, -0.5f, -0.5f,
+   -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+    0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+   -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+   -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-    -0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f, -0.5f,
-     0.5f,  0.5f,  0.5f,
-     0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f,  0.5f,
-    -0.5f,  0.5f, -0.5f,
+   -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+   -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+   -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
   };
 
-  static float cube_normals[] = 
+  
+  static float quad_vertices[] = //X-Z plane
   {
-     0.0f,  0.0f, -1.0f,  
-     0.0f,  0.0f, -1.0f,  
-     0.0f,  0.0f, -1.0f,  
-     0.0f,  0.0f, -1.0f,  
-     0.0f,  0.0f, -1.0f,  
-     0.0f,  0.0f, -1.0f,  
-
-     0.0f,  0.0f,  1.0f,  
-     0.0f,  0.0f,  1.0f,  
-     0.0f,  0.0f,  1.0f,  
-     0.0f,  0.0f,  1.0f,  
-     0.0f,  0.0f,  1.0f,  
-     0.0f,  0.0f,  1.0f,  
-
-    -1.0f,  0.0f,  0.0f,  
-    -1.0f,  0.0f,  0.0f,  
-    -1.0f,  0.0f,  0.0f,  
-    -1.0f,  0.0f,  0.0f,  
-    -1.0f,  0.0f,  0.0f,  
-    -1.0f,  0.0f,  0.0f,  
-
-     1.0f,  0.0f,  0.0f,  
-     1.0f,  0.0f,  0.0f,  
-     1.0f,  0.0f,  0.0f,  
-     1.0f,  0.0f,  0.0f,  
-     1.0f,  0.0f,  0.0f,  
-     1.0f,  0.0f,  0.0f,  
-
-     0.0f, -1.0f,  0.0f,  
-     0.0f, -1.0f,  0.0f,  
-     0.0f, -1.0f,  0.0f,  
-     0.0f, -1.0f,  0.0f,  
-     0.0f, -1.0f,  0.0f,  
-     0.0f, -1.0f,  0.0f,  
-
-     0.0f,  1.0f,  0.0f,  
-     0.0f,  1.0f,  0.0f,  
-     0.0f,  1.0f,  0.0f,  
-     0.0f,  1.0f,  0.0f,  
-     0.0f,  1.0f,  0.0f,  
-     0.0f,  1.0f,  0.0f,  
+    // positions          // normals          // uv coords
+   -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+   -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+   -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
   };
-
-  static float cube_uvs[] = 
-  {
-      0.0f,  0.0f,
-      1.0f,  0.0f,
-      1.0f,  1.0f,
-      1.0f,  1.0f,
-      0.0f,  1.0f,
-      0.0f,  0.0f,
-
-      0.0f,  0.0f,
-      1.0f,  0.0f,
-      1.0f,  1.0f,
-      1.0f,  1.0f,
-      0.0f,  1.0f,
-      0.0f,  0.0f,
-
-      1.0f,  0.0f,
-      1.0f,  1.0f,
-      0.0f,  1.0f,
-      0.0f,  1.0f,
-      0.0f,  0.0f,
-      1.0f,  0.0f,
-
-      1.0f,  0.0f,
-      1.0f,  1.0f,
-      0.0f,  1.0f,
-      0.0f,  1.0f,
-      0.0f,  0.0f,
-      1.0f,  0.0f,
-
-      0.0f,  1.0f,
-      1.0f,  1.0f,
-      1.0f,  0.0f,
-      1.0f,  0.0f,
-      0.0f,  0.0f,
-      0.0f,  1.0f,
-
-      0.0f,  1.0f,
-      1.0f,  1.0f,
-      1.0f,  0.0f,
-      1.0f,  0.0f,
-      0.0f,  0.0f,
-      0.0f,  1.0f
-  };
-
-  static float cube_texture_mapped[] =
-  {
-    // positions          // normals           // texture coords
- -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-  0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
-  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
-  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
- -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
- -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
-
- -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-  0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
-  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
- -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
- -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
- -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
- -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
- -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
- -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
- -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
- -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-  0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
-  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
-  0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
- -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-  0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
-  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
- -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
- -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
-
- -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-  0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
- -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
- -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
-  };
-
+ 
   static float plane_texture_mapped[] =
   {
     0.0f,  0.0f,  0.0f ,  0.0f, 0.0f ,
@@ -199,7 +78,6 @@ namespace ely
     1.0f,  0.0f,  0.0f ,  1.0f, 0.0f ,
     1.0f,  0.0f,  1.0f ,  1.0f, 1.0f
   };
-
 
   static float square_xz[] =
   {
@@ -212,7 +90,7 @@ namespace ely
   };
 
  //note that sizeof() operator returns size_t which is a 64 bit unsigned int
-  OpenGLVertexBuffer* const MeshPrimitive::GetCubeVertexBuffer(DataType data_type)
+  OpenGLVertexBuffer* const MeshPrimitive::GetCubeVertexBuffer()
   {
     BufferLayout layout =
     {
@@ -221,7 +99,8 @@ namespace ely
       {"a_tex_coords", ShaderDataType::Float2},
     };
 
-    OpenGLVertexBuffer* vertex_buffer = new OpenGLVertexBuffer((void*)cube_texture_mapped, (int32_t)sizeof(cube_texture_mapped), layout);
+    OpenGLVertexBuffer* vertex_buffer = new OpenGLVertexBuffer((void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout);
+
     return vertex_buffer;
   }
 
@@ -329,46 +208,40 @@ namespace ely
     return new OpenGLVertexBuffer(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
   }
 
-  /*Ref<Mesh> MeshPrimitive::GetMesh(PrimitiveType primitive_type)
+  Ref<Mesh> MeshPrimitive::GetCubeMesh()
   {
-    auto mesh = CreateRef<Mesh>();
-    return mesh;
-  }*/
-
- Ref<Mesh> MeshPrimitive::GetCubeMesh()
-  {
-    MaterialSpecification material_spec =
+    BufferLayout layout =
     {
-      {"u_albedo_map", ShaderDataType::Sampler2D},
-      {"u_specular_map", ShaderDataType::Sampler2D},
-      {"u_shininess", ShaderDataType::Float}
+      {"aPos", ShaderDataType::Float3},
+      {"aNormal", ShaderDataType::Float3},
+      {"aTexCoords", ShaderDataType::Float2},
     };
 
-    MaterialData material_data =
-    {
-      {"u_albedo_map", (uint32_t)0}, //without the case its interpreted as int
-      {"u_specular_map", (uint32_t)1},
-      {"u_shininess", 32.0f}
-    };
-
-    MaterialData material_data2;
-    material_data.SetValue("u_albedo_map", (uint32_t)0)
-      .SetValue("u_specular_map", (uint32_t)1)
-      .SetValue("u_specular_map", 32.0f);
+    OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
     
-    Material material(ShaderRepo::Get("cube_shader"), material_spec, material_data);
+    auto mesh = CreateRef<Mesh>(vbo, layout, MaterialRepo::Get("container2_specular"));
 
-    BufferLayout buffer_layout =
-    {
-      {"a_position", ShaderDataType::Float3},
-      {"a_normal", ShaderDataType::Float3},
-      {"a_tex_coords", ShaderDataType::Float2},
-    };
+    return mesh;
+  }
 
-    OpenGLVertexBuffer vbo = OpenGLVertexBuffer((void*)cube_texture_mapped, (int32_t)sizeof(cube_texture_mapped), buffer_layout);
+  Ref<Mesh> MeshPrimitive::GetQuadMesh()
+  {
+    OpenGLVertexBuffer* vbo = MeshPrimitive::GetSquareXZVertexBuffer();
+    auto mesh = CreateRef<Mesh>(*vbo, vbo->GetLayout(), MaterialRepo::Get("colored_basic_yellow"));
+    return mesh;
+  }
 
-    auto mesh = CreateRef<Mesh>(vbo, buffer_layout, material);
+  Ref<Mesh> MeshPrimitive::GetGridMesh(float grid_size, float unit_size)
+  {
+    OpenGLVertexBuffer* vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, unit_size);
+    auto mesh = CreateRef<Mesh>(*vbo, vbo->GetLayout(), MaterialRepo::Get("empty"));
+    return mesh;
+  }
 
+  Ref<Mesh> MeshPrimitive::GetCoordSystemMesh(const glm::mat4& model_mat, float size)
+  {
+    OpenGLVertexBuffer* vbo = MeshPrimitive::GetCoordSystemVertexBuffer(model_mat, size);
+    auto mesh = CreateRef<Mesh>(*vbo, vbo->GetLayout(), MaterialRepo::Get("empty"));
     return mesh;
   }
 }

@@ -8,6 +8,11 @@ namespace ely
 	/*
 	TODO - better to call these AttributeElement, AttributeLayout?
 	*/
+
+	/*
+TODO use consistent naming for GLSL shader names (attributes, uniforms, the name of the shader itself) and
+buffer layouts, materials etc
+*/
 	
 	struct BufferElement
 	{

@@ -8,6 +8,7 @@
 namespace ely
 {
 	/*
+	NOTE
 	Mesh should contain Vertex data (defining geometry, Material data (defining surface properties)
 	And maybe a shader
 	*/
@@ -15,15 +16,18 @@ namespace ely
 	class Mesh
 	{
 	public:
-		Mesh(const OpenGLVertexBuffer& vertex_buffer, const BufferLayout& layout, const Material& material) :
-			m_layout{layout}, m_material{material}
+		Mesh(const OpenGLVertexBuffer& vertex_buffer, const BufferLayout& layout, Ref<Material> material) :
+			m_material{ material }
 		{
 			m_vao.AddVertexBuffer(vertex_buffer);
 		}
 
+		void SetMaterial(Ref<Material> material) { m_material = material; }
+		Material& GetMaterial() { return *m_material; } //ret val need to be non-const to get the range based for loops to compile!
+		const OpenGLVertexArray& GetVertexArray() { return m_vao; }
+
 	private:
-		BufferLayout m_layout;
-		Material m_material;
+		Ref<Material> m_material;
 		OpenGLVertexArray m_vao;
 	};
 	

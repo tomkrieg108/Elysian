@@ -231,17 +231,17 @@ namespace ely
 		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0][0]);
 	}
 
-	void Shader::SetUniform2f(const std::string& name, glm::vec2& data)
+	void Shader::SetUniform2f(const std::string& name, const glm::vec2& data)
 	{
 		glUniform2f(GetUniformLocation(name), data[0], data[1]);
 	}
 
-	void Shader::SetUniform3f(const std::string& name, glm::vec3& data)
+	void Shader::SetUniform3f(const std::string& name, const glm::vec3& data)
 	{
 		glUniform3f(GetUniformLocation(name), data[0], data[1], data[2]);
 	}
 
-	void Shader::SetUniform4f(const std::string& name, glm::vec4& data)
+	void Shader::SetUniform4f(const std::string& name, const glm::vec4& data)
 	{
 		glUniform4f(GetUniformLocation(name), data[0], data[1], data[2], data[3]);
 	}
@@ -408,32 +408,40 @@ namespace ely
 	{
 		ShaderSource shader_source =
 		{
-			{ShaderType::Vertex, "4.2.lighting_maps.vs"},
-			{ShaderType::Fragment, "4.2.lighting_maps.fs"}
+			{ShaderType::Vertex, "light_map_diff_spec.vs"},
+			{ShaderType::Fragment, "light_map_diff_spec.fs"}
 		};
-		ShaderRepo::Load(shader_source, "cube_shader");
+		ShaderRepo::Load(shader_source, "light_map_diff_spec");
 
 		shader_source.Reset();
 		shader_source =
 		{
-			{ShaderType::Vertex, "2.1.light_cube.vs"},
-			{ShaderType::Fragment, "2.1.light_cube.fs"}
+			{ShaderType::Vertex, "white.vs"},
+			{ShaderType::Fragment, "white.fs"}
 		};
-		ShaderRepo::Load(shader_source, "light_cube");
+		ShaderRepo::Load(shader_source, "white");
 
 		shader_source.Reset();
 		shader_source =
 		{
-			{ShaderType::Vertex, "1.colors.vs"},
-			{ShaderType::Fragment, "1.colors.fs"}
+			{ShaderType::Vertex, "colored_basic.vs"},
+			{ShaderType::Fragment, "colored_basic.fs"}
 		};
-		ShaderRepo::Load(shader_source, "basic_lighting_colors");
+		ShaderRepo::Load(shader_source, "colored_basic");
 
 		shader_source.Reset();
 		shader_source =
 		{
-			{ShaderType::Vertex, "1.model_loading.vs"},
-			{ShaderType::Fragment, "1.model_loading.fs"}
+			{ShaderType::Vertex, "colored_diff.vs"},
+			{ShaderType::Fragment, "colored_diff.fs"}
+		};
+		ShaderRepo::Load(shader_source, "colored_diff");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "model_loading.vs"},
+			{ShaderType::Fragment, "model_loading.fs"}
 		};
 		ShaderRepo::Load(shader_source, "model_loading");
 
