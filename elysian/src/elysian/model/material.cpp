@@ -17,7 +17,7 @@ namespace ely
 		return *this;
 	}
 
-	void MaterialSpecification::ValidateAgainstShader(const Ref<Shader>& shader)
+	void MaterialSpecification::ValidateAgainstShader(const Ref<Shader>& shader) const
 	{
 		//TODO
 	}
@@ -35,24 +35,24 @@ namespace ely
 		return *this;
 	}
 
-	const MatData& MaterialData::GetValue(const std::string& name)
-	{
-		//TODO check that the value actually exists
-		return m_material_data[name];
-	}
-
-	void MaterialData::ValidateAgainstSpec(const MaterialSpecification& spec) 
+	void MaterialData::ValidateAgainstSpec(const MaterialSpecification& spec) const
 	{
 		//TODO
 	}
 
 	//------------------------------------------------------------------------------
 
-	void Material::UploadDataToShader(const Ref<Shader>& shader)
+	void Material::UploadDataToShader(const Ref<Shader>& shader) const
 	{
 		//TODO only want to upload anything that has changed
 
 		shader->Bind();
+
+		/*
+			Note: for range-based for loops to work here, class MaterialData needs to supply *non-const* begin() and end() itr getters,
+			If this method is const then will generate a compile error
+		*/
+		
 
 		for (const auto& data_element : m_data)
 		{
@@ -79,7 +79,7 @@ namespace ely
 		}
 	}
 
-	void Material::ValidateAgainstShader(const Ref<Shader>& shader)
+	void Material::ValidateAgainstShader(const Ref<Shader>& shader) const
 	{
 		//TODO
 	}
@@ -117,18 +117,18 @@ namespace ely
 		//-------------------------------------------------
 		MaterialSpecification material_spec =
 		{
-			{"material.diffuse", ShaderDataType::Sampler2D},
-			{"material.specular", ShaderDataType::Sampler2D},
-			{"material.shininess", ShaderDataType::Float}
+			{"u_material.diffuse", ShaderDataType::Sampler2D},
+			{"u_material.specular", ShaderDataType::Sampler2D},
+			{"u_material.shininess", ShaderDataType::Float}
 		};
 
 		auto diffuse_tex_map = ely::Texture2DRepo::Get("container2.png").get();
 		auto specular_tex_map = ely::Texture2DRepo::Get("container2_specular.png").get();
 
 		MaterialData material_data;
-		material_data.SetValue("material.diffuse", diffuse_tex_map)
-									.SetValue("material.specular", specular_tex_map)
-									.SetValue("material.shininess", 32.0f);
+		material_data.SetValue("u_material.diffuse", diffuse_tex_map)
+									.SetValue("u_material.specular", specular_tex_map)
+									.SetValue("u_material.shininess", 32.0f);
 
 
 		s_material_repo["container2_specular"] = CreateRef<Material>(material_spec, material_data);
@@ -143,10 +143,10 @@ namespace ely
 		//-------------------------------------------------
 		MaterialSpecification colored_basic_spec =
 		{
-			{"objectColor", ShaderDataType::Float3}
+			{"u_object_color", ShaderDataType::Float3}
 		};
 		MaterialData colored_basic_yellow;
-		colored_basic_yellow.SetValue("objectColor", glm::vec3(1.0f, 1.0f, 0.0f));
+		colored_basic_yellow.SetValue("u_object_color", glm::vec3(1.0f, 1.0f, 0.0f));
 		s_material_repo["colored_basic_yellow"] = CreateRef<Material>(colored_basic_spec, colored_basic_yellow);
 	}
 

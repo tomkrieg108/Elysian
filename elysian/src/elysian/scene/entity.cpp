@@ -3,33 +3,54 @@
 #include "entity.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace ely
-{
 
-	CubeEntity::CubeEntity(Ref<Mesh> mesh) :
-		Entity(mesh)
-	{}
 
-	CubeEntity::CubeEntity(const glm::mat4& transform, Ref<Mesh> mesh) :
-		Entity(transform, mesh)
-	{}
+namespace ely {
 
-	void CubeEntity::OnUpdate(double delta_time)
-	{
-		//rotate the box on local axis
-		glm::vec3 rot_axis = glm::vec3(1, 1, 1);
-		float angle = (float)delta_time; // 1/60 radians 
-		m_transform_mat = glm::rotate(m_transform_mat, angle, rot_axis);
+#if (SCENE_VERS == 1)
 
-		//orbit box about world y axis
-		glm::mat4 orbit_axis = glm::mat4(1.0f);
-		orbit_axis = glm::rotate(orbit_axis, angle, glm::vec3(0, 1, 0));
-		m_transform_mat = orbit_axis * m_transform_mat;
-	}
+		void Entity::Render()
+		{
+			if (m_components.find("mesh") == m_components.end())
+				return; //no mesh components => not renderable
 
-	void CubeEntity::Draw()
-	{
-		ely::OpenGLRenderer::DrawMesh(GetMesh(), ely::ShaderRepo::Get("light_map_diff_spec"));
-	}
+			const auto& mesh = std::dynamic_pointer_cast<MeshComponent>(m_components["mesh"])->GetMesh();
+			const auto& shader = std::dynamic_pointer_cast<ShaderComponent>(m_components["shader"])->GetShader();
+
+			if (m_components.find("light") != m_components.end())
+				m_components["light"]->UploadToShader(ely::ShaderRepo::Get("light_map_diff_spec"));
+
+			m_components["transform"]->UploadToShader(shader);
+			OpenGLRenderer::DrawMesh(mesh, shader); //this uploads material data too
+		}
+
+		void Entity::OnUpdate(double time_step)
+		{
+			if (m_components.find("behaviour") != m_components.end())
+			{
+				const auto behaviour_comp = std::dynamic_pointer_cast<BehaviourComponent>(m_components["behaviour"]);
+				behaviour_comp->OnUpdate(time_step);
+			}
+		}
+
+		void Entity::OnEvent(Event& event)
+		{
+			if (m_components.find("event_handler") != m_components.end())
+			{
+				const auto event_comp = std::dynamic_pointer_cast<EventHandlerComponent>(m_components["event_handler"]);
+				event_comp->OnEvent(event);
+			}
+		}
+
+#endif
+
+}
+
+namespace ely {
+
+#if (SCENE_VERS == 2)
+
+
+#endif
 
 }

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "elysian/kernal/base.h"
+#include "elysian/kernal/log.h"
 #include <glad/glad.h>
 #include "opengl_vertex_array.h"
 #include "opengl_buffer_layout.h"
@@ -31,6 +32,7 @@ namespace ely
 
 	void OpenGLVertexArray::AddVertexBuffer(const OpenGLVertexBuffer& vertex_buffer)
 	{
+		//TODO - is there a need to store the vertex buffer- only need the num verticies for the draw call
 		glBindVertexArray(m_id);
 		vertex_buffer.Bind();
 		const auto& layout = vertex_buffer.GetLayout();

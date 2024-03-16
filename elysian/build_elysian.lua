@@ -23,6 +23,8 @@ project "elysian"
 
         "%{vendor_dir}/glm/**.hpp",
 	    "%{vendor_dir}/glm/**.inl",
+
+        "%{include_dir.entt}/**.hpp"
     }
 
    includedirs
@@ -35,6 +37,7 @@ project "elysian"
         "%{include_dir.imgui_backends}",
         "%{vendor_dir}", --for std_image & glm
         "%{include_dir.assimp}",
+        "%{include_dir.entt}",
    }
 
     links

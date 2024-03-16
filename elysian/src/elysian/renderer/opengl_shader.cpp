@@ -408,10 +408,26 @@ namespace ely
 	{
 		ShaderSource shader_source =
 		{
+			{ShaderType::Vertex, "light_map_diff_spec_ub.vs"},
+			{ShaderType::Fragment, "light_map_diff_spec.fs"}
+		};
+		ShaderRepo::Load(shader_source, "light_map_diff_spec_ub");
+
+		shader_source.Reset();
+		shader_source =
+		{
 			{ShaderType::Vertex, "light_map_diff_spec.vs"},
 			{ShaderType::Fragment, "light_map_diff_spec.fs"}
 		};
 		ShaderRepo::Load(shader_source, "light_map_diff_spec");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "white_ub.vs"},
+			{ShaderType::Fragment, "white.fs"}
+		};
+		ShaderRepo::Load(shader_source, "white_ub");
 
 		shader_source.Reset();
 		shader_source =
@@ -424,6 +440,14 @@ namespace ely
 		shader_source.Reset();
 		shader_source =
 		{
+			{ShaderType::Vertex, "colored_basic_ub.vs"},
+			{ShaderType::Fragment, "colored_basic.fs"}
+		};
+		ShaderRepo::Load(shader_source, "colored_basic_ub");
+
+		shader_source.Reset();
+		shader_source =
+		{
 			{ShaderType::Vertex, "colored_basic.vs"},
 			{ShaderType::Fragment, "colored_basic.fs"}
 		};
@@ -432,10 +456,18 @@ namespace ely
 		shader_source.Reset();
 		shader_source =
 		{
-			{ShaderType::Vertex, "colored_diff.vs"},
-			{ShaderType::Fragment, "colored_diff.fs"}
+			{ShaderType::Vertex, "colored_diffuse_ub.vs"},
+			{ShaderType::Fragment, "colored_diffuse.fs"}
 		};
-		ShaderRepo::Load(shader_source, "colored_diff");
+		ShaderRepo::Load(shader_source, "colored_diffuse_ub");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "colored_diffuse.vs"},
+			{ShaderType::Fragment, "colored_diffuse.fs"}
+		};
+		ShaderRepo::Load(shader_source, "colored_diffuse");
 
 		shader_source.Reset();
 		shader_source =
@@ -448,10 +480,18 @@ namespace ely
 		shader_source.Reset();
 		shader_source =
 		{
+			{ShaderType::Vertex, "coords_ub.vs"},
+			{ShaderType::Fragment, "coords.fs"}
+		};
+		ShaderRepo::Load(shader_source, "coords_ub");
+
+		shader_source.Reset();
+		shader_source =
+		{
 			{ShaderType::Vertex, "coords.vs"},
 			{ShaderType::Fragment, "coords.fs"}
 		};
-		ShaderRepo::Load(shader_source, "coord_sys");
+		ShaderRepo::Load(shader_source, "coords");
 
 		shader_source.Reset();
 		shader_source =

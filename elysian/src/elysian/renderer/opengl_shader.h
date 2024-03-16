@@ -135,6 +135,10 @@ namespace ely
 		static Ref<Shader> Load(const ShaderSource& shader_source, const std::string& name);
 		static Ref<Shader> Get(const std::string& name);
 		static bool Exists(const std::string& name);
+		static auto GetShaders() { return m_shader_repo; }
+
+		static auto begin() { return std::begin(m_shader_repo); }
+		static auto end() { return std::end(m_shader_repo); }
 		
 	private:
 		static void LoadDefaultShaders();

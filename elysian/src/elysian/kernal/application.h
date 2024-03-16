@@ -35,7 +35,7 @@ namespace ely
 		static Application& GetInstance() { return *s_instance; }
 
 	private:
-		std::unique_ptr<ely::Window> m_window = nullptr;
+		Window* m_window = nullptr;
 		ImGuiLayer* m_imgui_layer = nullptr;
 		LayerStack m_layer_stack;
 

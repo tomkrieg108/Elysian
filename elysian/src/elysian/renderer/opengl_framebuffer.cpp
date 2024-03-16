@@ -44,12 +44,12 @@ namespace ely
     glDeleteRenderbuffers(1, &m_depth_attachment_id);
 	}
 
-  void OpenGLFramebuffer::Bind()
+  void OpenGLFramebuffer::Bind() const
   {
     glBindFramebuffer(GL_FRAMEBUFFER, m_id);
   }
 
-  void OpenGLFramebuffer::Unbind()
+  void OpenGLFramebuffer::Unbind() const
   {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }

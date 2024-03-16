@@ -40,19 +40,20 @@ private:
 private:
 	ely::Window& m_window;
 
-	ely::PerspectiveCameraController m_camera_controller, m_camera_controller_alt;
-	ely::PerspectiveCameraController* m_active_controller = &m_camera_controller;
+	ely::PerspectiveCameraController2 m_camera_controller, m_camera_controller_alt;
+	ely::PerspectiveCameraController2* m_active_controller = &m_camera_controller;
 
-	ely::OpenGLVertexBuffer* m_vbo_grid = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_cube = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_light = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_camera = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_camera_alt = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_world_coords = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_cube_coords = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_camera_coords = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_camera_alt_coords = nullptr;
-	ely::OpenGLVertexBuffer* m_vbo_square_xz = nullptr;
+	
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_grid = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_cube = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_light = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_camera = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_camera_alt = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_world_coords = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_cube_coords = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_camera_coords = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_camera_alt_coords = nullptr;
+	ely::Ref< ely::OpenGLVertexBuffer> m_vbo_square_xz = nullptr;
 
 	ely::OpenGLVertexArray m_vao_grid, m_vao_cube, m_vao_light, m_vao_camera, m_vao_camera_alt, 
 		m_vao_world_coords, m_vao_cube_coords, m_vao_camera_coords, m_vao_camera_alt_coords, m_vao_square_xz;

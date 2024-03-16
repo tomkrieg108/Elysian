@@ -35,7 +35,7 @@ private:
 	ely::Window& m_window;
 	ely::OrthoCameraController m_camera_controller;
 
-	ely::OpenGLVertexBuffer* m_vbo_grid, * m_vbo_world_coords, *m_vbo_gray_scale, *m_vbo_gray_scale_gc;
+	ely::Ref<ely::OpenGLVertexBuffer> m_vbo_grid, m_vbo_world_coords, m_vbo_gray_scale, m_vbo_gray_scale_gc;
 	ely::OpenGLVertexArray m_vao_grid, m_vao_world_coords, m_vao_gray_scale, m_vao_gray_scale_gc;
 	ely::OpenGLTexture2D* m_texture = nullptr;
 	ely::OpenGLTexture2D* m_texture_srgb = nullptr;

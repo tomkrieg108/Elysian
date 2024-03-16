@@ -48,7 +48,7 @@ namespace ely
 		void OnUpdate();
 		void ShutDown();
 
-		static std::unique_ptr<Window> Create(const WindowParams& initial_params = WindowParams());
+		static Window* Create(const WindowParams& initial_params = WindowParams());
 		
 	private:
 		void Init(const WindowParams& initial_params);

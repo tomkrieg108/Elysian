@@ -62,10 +62,10 @@ TestLayer1::TestLayer1(ely::Window& window) :
 	m_vao_camera_alt_coords.AddVertexBuffer(*m_vbo_camera_alt_coords);
 
 	//shader setup
-	m_cube_shader = ely::ShaderRepo::Get("light_map_diff_spec");
-	m_light_shader = ely::ShaderRepo::Get("white");
-	m_grid_shader = ely::ShaderRepo::Get("coord_sys");
-	m_plane_shader = ely::ShaderRepo::Get("colored_basic");
+	m_cube_shader = ely::ShaderRepo::Get("light_map_diff_spec_ub");
+	m_light_shader = ely::ShaderRepo::Get("white_ub");
+	m_grid_shader = ely::ShaderRepo::Get("coords_ub");
+	m_plane_shader = ely::ShaderRepo::Get("colored_basic_ub");
 	m_model_shader = ely::ShaderRepo::Get("model_loading");
 
 	//TODO investigate glGetActiveUniformBlockiv()
@@ -106,16 +106,16 @@ TestLayer1::TestLayer1(ely::Window& window) :
 
 	m_diffuse_map_tex->Bind();
 	m_specular_map_tex->Bind();
-	m_cube_shader->SetUniform1i("material.diffuse", m_diffuse_map_tex->GetSlot());
-	m_cube_shader->SetUniform1i("material.specular", m_specular_map_tex->GetSlot());
+	m_cube_shader->SetUniform1i("u_material.diffuse", m_diffuse_map_tex->GetSlot());
+	m_cube_shader->SetUniform1i("u_material.specular", m_specular_map_tex->GetSlot());
 
 	//set initial position, scale, 
 	m_cube_model = glm::mat4(1.0);
 	m_cube_model = glm::translate(m_cube_model, m_cube_pos);
 
 	m_plane_shader->Bind();
-	m_plane_shader->SetUniform3f("objectColor", 1.0f, 1.0f, 0.0f);
-	m_plane_shader->SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
+	m_plane_shader->SetUniform3f("u_object_color", 1.0f, 1.0f, 0.0f);
+	m_plane_shader->SetUniform3f("u_light_color", 1.0f, 1.0f, 1.0f);
 	m_model_plane = glm::translate(m_model_plane, glm::vec3(2.0f, 0.0, 4.0f));
 	m_plane_shader->SetUniformMat4f("u_model", m_model_plane);
 
@@ -177,16 +177,16 @@ void TestLayer1::OnUpdate(double time_step)
 	orbit_axis = glm::rotate(orbit_axis, angle, glm::vec3(0, 1, 0));
 	m_cube_model = orbit_axis * m_cube_model;
 
-	m_cube_shader->SetUniform3f("light.position", m_light_pos);
-	m_cube_shader->SetUniform3f("viewPos", m_camera_controller.GetCamera().GetPosition());
+	m_cube_shader->SetUniform3f("u_light.position", m_light_pos);
+	m_cube_shader->SetUniform3f("u_view_pos", m_camera_controller.GetCamera().GetPosition());
 
 	//light properties
-	m_cube_shader->SetUniform3f("light.ambient", m_light_ambient);
-	m_cube_shader->SetUniform3f("light.diffuse", m_light_diffuse);
-	m_cube_shader->SetUniform3f("light.specular", m_light_specular);
+	m_cube_shader->SetUniform3f("u_light.ambient", m_light_ambient);
+	m_cube_shader->SetUniform3f("u_light.diffuse", m_light_diffuse);
+	m_cube_shader->SetUniform3f("u_light.specular", m_light_specular);
 
 	//material properties
-	m_cube_shader->SetUniform1f("material.shininess", m_cube_shininess);
+	m_cube_shader->SetUniform1f("u_material.shininess", m_cube_shininess);
 
 	//transformations
 	m_cube_shader->SetUniformMat4f("u_model", m_cube_model);

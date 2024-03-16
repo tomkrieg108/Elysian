@@ -4,6 +4,7 @@
 #include "elysian/renderer/opengl_buffer_layout.h"
 #include "elysian/renderer/opengl_buffer.h"
 #include "elysian/renderer/opengl_texture_2d.h"
+#include "elysian/renderer/opengl_draw_mode.h"
 #include "elysian/kernal/log.h"
 #include "mesh_primitives.h"
 #include <cmath>
@@ -90,32 +91,29 @@ namespace ely
   };
 
  //note that sizeof() operator returns size_t which is a 64 bit unsigned int
-  OpenGLVertexBuffer* const MeshPrimitive::GetCubeVertexBuffer()
+  Ref<OpenGLVertexBuffer> MeshPrimitive::GetCubeVertexBuffer()
   {
     BufferLayout layout =
     {
       {"a_position", ShaderDataType::Float3},
       {"a_normal", ShaderDataType::Float3},
-      {"a_tex_coords", ShaderDataType::Float2},
+      {"a_uv_coords", ShaderDataType::Float2},
     };
-
-    OpenGLVertexBuffer* vertex_buffer = new OpenGLVertexBuffer((void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout);
-
+    auto vertex_buffer = CreateRef<OpenGLVertexBuffer>((void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout);
     return vertex_buffer;
   }
 
-  OpenGLVertexBuffer* const MeshPrimitive::GetSquareXZVertexBuffer()
+  Ref<OpenGLVertexBuffer> MeshPrimitive::GetSquareXZVertexBuffer()
   {
     BufferLayout layout =
     {
       {"a_position", ShaderDataType::Float3}
     };
-    OpenGLVertexBuffer* vertex_buffer = new OpenGLVertexBuffer((void*)square_xz, (int32_t)sizeof(square_xz), layout);
+    auto vertex_buffer = CreateRef<OpenGLVertexBuffer>((void*)square_xz, (int32_t)sizeof(square_xz), layout);
     return vertex_buffer;
-
   }
 
-  OpenGLVertexBuffer* const MeshPrimitive::GetGrayScaleStripBuffer(bool gamma_corrected)
+  Ref<OpenGLVertexBuffer> MeshPrimitive::GetGrayScaleStripBuffer(bool gamma_corrected)
   {
     std::vector<float> vertices;
 
@@ -144,11 +142,12 @@ namespace ely
       {"a_position", ShaderDataType::Float3},
       {"a_color", ShaderDataType::Float4}
     };
-    return new OpenGLVertexBuffer(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
 
+    auto vertex_buffer = CreateRef<OpenGLVertexBuffer>(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
+    return vertex_buffer;
   }
 
-  OpenGLVertexBuffer* const MeshPrimitive::GetGridVertexBuffer(float grid_size, float unit_size)
+  Ref<OpenGLVertexBuffer> MeshPrimitive::GetGridVertexBuffer(float grid_size, float unit_size)
   {
     std::vector<float> vertices;
     const float col = 0.5f; //colour
@@ -180,11 +179,11 @@ namespace ely
       {"a_position", ShaderDataType::Float3},
       {"a_color", ShaderDataType::Float4}
     };
-
-    return new OpenGLVertexBuffer(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
+    auto vertex_buffer = CreateRef<OpenGLVertexBuffer>(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
+    return vertex_buffer;
   }
 
-  OpenGLVertexBuffer* const MeshPrimitive::GetCoordSystemVertexBuffer(const glm::mat4& model_mat, float size)
+  Ref<OpenGLVertexBuffer> MeshPrimitive::GetCoordSystemVertexBuffer(const glm::mat4& model_mat, float size)
   {
     std::vector<float> vertices;
     //model_mat is the model matrix of the object that the coords apply to (column major format => mat[col][row])
@@ -205,43 +204,45 @@ namespace ely
       {"a_position", ShaderDataType::Float3},
       {"a_color", ShaderDataType::Float4}
     };
-    return new OpenGLVertexBuffer(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
+    auto vertex_buffer = CreateScope<OpenGLVertexBuffer>(vertices.data(), (int32_t)(vertices.size() * sizeof(float)), layout);
+    return vertex_buffer;
   }
 
   Ref<Mesh> MeshPrimitive::GetCubeMesh()
   {
     BufferLayout layout =
     {
-      {"aPos", ShaderDataType::Float3},
-      {"aNormal", ShaderDataType::Float3},
-      {"aTexCoords", ShaderDataType::Float2},
+      {"a_position", ShaderDataType::Float3},
+      {"a_normal", ShaderDataType::Float3},
+      {"a_uv_coords", ShaderDataType::Float2},
     };
-
     OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
-    
-    auto mesh = CreateRef<Mesh>(vbo, layout, MaterialRepo::Get("container2_specular"));
-
+    auto material = MaterialRepo::Get("container2_specular");
+    auto mesh = CreateRef<Mesh>(vbo, *material, DrawMode::Triangles);
     return mesh;
   }
 
   Ref<Mesh> MeshPrimitive::GetQuadMesh()
   {
-    OpenGLVertexBuffer* vbo = MeshPrimitive::GetSquareXZVertexBuffer();
-    auto mesh = CreateRef<Mesh>(*vbo, vbo->GetLayout(), MaterialRepo::Get("colored_basic_yellow"));
+    auto vbo = MeshPrimitive::GetSquareXZVertexBuffer();
+    auto material = MaterialRepo::Get("colored_basic_yellow");
+    auto mesh = CreateRef<Mesh>(*vbo, *material, DrawMode::Triangles);
     return mesh;
   }
 
   Ref<Mesh> MeshPrimitive::GetGridMesh(float grid_size, float unit_size)
   {
-    OpenGLVertexBuffer* vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, unit_size);
-    auto mesh = CreateRef<Mesh>(*vbo, vbo->GetLayout(), MaterialRepo::Get("empty"));
+    auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, unit_size);
+    auto material = MaterialRepo::Get("empty");
+    auto mesh = CreateRef<Mesh>(*vbo, *material, DrawMode::Lines);
     return mesh;
   }
 
   Ref<Mesh> MeshPrimitive::GetCoordSystemMesh(const glm::mat4& model_mat, float size)
   {
-    OpenGLVertexBuffer* vbo = MeshPrimitive::GetCoordSystemVertexBuffer(model_mat, size);
-    auto mesh = CreateRef<Mesh>(*vbo, vbo->GetLayout(), MaterialRepo::Get("empty"));
+    auto vbo = MeshPrimitive::GetCoordSystemVertexBuffer(model_mat, size);
+    auto material = MaterialRepo::Get("empty");
+    auto mesh = CreateRef<Mesh>(*vbo, *material, DrawMode::Lines);
     return mesh;
   }
 }

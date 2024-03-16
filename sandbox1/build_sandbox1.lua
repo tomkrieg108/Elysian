@@ -26,6 +26,7 @@ project "sandbox1"
         "%{include_dir.imgui_backends}",
         "%{vendor_dir}", --for std_image & glm
         "%{include_dir.assimp}",
+        "%{include_dir.entt}",
     }
 
     links

@@ -1,21 +1,21 @@
 #pragma once
 #include "elysian/camera/perspective_camera.h"
 #include "elysian/events/events.h"
+#include "elysian/scene/entity.h"
 #include <cmath>
 #include <glm/glm.hpp>
 
+class Window;
+
 namespace ely
 {
-	class Window;
-
-	///////////////////////////////////////////////////////////
-	class PerspectiveCameraController
+	class PerspectiveCameraController2
 	{
 	public:
-		PerspectiveCameraController() = delete;
-		PerspectiveCameraController(float aspect_ratio);
-		PerspectiveCameraController(float aspect_ratio, const glm::vec3& camera_pos);
-		~PerspectiveCameraController() = default;
+		PerspectiveCameraController2() = delete;
+		PerspectiveCameraController2(float aspect_ratio);
+		PerspectiveCameraController2(float aspect_ratio, const glm::vec3& camera_pos);
+		~PerspectiveCameraController2() = default;
 
 		void MoveForward(float amount);
 		void MoveRight(float amount);
@@ -24,7 +24,7 @@ namespace ely
 		void InvertPitch();
 		void Zoom(float amount);
 
-		const PerspectiveCamera& GetCamera() const { return m_camera; }
+		const PerspectiveCamera2& GetCamera() const { return m_camera; }
 		void OnUpdate(double delta_time);
 		void OnMouseMoved(EventMouseMoved& e);
 		void OnMouseScrolled(EventMouseScrolled& e);
@@ -38,7 +38,66 @@ namespace ely
 		glm::mat4 GetRotationMatZ(float angle) const;
 
 	private:
-		PerspectiveCamera m_camera;
+		PerspectiveCamera2 m_camera;
+	};
+}
+
+namespace ely
+{
+	class PerspectiveCameraController
+	{
+	public:
+		PerspectiveCameraController() = delete;
+		PerspectiveCameraController(Ref<Entity> camera_entity) :
+			//TODO assert not null
+			m_camera_entity{camera_entity}
+		{}
+
+		~PerspectiveCameraController() = default;
+
+		//PerspectiveCameraController2& operator=(const PerspectiveCameraController2& other) = default;
+
+		void MoveForward(float amount);
+		void MoveRight(float amount);
+		void MoveVertically(float amount);
+		void Turn(float amount_x, float amount_y);
+		void InvertPitch();
+		void Zoom(float amount);
+
+		const auto& GetCameraEntity() const { return m_camera_entity; }
+		void SetCameraEntity(Ref<Entity> camera_entity) { m_camera_entity = camera_entity; }
+
+		void OnUpdate(double delta_time);
+		void OnMouseMoved(EventMouseMoved& e);
+		void OnMouseScrolled(EventMouseScrolled& e);
+		void OnWindowResize(EventWidowResize& e);
+		void OnMouseButtonPressed(EventMouseButtonPressed& e);
+
+		//TODO - these should be in the entity class?
+		auto& GetCamera()
+		{
+			auto& components = m_camera_entity->GetComponents();
+			auto& camera_comp = std::dynamic_pointer_cast<PerspectiveCameraComponent>(components["camera"]);
+			//TODO assert not null
+			return camera_comp->GetCamera();
+		}
+
+		auto& GetTransform()
+		{
+			auto& components = m_camera_entity->GetComponents();
+			auto& transform_comp = std::dynamic_pointer_cast<TransformComponent>(components["transform"]);
+			//TODO assert not null
+			return transform_comp->GetTransform();
+		}
+
+	private:
+		//angle in degrees
+		glm::mat4 GetRotationMatX(float angle) const;
+		glm::mat4 GetRotationMatY(float angle) const;
+		glm::mat4 GetRotationMatZ(float angle) const;
+
+	private:
+		Ref<Entity> m_camera_entity;
 	};
 
 }

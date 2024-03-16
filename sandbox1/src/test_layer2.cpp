@@ -6,6 +6,8 @@
 #include "elysian/model/mesh_primitives.h"
 #include "elysian/kernal/log.h"
 #include "elysian/renderer/opengl_renderer.h"
+#include "elysian/renderer/opengl_draw_mode.h"
+#include "elysian/kernal/uuid.h"
 
 #include "test_layer2.h"
 
@@ -32,59 +34,36 @@ TestLayer2::TestLayer2(ely::Window& window) :
 	ely::EventDispatcher::SetCallback(this, &TestLayer2::OnWindowResize);
 	ely::EventDispatcher::SetCallback(this, &TestLayer2::OnMouseButtonPressed);
 
-
-	m_scene.Init();
-
 	ely::OpenGLRenderer::SetLineWidth(1.0);
 
 	// Initialise meshes
 	m_light_mesh = ely::MeshPrimitive::GetCubeMesh();
-	m_light_mesh->SetMaterial(ely::MaterialRepo::Get("empty"));
+	m_light_mesh->SetMaterial(*ely::MaterialRepo::Get("empty"));
 	m_camera_mesh = ely::MeshPrimitive::GetCubeMesh();
-	m_camera_mesh->SetMaterial(ely::MaterialRepo::Get("empty"));
+	m_camera_mesh->SetMaterial(*ely::MaterialRepo::Get("empty"));
 	m_camera_alt_mesh = ely::MeshPrimitive::GetCubeMesh();
-	m_camera_alt_mesh->SetMaterial(ely::MaterialRepo::Get("empty"));
+	m_camera_alt_mesh->SetMaterial(*ely::MaterialRepo::Get("empty"));
 
 	m_cube_mesh = ely::MeshPrimitive::GetCubeMesh();
 	m_quad_mesh = ely::MeshPrimitive::GetQuadMesh();
+
 	m_grid_mesh = ely::MeshPrimitive::GetGridMesh(20.0f, 1.0f);
+	m_grid_mesh->SetDrawMode(ely::DrawMode::Lines);
 
 	m_world_coords_mesh = ely::MeshPrimitive::GetCoordSystemMesh(glm::mat4(1), 20.0f);
 	m_cube_coords_mesh = ely::MeshPrimitive::GetCoordSystemMesh(glm::mat4(1), 2.0f);
 	m_camera_coords_mesh = ely::MeshPrimitive::GetCoordSystemMesh(glm::mat4(1), 2.0f);
 	m_camera_alt_coords_mesh = ely::MeshPrimitive::GetCoordSystemMesh(glm::mat4(1), 2.0f);
+	m_world_coords_mesh->SetDrawMode(ely::DrawMode::Lines);
+	m_cube_coords_mesh->SetDrawMode(ely::DrawMode::Lines);
+	m_camera_coords_mesh->SetDrawMode(ely::DrawMode::Lines);
+	m_camera_alt_coords_mesh->SetDrawMode(ely::DrawMode::Lines);
 	
-
-	//buffer setup
-	//m_vbo_grid = ely::MeshPrimitive::GetGridVertexBuffer(20.0f, 1.0f);
-	//m_vbo_cube = ely::MeshPrimitive::GetCubeVertexBuffer();
-	//m_vbo_light = ely::MeshPrimitive::GetCubeVertexBuffer();
-	//m_vbo_camera = ely::MeshPrimitive::GetCubeVertexBuffer();
-	//m_vbo_camera_alt = ely::MeshPrimitive::GetCubeVertexBuffer();
-	//m_vbo_square_xz = ely::MeshPrimitive::GetSquareXZVertexBuffer();
-
-	//m_vbo_world_coords = ely::MeshPrimitive::GetCoordSystemVertexBuffer(glm::mat4(1), 20.0f);
-	//m_vbo_cube_coords = ely::MeshPrimitive::GetCoordSystemVertexBuffer(glm::mat4(1), 2.0f);
-	//m_vbo_camera_coords = ely::MeshPrimitive::GetCoordSystemVertexBuffer(glm::mat4(1), 2.0f);
-	//m_vbo_camera_alt_coords = ely::MeshPrimitive::GetCoordSystemVertexBuffer(glm::mat4(1), 2.0f);
-
-	//m_vao_grid.AddVertexBuffer(*m_vbo_grid);
-	//m_vao_cube.AddVertexBuffer(*m_vbo_cube);
-	//m_vao_light.AddVertexBuffer(*m_vbo_light);
-	//m_vao_camera.AddVertexBuffer(*m_vbo_camera);
-	//m_vao_camera_alt.AddVertexBuffer(*m_vbo_camera_alt);
-	//m_vao_square_xz.AddVertexBuffer(*m_vbo_square_xz);
-
-	//m_vao_world_coords.AddVertexBuffer(*m_vbo_world_coords);
-	//m_vao_cube_coords.AddVertexBuffer(*m_vbo_cube_coords);
-	//m_vao_camera_coords.AddVertexBuffer(*m_vbo_camera_coords);
-	//m_vao_camera_alt_coords.AddVertexBuffer(*m_vbo_camera_alt_coords);
-
 	//shader setup
-	m_cube_shader = ely::ShaderRepo::Get("light_map_diff_spec");
-	m_light_shader = ely::ShaderRepo::Get("white");
-	m_grid_shader = ely::ShaderRepo::Get("coord_sys");
-	m_plane_shader = ely::ShaderRepo::Get("colored_basic");
+	m_cube_shader = ely::ShaderRepo::Get("light_map_diff_spec_ub");
+	m_light_shader = ely::ShaderRepo::Get("white_ub");
+	m_grid_shader = ely::ShaderRepo::Get("coords_ub");
+	m_plane_shader = ely::ShaderRepo::Get("colored_basic_ub");
 	m_model_shader = ely::ShaderRepo::Get("model_loading");
 
 	//TODO investigate glGetActiveUniformBlockiv()
@@ -113,17 +92,10 @@ TestLayer2::TestLayer2(ely::Window& window) :
 	APP_WARN("############################################################");*/
 	m_ubuff_camera.Init(sizeof(glm::mat4) * 2, binding);
 
-	//texture setup
-	//m_diffuse_map_tex = new ely::OpenGLTexture2D("container2.png");
-	//m_specular_map_tex = new ely::OpenGLTexture2D("container2_specular.png");
-	//m_diffuse_map_tex = ely::Texture2DRepo::Get("container2.png").get();
-	//m_specular_map_tex = ely::Texture2DRepo::Get("container2_specular.png").get();
-
+	
 	// shader configuration
 	// --------------------
-
-	
-	m_cube_mesh->GetMaterial().UploadDataToShader(ely::ShaderRepo::Get("light_map_diff_spec"));
+	m_cube_mesh->GetMaterial().UploadDataToShader(ely::ShaderRepo::Get("light_map_diff_spec_ub"));
 
 	//set initial position, scale, 
 	m_cube_model = glm::mat4(1.0);
@@ -131,7 +103,7 @@ TestLayer2::TestLayer2(ely::Window& window) :
 
 	m_plane_shader->Bind();
 	//m_plane_shader->SetUniform3f("objectColor", 1.0f, 1.0f, 0.0f);
-	m_plane_shader->SetUniform3f("lightColor", 1.0f, 1.0f, 1.0f);
+	m_plane_shader->SetUniform3f("u_light_color", 1.0f, 1.0f, 1.0f);
 	m_model_plane = glm::translate(m_model_plane, glm::vec3(2.0f, 0.0, 4.0f));
 	m_plane_shader->SetUniformMat4f("u_model", m_model_plane);
 
@@ -163,9 +135,7 @@ void TestLayer2::OnUpdate(double time_step)
 	//-----------------------------------------------------------------------------------
 	ely::OpenGLRenderer::SetLineWidth(1.0);
 
-	//grid
-	m_grid_shader->Bind();
-	m_grid_shader->SetUniformMat4f("u_model", glm::mat4(1.0f));
+	
 
 	// Setup uniform buffer data  for main camera (view, proj)
 	glm::mat4 cam_data[2];
@@ -175,14 +145,13 @@ void TestLayer2::OnUpdate(double time_step)
 
 	m_ubuff_camera.SetData((void*)(cam_data), cam_data_size);
 
-	//m_vao_grid.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_grid->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_grid_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
-
+	//grid
+	m_grid_shader->Bind();
+	m_grid_shader->SetUniformMat4f("u_model", glm::mat4(1.0f));
+	ely::OpenGLRenderer::DrawMesh(m_grid_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
+	
 	//global axes (uses same shader as grid)
-	//m_vao_world_coords.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_world_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_world_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
+	ely::OpenGLRenderer::DrawMesh(m_world_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//cube
 	m_cube_shader->Bind();
@@ -196,13 +165,13 @@ void TestLayer2::OnUpdate(double time_step)
 	orbit_axis = glm::rotate(orbit_axis, angle, glm::vec3(0, 1, 0));
 	m_cube_model = orbit_axis * m_cube_model;
 
-	m_cube_shader->SetUniform3f("light.position", m_light_pos);
-	m_cube_shader->SetUniform3f("viewPos", m_camera_controller.GetCamera().GetPosition());
+	m_cube_shader->SetUniform3f("u_light.position", m_light_pos);
+	m_cube_shader->SetUniform3f("u_view_pos", m_camera_controller.GetCamera().GetPosition());
 
 	//light properties
-	m_cube_shader->SetUniform3f("light.ambient", m_light_ambient);
-	m_cube_shader->SetUniform3f("light.diffuse", m_light_diffuse);
-	m_cube_shader->SetUniform3f("light.specular", m_light_specular);
+	m_cube_shader->SetUniform3f("u_light.ambient", m_light_ambient);
+	m_cube_shader->SetUniform3f("u_light.diffuse", m_light_diffuse);
+	m_cube_shader->SetUniform3f("u_light.specular", m_light_specular);
 
 	//material properties
 	//m_cube_shader->SetUniform1f("material.shininess", m_cube_shininess);
@@ -211,7 +180,7 @@ void TestLayer2::OnUpdate(double time_step)
 	m_cube_shader->SetUniformMat4f("u_model", m_cube_model);
 
 	// draw the cube
-	ely::OpenGLRenderer::DrawMesh(m_cube_mesh, ely::ShaderRepo::Get("light_map_diff_spec"));
+	ely::OpenGLRenderer::DrawMesh(m_cube_mesh, ely::ShaderRepo::Get("light_map_diff_spec_ub"));
 	
 
 	//Draw the light
@@ -223,37 +192,28 @@ void TestLayer2::OnUpdate(double time_step)
 	m_light_shader->SetUniformMat4f("u_model", light_model);
 	//m_vao_light.Bind();
 	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_light->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_light_mesh, ely::ShaderRepo::Get("white"));
+	ely::OpenGLRenderer::DrawMesh(m_light_mesh, ely::ShaderRepo::Get("white_ub"));
 
 	//cube coords
 	m_grid_shader->Bind();
 	m_grid_shader->SetUniformMat4f("u_model", m_cube_model);
-	//m_vao_cube_coords.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_cube_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_cube_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
-
+	ely::OpenGLRenderer::DrawMesh(m_cube_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//draw alt camera
 	glm::mat4 cam_alt_model = m_camera_controller_alt.GetCamera().GetModelMatrix();
 	m_light_shader->Bind();
 	m_light_shader->SetUniformMat4f("u_model", cam_alt_model);
-	//m_vao_camera_alt.Bind();
-	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_camera_alt->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_camera_alt_mesh, ely::ShaderRepo::Get("white"));
+	ely::OpenGLRenderer::DrawMesh(m_camera_alt_mesh, ely::ShaderRepo::Get("white_ub"));
 
 	//alt camera coords
 	m_grid_shader->Bind();
 	m_grid_shader->SetUniformMat4f("u_model", cam_alt_model);
-	//m_vao_camera_alt_coords.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_camera_alt_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_camera_alt_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
+	ely::OpenGLRenderer::DrawMesh(m_camera_alt_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//draw the plane
 	m_plane_shader->Bind();
 	m_plane_shader->SetUniformMat4f("u_model", m_model_plane);
-	//m_vao_square_xz.Bind();
-	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_square_xz->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_quad_mesh, ely::ShaderRepo::Get("colored_basic"));
+	ely::OpenGLRenderer::DrawMesh(m_quad_mesh, ely::ShaderRepo::Get("colored_basic_ub"));
 
 	//draw the loaded model
 	//m_model_shader->Bind();
@@ -277,54 +237,38 @@ void TestLayer2::OnUpdate(double time_step)
 	//grid
 	m_grid_shader->Bind();
 	m_grid_shader->SetUniformMat4f("u_model", glm::mat4(1.0f));
-
-	//m_vao_grid.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_grid->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_grid_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
-
+	ely::OpenGLRenderer::DrawMesh(m_grid_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
+	
 	//global axes (uses same shader as grid)
-	//m_vao_world_coords.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_world_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_world_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
+	ely::OpenGLRenderer::DrawMesh(m_world_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//cube
-	ely::OpenGLRenderer::DrawMesh(m_cube_mesh, ely::ShaderRepo::Get("light_map_diff_spec"));
+	ely::OpenGLRenderer::DrawMesh(m_cube_mesh, ely::ShaderRepo::Get("light_map_diff_spec_ub"));
 
 	//cube coords
 	m_grid_shader->Bind();
 	m_grid_shader->SetUniformMat4f("u_model", m_cube_model);
-	//m_vao_cube_coords.Bind();
-	//(GL_LINES, 0, m_vbo_cube_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_cube_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
+	ely::OpenGLRenderer::DrawMesh(m_cube_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//Draw the light
 	m_light_shader->Bind();
 	m_light_shader->SetUniformMat4f("u_model", light_model);
-	//m_vao_light.Bind();
-	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_light->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_light_mesh, ely::ShaderRepo::Get("white"));
+	ely::OpenGLRenderer::DrawMesh(m_light_mesh, ely::ShaderRepo::Get("white_ub"));
 	
-
 	//draw alt camera
 	m_light_shader->Bind();
 	m_light_shader->SetUniformMat4f("u_model", cam_alt_model);
-	//m_vao_camera_alt.Bind();
-	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_camera_alt->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_camera_alt_mesh, ely::ShaderRepo::Get("white"));
+	ely::OpenGLRenderer::DrawMesh(m_camera_alt_mesh, ely::ShaderRepo::Get("white_ub"));
 
 	//alt camera coords
 	m_grid_shader->Bind();
 	m_grid_shader->SetUniformMat4f("u_model", cam_alt_model);
-	//m_vao_camera_alt_coords.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_camera_alt_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_camera_alt_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
+	ely::OpenGLRenderer::DrawMesh(m_camera_alt_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//draw the plane
 	m_plane_shader->Bind();
 	m_plane_shader->SetUniformMat4f("u_model", m_model_plane);
-	//m_vao_square_xz.Bind();
-	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_square_xz->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_quad_mesh, ely::ShaderRepo::Get("colored_basic"));
+	ely::OpenGLRenderer::DrawMesh(m_quad_mesh, ely::ShaderRepo::Get("colored_basic_ub"));
 
 	m_framebuffer.Unbind();
 
@@ -336,7 +280,6 @@ void TestLayer2::OnUpdate(double time_step)
 	ely::OpenGLRenderer::SetClearColor(glm::vec4(0.1f, 0.1f, 0.4f, 1.0f));
 	ely::OpenGLRenderer::ClearBuffers();
 
-
 	//grid
 	m_grid_shader->Bind();
 
@@ -347,55 +290,39 @@ void TestLayer2::OnUpdate(double time_step)
 	m_ubuff_camera.SetData((void*)(cam_alt_data), cam_data_size);
 
 	m_grid_shader->SetUniformMat4f("u_model", glm::mat4(1.0f));
-
-	//m_vao_grid.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_grid->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_grid_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
-
+	ely::OpenGLRenderer::DrawMesh(m_grid_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
+	
 	//global axes (uses same shader as grid)
-	//m_vao_world_coords.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_world_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_world_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
+	ely::OpenGLRenderer::DrawMesh(m_world_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//cube/
-	ely::OpenGLRenderer::DrawMesh(m_cube_mesh, ely::ShaderRepo::Get("light_map_diff_spec"));
+	ely::OpenGLRenderer::DrawMesh(m_cube_mesh, ely::ShaderRepo::Get("light_map_diff_spec_ub"));
 
 	//cube coords
 	m_grid_shader->Bind();
 	m_grid_shader->SetUniformMat4f("u_model", m_cube_model);
-	//m_vao_cube_coords.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_cube_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_cube_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
+	ely::OpenGLRenderer::DrawMesh(m_cube_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//Draw the light
 	m_light_shader->Bind();
 	m_light_shader->SetUniformMat4f("u_model", light_model);
-	//m_vao_light.Bind();
-	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_light->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_light_mesh, ely::ShaderRepo::Get("white"));
-	//ely::OpenGLRenderer::DrawMesh(m_light_mesh);
+	ely::OpenGLRenderer::DrawMesh(m_light_mesh, ely::ShaderRepo::Get("white_ub"));
 
 	//draw camera
 	glm::mat4 cam_model = m_camera_controller.GetCamera().GetModelMatrix();
 	m_light_shader->Bind();
 	m_light_shader->SetUniformMat4f("u_model", cam_model);
-	//m_vao_camera.Bind();
-	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_camera->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_camera_mesh, ely::ShaderRepo::Get("white"));
+	ely::OpenGLRenderer::DrawMesh(m_camera_mesh, ely::ShaderRepo::Get("white_ub"));
 
 	//camera coords
 	m_grid_shader->Bind();
 	m_grid_shader->SetUniformMat4f("u_model", cam_model);
-	//m_vao_camera_coords.Bind();
-	//glDrawArrays(GL_LINES, 0, m_vbo_camera_coords->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_camera_coords_mesh, ely::ShaderRepo::Get("coord_sys"), ely::DrawMode::Lines);
+	ely::OpenGLRenderer::DrawMesh(m_camera_coords_mesh, ely::ShaderRepo::Get("coords_ub"), ely::DrawMode::Lines);
 
 	//draw the plane
 	m_plane_shader->Bind();
 	m_plane_shader->SetUniformMat4f("u_model", m_model_plane);
-	//m_vao_square_xz.Bind();
-	//glDrawArrays(GL_TRIANGLES, 0, m_vbo_square_xz->GetVertexCount());
-	ely::OpenGLRenderer::DrawMesh(m_quad_mesh, ely::ShaderRepo::Get("colored_basic"));
+	ely::OpenGLRenderer::DrawMesh(m_quad_mesh, ely::ShaderRepo::Get("colored_basic_ub"));
 
 	m_framebuffer_alt.Unbind();
 }

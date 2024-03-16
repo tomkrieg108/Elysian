@@ -1,5 +1,6 @@
 #pragma once
 #include "elysian/kernal/base.h"
+#include "elysian/kernal/log.h"
 #include "elysian/renderer/opengl_shader.h"
 #include "elysian/renderer/opengl_texture_2d.h"
 #include <variant>
@@ -17,6 +18,7 @@ namespace ely
 	public:
 
 		MaterialSpecification() = default;
+		~MaterialSpecification() = default;
 
 		//Supply spec as (key, value) pair initializer list, with key the name of a shader uniform, value it's data type
 		MaterialSpecification(std::initializer_list<std::pair<const std::string, ShaderDataType>> material_spec) :
@@ -27,12 +29,14 @@ namespace ely
 		MaterialSpecification(const Ref<Shader>& shader);
 
 		MaterialSpecification& AddSpecElement(const std::string& name, ShaderDataType&& element);
-		void ValidateAgainstShader(const Ref<Shader>& shader);
+		void ValidateAgainstShader(const Ref<Shader>& shader) const;
 
-		auto cbegin() const { return std::cbegin(m_material_spec); }
-		auto cend() const { return std::cend(m_material_spec); }
-		auto begin()  { return std::begin(m_material_spec); }
-		auto end()  { return std::end(m_material_spec); }
+		/*
+		NOTE: for range-based for loop to work directly on this object it needs functions begin() and end()
+		To ensure that clients of the class can't modify the data, these need to return const_iterators
+		*/
+		auto begin() const { return std::cbegin(m_material_spec); }
+		auto end() const { return std::cend(m_material_spec); }
 
 	private:
 		std::unordered_map<std::string, ShaderDataType> m_material_spec;
@@ -44,6 +48,7 @@ namespace ely
 	{
 	public:
 		MaterialData() = default;
+		~MaterialData() = default;
 
 		MaterialData(std::initializer_list<std::pair<const std::string, MatData>> material_data) :
 			m_material_data{ material_data }
@@ -51,13 +56,15 @@ namespace ely
 
 		MaterialData& SetValue(const std::string& name, MatData&& element);
 		MaterialData& SetValue(const std::string& name, const MatData& element);
-		const MatData& GetValue(const std::string& name);
-		void ValidateAgainstSpec(const MaterialSpecification& spec);
+		const MatData& GetValue(const std::string& name) const { return m_material_data.at(name); } //NOTE: can't use [] on a const
+		void ValidateAgainstSpec(const MaterialSpecification& spec) const;
 
-		auto cbegin() const { return std::cbegin(m_material_data); }
-		auto cend() const { return std::cend(m_material_data); }
-		auto begin()  { return std::begin(m_material_data); }
-		auto end()  { return std::end(m_material_data); }
+		/*
+		NOTE: for range-based for loop to work directly on this object it needs functions begin() and end()
+		To ensure that clients of the class can't modify the data, these need to return const_iterators
+		*/
+		auto begin() const { return std::cbegin(m_material_data); }
+		auto end() const { return std::cend(m_material_data); }
 
 	private:
 		std::unordered_map<std::string, MatData> m_material_data;
@@ -68,6 +75,7 @@ namespace ely
 	public:
 		
 		Material() = default;
+		~Material() = default;
 
 		Material(MaterialSpecification& specification, const std::string name = "Material") :
 			m_specification{ specification }, m_name{ name }
@@ -77,14 +85,15 @@ namespace ely
 			m_specification{ specification }, m_data{ data }, m_name{ name }
 		{}
 
-		void UploadDataToShader(const Ref<Shader>& shader);
-		void ValidateAgainstShader(const Ref<Shader>& shader);
+		void UploadDataToShader(const Ref<Shader>& shader) const;
+		void ValidateAgainstShader(const Ref<Shader>& shader) const;
 
 		void SetValue(const std::string& name, MatData&& element) { m_data.SetValue(name, element); }
-		const MatData& GetValue(const std::string& name) { m_data.GetValue(name); } //TODO check that value exists
+		const MatData& GetValue(const std::string& name) const { m_data.GetValue(name); } //TODO check that value exists
 
 		const MaterialData& GetData() const { return m_data; }
 		const MaterialSpecification& GetSpecification() const { return m_specification; }
+		const std::string& GetName() const { return m_name; }
 
 	private:
 		std::string m_name = "Empty Material";

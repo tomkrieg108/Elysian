@@ -1,5 +1,8 @@
 #pragma once
 
+#define SCENE_VERS  1
+//#define SCENE_VERS  2
+
 #include <memory>
 
 //platform detection / check
@@ -50,7 +53,7 @@ namespace ely
 	}
 
 	template<typename T, typename ... Args>
-	constexpr Ref<T> CreateScope(Args&& ... args)
+	constexpr Scope<T> CreateScope(Args&& ... args)
 	{
 		return std::make_unique<T>(std::forward<Args>(args)...);
 	}

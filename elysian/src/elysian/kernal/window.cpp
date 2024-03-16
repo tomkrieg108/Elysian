@@ -68,7 +68,7 @@ namespace ely
 		glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			win->GetInput().MouseButtonPressed(button, action, mods);
-		});
+			});
 
 		glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xoffset, double yoffset) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
@@ -167,9 +167,9 @@ namespace ely
 		m_params.cursor_enabled = enabled;
 	}
 
-	std::unique_ptr<Window> Window::Create(const WindowParams& initial_params)
+	Window* Window::Create(const WindowParams& initial_params)
 	{
-		auto window = std::make_unique<Window>(initial_params);
+		auto window = new Window(initial_params);
 		return window;
 	}
 

@@ -42,20 +42,37 @@ namespace ely
 		glLineWidth(width);
 	}
 
-	void OpenGLRenderer::DrawMesh(Ref<Mesh> mesh, Ref<Shader> shader, DrawMode draw_mode)
+	void OpenGLRenderer::DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, DrawMode draw_mode)
 	{
 		auto& material = mesh->GetMaterial();
-		const auto& vao = mesh->GetVertexArray();
+		auto& vao = mesh->GetVertexArray();
 
 		shader->Bind();
-		material.UploadDataToShader(shader);
+		material.UploadDataToShader(shader); //TODO - this calls shader->Bind() too
 		vao.Bind();
 
-		//TODO - handle multiple vbos
+		//TODO - handle multiple vbo's ?
 		auto& vbo = vao.GetVertexBuffers()[0];
-		glDrawArrays(GetOpenGLDrawMode(draw_mode), 0, vbo.GetVertexCount());
+		//glDrawArrays(GetOpenGLDrawMode(draw_mode), 0, vbo.GetVertexCount());
+		glDrawArrays(GetOpenGLDrawMode(mesh->GetDrawMode()), 0, vbo.GetVertexCount());
 	}
 
+#if 0
+  void OpenGLRenderer::DrawMesh(const Mesh& mesh, const Ref<Shader>& shader, DrawMode draw_mode)
+	{
+		auto& material = mesh.GetMaterial();
+		auto& vao = mesh.GetVertexArray();
+
+		shader->Bind();
+		material.UploadDataToShader(shader); //TODO - this calls shader->Bind() too
+		vao.Bind();
+		//glBindVertexArray(6);
+
+		auto& vbo = vao.GetVertexBuffers()[0];
+		//glDrawArrays(GetOpenGLDrawMode(draw_mode), 0, vbo.GetVertexCount());
+		glDrawArrays(GetOpenGLDrawMode(mesh.GetDrawMode()), 0, vbo.GetVertexCount());
+	}
+#endif
 
 	uint32_t OpenGLRenderer::GetOpenGLDrawMode(DrawMode draw_mode)
 	{

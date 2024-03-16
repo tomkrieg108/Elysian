@@ -18,7 +18,8 @@ workspace "elysian"
    include_dir["imgui"] = "%{vendor_dir}/imgui_docking"
    include_dir["imgui_bankends"] = "%{vendor_dir}/imgui_docking/backends"
    include_dir["stb_image"] = "%{vendor_dir}/stb_img"
-   include_dir["assimp"] = "%{vendor_dir}/assimp/include"
+   include_dir["assimp"] = "%{vendor_dir}/assimp/include" 
+   include_dir["entt"] = "%{vendor_dir}/entt/single_include"
   
    library = {}
    library["glfw"] = "%{vendor_dir}/glfw/src/%{cfg.buildcfg}/glfw3.lib"

@@ -19,8 +19,8 @@ namespace ely
 			return m_depth_attachment_id;
 		}
 
-		void Bind();
-		void Unbind();
+		void Bind() const;
+		void Unbind() const;
 
 		bool IsComplete() const { return m_is_complete; }
 
