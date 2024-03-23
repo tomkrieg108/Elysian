@@ -196,12 +196,12 @@ namespace ely
 		return builder.Build(name);
 	}
 
-	void Shader::Bind()
+	void Shader::Bind() const
 	{
 		glUseProgram(m_program_id);
 	}
 
-	void Shader::Unbind()
+	void Shader::Unbind() const
 	{
 		glUseProgram(0);
 	}
@@ -297,7 +297,7 @@ namespace ely
 		}
 	}
 
-	void Shader::ReadAttributes()
+	void Shader::ReadAttributes() 
 	{
 		int32_t params = -1;
 		const int kMaxLength = 100;
@@ -330,7 +330,7 @@ namespace ely
 		}
 	}
 
-	void Shader::OutputInfo()
+	void Shader::OutputInfo() 
 	{
 #ifndef DEBUG
 		return;

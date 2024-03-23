@@ -76,6 +76,7 @@ namespace ely
 				layer->OnUpdate(delta_time);
 
 			m_imgui_layer->Begin();
+
 			for (Layer* layer : m_layer_stack)
 				layer->OnImGuiRender();
 			m_imgui_layer->End();

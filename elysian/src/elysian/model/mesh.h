@@ -21,6 +21,7 @@ namespace ely
 	{
 	public:
 		
+		Mesh() = default;
 		Mesh(const OpenGLVertexBuffer& vertex_buffer, const Material& material, DrawMode draw_mode = DrawMode::Triangles) :
 			m_material{ material }, m_draw_mode{draw_mode}
 		{
@@ -38,10 +39,12 @@ namespace ely
 		void SetDrawMode(DrawMode draw_mode) { m_draw_mode = draw_mode; }
 		const DrawMode GetDrawMode() const { return m_draw_mode; }
 
+		void UploadMaterialToShader(Shader& shader) const { m_material.UploadDataToShader(shader); }
+
 	private:
 		Material m_material;
 		OpenGLVertexArray m_vao;
-		DrawMode m_draw_mode;
+		DrawMode m_draw_mode = DrawMode::Triangles;
 	};
 	
 }

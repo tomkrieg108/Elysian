@@ -25,8 +25,8 @@ namespace ely
 		void PopLayer(Layer* layer);
 		void PopOverlay(Layer* layer);
 		virtual void OnUpdate(double delta_time) {}
-		Window& GetWindow() const { return *m_window; }
-		ImGuiLayer& GetImGuiLayer() const { return *m_imgui_layer; }
+		Window& GetWindow() { return *m_window; }
+		ImGuiLayer& GetImGuiLayer() { return *m_imgui_layer; }
 
 		//can these be protected?
 		void Run(); 

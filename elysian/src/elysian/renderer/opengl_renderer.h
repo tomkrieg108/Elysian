@@ -1,5 +1,7 @@
 #pragma once
 #include "elysian/kernal/base.h"
+#include "elysian/renderer/opengl_framebuffer.h"
+#include "elysian/camera/perspective_camera.h"
 #include "elysian/model/mesh.h"
 #include "opengl_shader.h"
 #include "opengl_shader.h"
@@ -20,7 +22,10 @@ namespace ely
 		static void SetLineWidth(float width);
 	
 		static void DrawMesh(const Ref<Mesh>& mesh, const Ref<Shader>& shader, DrawMode draw_mode = DrawMode::Triangles);
-		//static void DrawMesh(const Mesh& mesh, const Ref<Shader>& shader, DrawMode draw_mode = DrawMode::Triangles);
+		static void DrawMesh(const Mesh& mesh, const Shader& shader);
+
+		static void BeginScene(const PerspectiveCamera& camera, const OpenGLFramebuffer& frame_buffer);
+		static void EndScene();
 		
 	private:
 		static uint32_t GetOpenGLDrawMode(DrawMode draw_mode);

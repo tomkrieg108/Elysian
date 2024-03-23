@@ -17,7 +17,11 @@ namespace ely
 
 	OpenGLVertexArray::~OpenGLVertexArray()
 	{
-		glDeleteVertexArrays(1, &m_id);
+		//TODO
+		// NOTE this gets called when a Mesh local variable is returned from a function, which messing things up
+		// use Release() instead - see below
+		//CORE_TRACE("vertex array destructor called: ID={}", m_id);
+		//glDeleteVertexArrays(1, &m_id);
 	}
 
 	void OpenGLVertexArray::Bind() const
@@ -28,6 +32,11 @@ namespace ely
 	void OpenGLVertexArray::Unbind() const
 	{
 		glBindVertexArray(0);
+	}
+
+	void OpenGLVertexArray::Release() const
+	{
+		glDeleteVertexArrays(1, &m_id);
 	}
 
 	void OpenGLVertexArray::AddVertexBuffer(const OpenGLVertexBuffer& vertex_buffer)

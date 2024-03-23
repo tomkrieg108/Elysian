@@ -12,6 +12,7 @@ namespace ely
 
 		void Bind() const;
 		void Unbind() const;
+		void Release() const;
 
 		void AddVertexBuffer(const OpenGLVertexBuffer& vertex_buffer);
 		const std::vector<OpenGLVertexBuffer>& GetVertexBuffers() const { return m_vertex_buffers; }

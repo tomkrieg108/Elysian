@@ -53,8 +53,32 @@ namespace ely
 
 		//TODO - handle multiple vbo's ?
 		auto& vbo = vao.GetVertexBuffers()[0];
-		//glDrawArrays(GetOpenGLDrawMode(draw_mode), 0, vbo.GetVertexCount());
 		glDrawArrays(GetOpenGLDrawMode(mesh->GetDrawMode()), 0, vbo.GetVertexCount());
+	}
+
+	void OpenGLRenderer::DrawMesh(const Mesh& mesh, const Shader& shader)
+	{
+		auto& vao = mesh.GetVertexArray();
+		shader.Bind();
+		vao.Bind();
+
+		//TODO - handle multiple vbo's ?
+		auto& vbo = vao.GetVertexBuffers()[0];
+		glDrawArrays(GetOpenGLDrawMode(mesh.GetDrawMode()), 0, vbo.GetVertexCount());
+	}
+
+	static void BeginScene(const PerspectiveCamera& camera, const OpenGLFramebuffer& frame_buffer)
+	{
+		//frame_buffer.Bind();
+		OpenGLRenderer::SetLineWidth(2.0);
+		//LoadCameraData(camera_entity);
+		//ely::OpenGLRenderer::SetClearColor(clear_color);
+		ely::OpenGLRenderer::ClearBuffers();
+	}
+
+	static void EndScene()
+	{
+
 	}
 
 #if 0

@@ -44,60 +44,97 @@ namespace ely
 
 namespace ely
 {
-	class PerspectiveCameraController
-	{
-	public:
-		PerspectiveCameraController() = delete;
-		PerspectiveCameraController(Ref<Entity> camera_entity) :
-			//TODO assert not null
-			m_camera_entity{camera_entity}
-		{}
-
-		~PerspectiveCameraController() = default;
-
-		//PerspectiveCameraController2& operator=(const PerspectiveCameraController2& other) = default;
-
-		void MoveForward(float amount);
-		void MoveRight(float amount);
-		void MoveVertically(float amount);
-		void Turn(float amount_x, float amount_y);
-		void InvertPitch();
-		void Zoom(float amount);
-
-		const auto& GetCameraEntity() const { return m_camera_entity; }
-		void SetCameraEntity(Ref<Entity> camera_entity) { m_camera_entity = camera_entity; }
-
-		void OnUpdate(double delta_time);
-		void OnMouseMoved(EventMouseMoved& e);
-		void OnMouseScrolled(EventMouseScrolled& e);
-		void OnWindowResize(EventWidowResize& e);
-		void OnMouseButtonPressed(EventMouseButtonPressed& e);
-
-		//TODO - these should be in the entity class?
-		auto& GetCamera()
+		class PerspectiveCameraController
 		{
-			auto& components = m_camera_entity->GetComponents();
-			auto& camera_comp = std::dynamic_pointer_cast<PerspectiveCameraComponent>(components["camera"]);
-			//TODO assert not null
-			return camera_comp->GetCamera();
-		}
+		public:
+			PerspectiveCameraController() = default;
+			PerspectiveCameraController(Ref<Entity> camera_entity) :
+				//TODO assert not null
+				m_camera_entity{ camera_entity }
+			{}
 
-		auto& GetTransform()
+			~PerspectiveCameraController() = default;
+
+			void MoveForward(float amount);
+			void MoveRight(float amount);
+			void MoveVertically(float amount);
+			void Turn(float amount_x, float amount_y);
+			void InvertPitch();
+			void Zoom(float amount);
+
+			const auto& GetCameraEntity() const { return m_camera_entity; }
+			void SetCameraEntity(Ref<Entity> camera_entity) { m_camera_entity = camera_entity; }
+
+			void OnUpdate(double delta_time);
+			void OnMouseMoved(EventMouseMoved& e);
+			void OnMouseScrolled(EventMouseScrolled& e);
+			void OnWindowResize(EventWidowResize& e);
+			void OnMouseButtonPressed(EventMouseButtonPressed& e);
+
+			//TODO - these should be in the entity class?
+			auto& GetCamera()
+			{
+				auto& components = m_camera_entity->GetComponents();
+				auto& camera_comp = std::dynamic_pointer_cast<PerspectiveCameraComponent>(components["camera"]);
+				//TODO assert not null
+				return camera_comp->GetCamera();
+			}
+
+			auto& GetTransform()
+			{
+				auto& components = m_camera_entity->GetComponents();
+				auto& transform_comp = std::dynamic_pointer_cast<TransformComponent>(components["transform"]);
+				//TODO assert not null
+				return transform_comp->GetTransform();
+			}
+
+		private:
+			//angle in degrees
+			glm::mat4 GetRotationMatX(float angle) const;
+			glm::mat4 GetRotationMatY(float angle) const;
+			glm::mat4 GetRotationMatZ(float angle) const;
+
+		private:
+			Ref<Entity> m_camera_entity = nullptr;
+		};
+}
+
+namespace ely
+{
+	//used for test_layer4!
+
+	namespace scene_v2 {
+
+		class PerspectiveCameraController
 		{
-			auto& components = m_camera_entity->GetComponents();
-			auto& transform_comp = std::dynamic_pointer_cast<TransformComponent>(components["transform"]);
-			//TODO assert not null
-			return transform_comp->GetTransform();
-		}
+		public:
+			PerspectiveCameraController() = default;
 
-	private:
-		//angle in degrees
-		glm::mat4 GetRotationMatX(float angle) const;
-		glm::mat4 GetRotationMatY(float angle) const;
-		glm::mat4 GetRotationMatZ(float angle) const;
+			void MoveForward(float amount);
+			void MoveRight(float amount);
+			void MoveVertically(float amount);
+			void Turn(float amount_x, float amount_y);
+			void InvertPitch();
+			void Zoom(float amount);
 
-	private:
-		Ref<Entity> m_camera_entity;
-	};
+			const auto& GetCameraEntity() const { return m_camera_entity; }
+			void SetCameraEntity(ely::scene_v2::Entity camera_entity) { m_camera_entity = camera_entity; }
 
+			void OnUpdate(double delta_time);
+			void OnMouseMoved(EventMouseMoved& e);
+			void OnMouseScrolled(EventMouseScrolled& e);
+			void OnWindowResize(EventWidowResize& e);
+			void OnMouseButtonPressed(EventMouseButtonPressed& e);
+
+		private:
+			//angle in degrees
+			glm::mat4 GetRotationMatX(float angle) const;
+			glm::mat4 GetRotationMatY(float angle) const;
+			glm::mat4 GetRotationMatZ(float angle) const;
+
+		private:
+			ely::scene_v2::Entity m_camera_entity;
+		};
+
+	}
 }

@@ -4,6 +4,8 @@
 
 namespace ely
 {
+		class PerspectiveCameraController2;
+
 		class PerspectiveCamera2
 		{
 			friend class PerspectiveCameraController2;
@@ -42,9 +44,12 @@ namespace ely
 
 namespace ely
 {
+	class PerspectiveCameraController;
+	
 	class PerspectiveCamera
 	{
 		friend class PerspectiveCameraController;
+		
 	public:
 		PerspectiveCamera();
 		~PerspectiveCamera() = default;
@@ -68,6 +73,8 @@ namespace ely
 		float GetAspectRatio() const { return m_aspect_ratio; }
 		float GetNear() const { return m_near; }
 		float GetFar() const { return m_far; }
+
+		void SetFov(float fov) { m_fov = fov; }
 
 	private:
 		float m_aspect_ratio = 1.0f;			// = width/height

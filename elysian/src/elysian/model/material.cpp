@@ -84,6 +84,41 @@ namespace ely
 		//TODO
 	}
 
+	void Material::UploadDataToShader(Shader& shader) const
+	{
+		for (const auto& data_element : m_data)
+		{
+			const std::string& uniform_name = data_element.first;
+			const MatData value = data_element.second;
+
+			if (std::holds_alternative<OpenGLTexture2D*>(value))
+			{
+				auto texture = std::get<OpenGLTexture2D*>(value);
+				texture->Bind();
+				shader.SetUniform1i(uniform_name, texture->GetSlot());
+			}
+
+			else if (std::holds_alternative<float>(value))
+				shader.SetUniform1f(uniform_name, std::get<float>(value));
+
+			else if (std::holds_alternative<glm::vec3>(value))
+				shader.SetUniform3f(uniform_name, std::get<glm::vec3>(value));
+
+			else if (std::holds_alternative<glm::vec4>(value))
+				shader.SetUniform4f(uniform_name, std::get<glm::vec4>(value));
+
+			//TODO ASSERTION
+		}
+	}
+	
+	void Material::ValidateAgainstShader(const Shader& shader) const
+	{
+		//Note: assumes the shader is already bound
+		//TODO only want to upload anything that has changed
+
+
+	}
+
 	//-------------------------------------------------------------------------------------
 
 	std::unordered_map<std::string, Ref<Material>> MaterialRepo::s_material_repo{};

@@ -82,8 +82,8 @@ namespace ely
 		Shader() = default;
 		~Shader() = default;
 
-		void Bind();
-		void Unbind();
+		void Bind() const;
+		void Unbind() const;
 
 		//Set uniforms
 		void SetUniform1f(const std::string& name, float v0);
@@ -128,6 +128,7 @@ namespace ely
 
 	//------------------------------------------------------------------------------------------------
 	//TODO - make as a template class? - similar type of thing for textures, models etc
+	//TODO - use a 'service locator' thing?
 	class ShaderRepo
 	{
 	public:
@@ -148,4 +149,18 @@ namespace ely
 		friend ShaderBuilder;
 	};
 
+	class ShaderHandle
+	{
+	public:
+		ShaderHandle() = delete;
+		ShaderHandle(const Shader& shader) : 
+			m_program_id{ shader.GetProgramID() },
+			m_shader{shader}
+		{ }
+		const Shader& GetShader() const { return m_shader; }
+		explicit operator uint32_t () const { return m_program_id; }
+	private:
+		uint32_t m_program_id = 0;
+		const Shader& m_shader;
+	};
 }

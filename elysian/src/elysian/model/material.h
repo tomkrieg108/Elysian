@@ -88,6 +88,9 @@ namespace ely
 		void UploadDataToShader(const Ref<Shader>& shader) const;
 		void ValidateAgainstShader(const Ref<Shader>& shader) const;
 
+		void UploadDataToShader(Shader& shader) const;
+		void ValidateAgainstShader(const Shader& shader) const;
+
 		void SetValue(const std::string& name, MatData&& element) { m_data.SetValue(name, element); }
 		const MatData& GetValue(const std::string& name) const { m_data.GetValue(name); } //TODO check that value exists
 

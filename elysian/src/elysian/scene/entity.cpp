@@ -4,10 +4,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-
 namespace ely {
 
-#if (SCENE_VERS == 1)
+//#if (SCENE_VERS == 1)
+	inline namespace scene_v1 {
 
 		void Entity::Render()
 		{
@@ -41,16 +41,18 @@ namespace ely {
 				event_comp->OnEvent(event);
 			}
 		}
-
-#endif
+	}
+//#endif
 
 }
 
 namespace ely {
+	
+//#if (SCENE_VERS == 2)
+	namespace scene_v2 {
+		static IDComponent component = IDComponent();
+	}
 
-#if (SCENE_VERS == 2)
-
-
-#endif
+//#endif
 
 }
