@@ -6,58 +6,11 @@
 #include "entity.h"
 #include "elysian/camera/perspective_camera_controller.h"
 
-
-namespace ely
-{
-//#if (SCENE_VERS == 1)
-
-	 inline namespace scene_v1 { 
-
-		class Scene
-		{
-		public:
-			Scene() = default;
-			~Scene()
-			{
-				delete m_camera_controller;
-			}
-
-			void Init();
-
-			void Begin(Ref<Entity> camera_entity, const glm::vec4& clear_color = glm::vec4(0.05f, 0.05f, 0.05f, 1.0f));
-			void Begin(Ref<Entity> camera_entity, const OpenGLFramebuffer& framebuffer,
-				const glm::vec4& clear_color = glm::vec4(0.05f, 0.05f, 0.2f, 1.0f));
-			void End() {}
-			void OnUpdate(double delta_time);
-			void OnEvent(Event& event);
-			void Render();
-
-			const auto& GetEntities() const { return m_entities; }
-			auto& GetEntities() { return m_entities; }
-			Ref<Entity> GetEntity(const ::std::string& name);
-			auto GetCameraController() { return m_camera_controller; }
-
-		private:
-			void LoadCameraData(Ref<Entity> camera_entity);
-
-		private:
-			::std::vector<Ref<Entity>> m_entities;
-			PerspectiveCameraController* m_camera_controller = nullptr;
-		};
-
-	}
-
-//#endif
-}
-
 #include <entt/entt.hpp>
 
 namespace ely {
 
-//#if (SCENE_VERS == 2)
-	namespace scene_v2 {
-
-		class Scene
+	class Scene
 		{
 		public:
 			Scene();
@@ -97,12 +50,11 @@ namespace ely {
 
 		private:
 			entt::registry m_registry;
-			std::unordered_map<UUID, entt::entity> m_entity_map;
+			std::unordered_map<UUID, entt::entity> m_entity_map; //TODO - what's this used for!?
 			PerspectiveCameraController m_camera_controller; //TODO - make as an component attached to camera entity?
 			Entity m_controlled_camera_entity;
 		};
-	}
-//#endif
+
 }
 
 

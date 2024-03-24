@@ -43,5 +43,5 @@ private:
 private:
 	ely::Window& m_window;
 	ely::OpenGLFramebuffer m_framebuffer, m_framebuffer_alt;
-	ely::scene_v2::Scene m_scene;
+	ely::Scene m_scene;
 };

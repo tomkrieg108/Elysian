@@ -46,7 +46,7 @@ void TestLayer4::OnAttach()
 	m_scene.SetControlledCameraEntity(main_camera_entity);
 
 	auto& alt_camera_entity = m_scene.CreatePerspectiveCameraEntity(glm::vec3(4.0, 1.0, 7.0), "Alt Camera"s);
-	auto& mesh_comp = alt_camera_entity.GetComponent<ely::scene_v2::MeshComponent>();
+	auto& mesh_comp = alt_camera_entity.GetComponent<ely::MeshComponent>();
 	m_scene.SetRenderable(alt_camera_entity, true);
 
 	m_scene.CreateQuadEntity(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad"s); //NOTE: relies on main camera=> need to create main cam first
@@ -81,8 +81,8 @@ void TestLayer4::OnUpdate(double time_step)
 	
 	auto& main_camera_entity = m_scene.FindEntityByName("Main Camera"s);
 	auto& alt_camera_entity = m_scene.FindEntityByName("Alt Camera"s);
-	auto& main_mesh_comp = main_camera_entity.GetComponent<ely::scene_v2::MeshComponent>();
-	auto& alt_mesh_comp = alt_camera_entity.GetComponent<ely::scene_v2::MeshComponent>();
+	auto& main_mesh_comp = main_camera_entity.GetComponent<ely::MeshComponent>();
+	auto& alt_mesh_comp = alt_camera_entity.GetComponent<ely::MeshComponent>();
 	main_mesh_comp.SetEnableRender(true);
 	alt_mesh_comp.SetEnableRender(false);
 
@@ -147,8 +147,8 @@ void TestLayer4::OnKeyPressed(ely::EventKeyPressed& e)
 		auto& main_camera_entity = m_scene.FindEntityByName("Main Camera"s);
 		auto& alt_camera_entity = m_scene.FindEntityByName("Alt Camera"s);
 
-		ely::scene_v2::Entity controlled_camera_entity = m_scene.GetControlledCameraEntity();
-		auto& tag = (std::string&)controlled_camera_entity.GetComponent<ely::scene_v2::TagComponent>();
+		ely::Entity controlled_camera_entity = m_scene.GetControlledCameraEntity();
+		auto& tag = (std::string&)controlled_camera_entity.GetComponent<ely::TagComponent>();
 		if (tag == "Main Camera"s)
 			m_scene.SetControlledCameraEntity(alt_camera_entity);
 		else
@@ -176,6 +176,7 @@ void TestLayer4::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
 
 void TestLayer4::OnWindowResize(ely::EventWidowResize& e)
 {
+	m_scene.GetCameraController().OnWindowResize(e);
 }
 
 
