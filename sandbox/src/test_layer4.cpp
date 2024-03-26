@@ -97,6 +97,8 @@ void TestLayer4::OnUpdate(double time_step)
 
 void TestLayer4::OnImGuiRender()
 {
+	ImGui::Begin("Info"); //start window
+
 	if (ImGui::CollapsingHeader("Window"))
 	{
 		ImGui::Text("Width, Height %d %d : ", m_window.Width(), m_window.Height());
@@ -132,6 +134,8 @@ void TestLayer4::OnImGuiRender()
 		ImTextureID tex_id = (void*)color_attachment_id;
 		ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 	}
+
+	ImGui::End();
 }
 
 

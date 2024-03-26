@@ -76,9 +76,8 @@ namespace ely
 				layer->OnUpdate(delta_time);
 
 			m_imgui_layer->Begin();
-
-			for (Layer* layer : m_layer_stack)
-				layer->OnImGuiRender();
+				for (Layer* layer : m_layer_stack)
+					layer->OnImGuiRender();
 			m_imgui_layer->End();
 
 			m_window->OnUpdate();
@@ -88,6 +87,6 @@ namespace ely
 
 	void Application::Close()
 	{
-		m_layer_stack.PopOverlay(m_imgui_layer);
+		m_window->ShutDown();
 	}
 }

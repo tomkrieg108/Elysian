@@ -56,11 +56,13 @@ namespace ely
 			CORE_ERROR("GLFW window creation failed");
 			glfwTerminate();
 		}
-
+		
 		m_context = new OpenGLContext(m_window);
 		m_context->Init();
 		
 		glfwGetFramebufferSize(m_window, &m_params.buffer_width, &m_params.buffer_height);
+		OpenGLRenderer::SetViewport(m_params.buffer_width, m_params.buffer_height);
+
 		if(params.vsync_enabled)
 			glfwSwapInterval(1); // Enable vsync
 
@@ -92,10 +94,7 @@ namespace ely
 			win->m_params.height = height;
 			glfwGetFramebufferSize(win->GetWindowHandle(), &(win->m_params.buffer_width), &(win->m_params.buffer_height));
 
-			//TODO:  should be forwarded to renderer
 			OpenGLRenderer::SetViewport(win->m_params.buffer_width, win->m_params.buffer_height);
-			//glViewport(0, 0, win->m_params.buffer_width, win->m_params.buffer_height);
-
 			ely::EventWidowResize e{ (uint32_t)win->m_params.buffer_width, (uint32_t)win->m_params.buffer_height };
 			ely::EventDispatcher::Dispatch(e);
 		});
@@ -178,6 +177,7 @@ namespace ely
 			glfwSetWindowShouldClose(m_context->GetWindowHandle(), GL_TRUE);
 	}
 
+	//TODO this stuff should be in the renderer API
 	void Window::Clear()
 	{
 		const glm::vec4& col = m_params.clear_colour;
@@ -188,6 +188,7 @@ namespace ely
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
+	//TODO this stuff should be in the renderer API
 	void Window::OnUpdate()
 	{
 		glfwSwapBuffers(m_context->GetWindowHandle()); //TODO:  should be in opengl_context

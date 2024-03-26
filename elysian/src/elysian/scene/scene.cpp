@@ -221,7 +221,7 @@ namespace ely {
 		{
 			//Upload per scene data do shader(s)
 			OpenGLRenderer::SetLineWidth(1.0);
-			UploadCameraDataToShaders(camera_name);
+			UploadCameraDataToShaders(camera_name); //TODO should be part of renderer api
 			UploadLightDataToShader();
 			OpenGLRenderer::SetClearColor(clear_color);
 			OpenGLRenderer::ClearBuffers();
@@ -271,19 +271,20 @@ namespace ely {
 
 		void Scene::RenderScene()
 		{
-			//auto group = m_registry.group<TransformComponent, MeshComponent, ShaderHandleComponent>(); //crashes
+			//auto group = m_registry.group<TransformComponent, MeshComponent, ShaderHandleComponent>(); // groups are faster for multiple components, but this crashes
 			auto view = m_registry.view<TagComponent, TransformComponent, MeshComponent, ShaderHandleComponent>();
 
 			for (auto entity : view)
 			{
 				auto& [tag_comp, transform_comp, mesh_comp, shader_comp] = view.get<TagComponent, TransformComponent, MeshComponent, ShaderHandleComponent>(entity);
 
-				auto& shader = (Shader&)(shader_comp.GetShader());
-				shader.Bind();
-				shader.SetUniformMat4f("u_model", (glm::mat4)(transform_comp));
-
 				if (!mesh_comp.GetEnableRender())
 					continue;
+
+				auto& shader = (Shader&)(shader_comp.GetShader());
+				//TODO do this in DrawMesh()
+				shader.Bind();
+				shader.SetUniformMat4f("u_model", (glm::mat4)(transform_comp));
 
 				auto& mesh = (Mesh)(mesh_comp);
 				mesh.UploadMaterialToShader(shader);
@@ -336,7 +337,7 @@ namespace ely {
 		}
 
 
-
+		//cherno ch77
 		/*
 		static void OnTransformConstruct(entt::registry& reg, entt::entity ent)
 		{

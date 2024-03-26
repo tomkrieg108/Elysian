@@ -1,4 +1,4 @@
-project "sandbox1"
+project "sandbox"
 
     location "%{prj.name}"   --This will create a new folder called sandbox that contains th  project files
     kind "ConsoleApp" -- If don't want a console window to appear the need to set as a windows app (apparently)

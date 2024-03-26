@@ -16,6 +16,10 @@ namespace ely
 		void Begin();
 		void End();
 
+		void SetDarkThemeColors();
+
+		//uint32_t GetActiveWidgetID() const;
+
 		static bool WantCaptureMouse();
 		static bool WantCaptureKeyboard();
 	};

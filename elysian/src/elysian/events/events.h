@@ -7,6 +7,7 @@ namespace ely
 	{
 		None,
 		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
+		ViewportResize,
 		AppTick, AppUpdate, AppRender,
 		KeyPressed, KeyReleased, KeyTyped,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
@@ -90,6 +91,16 @@ namespace ely
 		EventType Type() override { return EventType::WindowResize; }
 		static uint32_t StaticType() { return STATIC_EVENT_TYPE(WindowResize); }
 		uint32_t buffer_width, buffer_height;
+	};
+
+	struct EventViewportResize : public Event
+	{
+		EventViewportResize() = default;
+		EventViewportResize(uint32_t const width, uint32_t const height) :
+			width{ width }, height{ height } {}
+		EventType Type() override { return EventType::ViewportResize; }
+		static uint32_t StaticType() { return STATIC_EVENT_TYPE(ViewportResize); }
+		uint32_t width = 0, height = 0;
 	};
 
 }

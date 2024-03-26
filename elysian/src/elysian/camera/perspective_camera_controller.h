@@ -22,12 +22,13 @@ namespace ely
 		void Zoom(float amount);
 
 		const auto& GetCameraEntity() const { return m_camera_entity; }
-		void SetCameraEntity(ely::Entity camera_entity) { m_camera_entity = camera_entity; }
+		void SetCameraEntity(Entity camera_entity) { m_camera_entity = camera_entity; }
 
 		void OnUpdate(double delta_time);
 		void OnMouseMoved(EventMouseMoved& e);
 		void OnMouseScrolled(EventMouseScrolled& e);
 		void OnWindowResize(EventWidowResize& e);
+		void OnViewportResize(EventViewportResize& e);
 		void OnMouseButtonPressed(EventMouseButtonPressed& e);
 
 	private:
@@ -37,6 +38,6 @@ namespace ely
 		glm::mat4 GetRotationMatZ(float angle) const;
 
 	private:
-		ely::Entity m_camera_entity;
+		Entity m_camera_entity;
 	};
 }

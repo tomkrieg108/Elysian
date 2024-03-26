@@ -3,13 +3,12 @@ workspace "elysian"
    architecture "x64"
    platforms {"Win64"}
    configurations { "Debug", "Release", "Dist" }
-   startproject "sandbox1"
+   startproject "editor"
 
-    --note: relative paths should be relative to the location of this lua script
+    --note: relative paths are relative to the location of this lua script
    output_dir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
    vendor_dir = "%{wks.location}/../vendor"
    external_libs_dir = "%{wks.location}/../external_libs"
-   
 
    include_dir = {}
    include_dir["glad"] = "%{vendor_dir}/glad/include"
@@ -36,8 +35,8 @@ workspace "elysian"
    group ""
 
    include "elysian/build_elysian.lua"
-
-   include "sandbox1/build_sandbox1.lua"
+   include "sandbox/build_sandbox.lua"
+   include "editor/build_editor.lua"
 
    ok, err = os.copyfile("%{vendor_dir}/assimp/UILD_SHARED_LIBS=ON/bin/assimp-vc143-mt.dll","%{wks.location}/bin/Debug-windows-x86_64/sandbox1/assimp-vc143-mt.dll")
 
