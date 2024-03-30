@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "elysian/kernal/base.h"
 #include "elysian/kernal/application.h"
+#include "elysian/events/events.h"
 #include "elysian/events/event_dispatcher.h"
 #include "elysian/renderer/opengl_shader.h"
 #include "elysian/model/mesh.h"
@@ -25,14 +26,13 @@ TestLayer4::TestLayer4() :
 	m_framebuffer(m_window.BufferWidth(), m_window.BufferHeight()),
 	m_framebuffer_alt(m_window.BufferWidth(), m_window.BufferHeight())
 {
-	//TODO - this event stuff shouldn't be in the client?
+	//TODO - handled by the OnEvent() method
 	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnKeyPressed);
 	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnMouseMoved);
 	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnMouseScrolled);
 	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnWindowResize);
 	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnMouseButtonPressed);
 }
-
 
 void TestLayer4::OnAttach()
 {
@@ -95,6 +95,11 @@ void TestLayer4::OnUpdate(double time_step)
 	alt_mesh_comp.SetEnableRender(true);
 }
 
+void TestLayer4::OnEvent(ely::Event& event)
+{
+	//TODO
+}
+
 void TestLayer4::OnImGuiRender()
 {
 	ImGui::Begin("Info"); //start window
@@ -142,7 +147,8 @@ void TestLayer4::OnImGuiRender()
 void TestLayer4::OnKeyPressed(ely::EventKeyPressed& e)
 {
 	if (e.key == GLFW_KEY_ESCAPE)
-		m_window.ShutDown();
+		ely::Application::GetInstance().Close();
+		//m_window.ShutDown();
 	else if (e.key == GLFW_KEY_SPACE)
 		m_window.ToggleCursorEnabled();
 

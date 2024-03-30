@@ -1,5 +1,7 @@
 #pragma once
 #include "base.h"
+#include "elysian/kernal/log.h"
+#include "elysian/events/event_dispatcher.h"
 #include "elysian/renderer/opengl_context.h" //must be included before<GLFW\glfw3.h>
 #include "elysian/kernal/input.h"
 #include <GLFW/glfw3.h>
@@ -12,7 +14,7 @@ namespace ely
 	public:
 		struct WindowParams
 		{
-			std::string title{ "Elysiun Engine" };
+			std::string title{ "Elysiun App" };
 			uint32_t width = 1200;
 			uint32_t height = 800;
 			int32_t buffer_height = 1200; //set in Init()
@@ -20,7 +22,7 @@ namespace ely
 			bool vsync_enabled = true;
 			bool cursor_enabled = true;
 			bool maximized = true;
-			glm::vec4 clear_colour = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
+			glm::vec4 clear_colour = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f); //TODO - should be a renderer parameter
 		};
 		
 	public:
@@ -36,12 +38,17 @@ namespace ely
 			return (float)BufferWidth() / (float)BufferHeight();
 		}
 
-		GLFWwindow* GetWindowHandle() const;
+		//TODO - get rid of this - make inout a static class
 		Input& GetInput() { return m_input; }
+
+		GLFWwindow* GetWindowHandle() const;
 		bool GetCursorEnabled() const { return m_params.cursor_enabled; }
 		void SetCursorEnabled(bool enabled);
-		void SetClearColour(glm::vec4 clear_colour) { m_params.clear_colour = clear_colour; }
 		void ToggleCursorEnabled();
+
+		//TODO - in renderer api?
+		void SetClearColour(glm::vec4 clear_colour) { m_params.clear_colour = clear_colour; }
+
 		bool IsMinimised() const;
 		void Clear();
 		bool ShouldClose();
@@ -49,7 +56,11 @@ namespace ely
 		void ShutDown();
 
 		static Window* Create(const WindowParams& initial_params = WindowParams());
-		
+
+		//Cherno
+		void SetEventCallback(const events_v2::EventCallbackFn& callback) { m_event_callback = callback; }
+		events_v2::EventCallbackFn& GetEventCallback() { return m_event_callback; }
+
 	private:
 		void Init(const WindowParams& initial_params);
 		static void ErrorCallback(int error, const char* description);
@@ -58,8 +69,17 @@ namespace ely
 		GLFWwindow* m_window;
 		OpenGLContext* m_context = nullptr;
 		WindowParams m_params;
-		Input m_input;
-		static uint32_t s_window_count;
+		Input m_input; //TODO  - static class
+		static uint32_t s_window_count; //TODO - needed?
+
+	
+		/*
+			Cherno
+			This set by Application and runs in Application to process events. 
+			Is called in Window.  
+			TODO better to be in event dispatcher thing
+		*/
+		events_v2::EventCallbackFn m_event_callback;
 	};
 
 }

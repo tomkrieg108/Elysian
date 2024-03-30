@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h> // allows custom << operators to be used
 
 namespace ely
 {

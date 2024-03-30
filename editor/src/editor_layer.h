@@ -32,6 +32,7 @@ namespace ely {
 		void OnAttach() override;
 		void OnDetach() override;
 		void OnUpdate(double time_step) override;
+		void OnEvent(events_v2::Event& event) override;
 		void OnImGuiRender() override;
 
 	private:
@@ -39,7 +40,7 @@ namespace ely {
 		void OnMouseMoved(EventMouseMoved& e);
 		void OnMouseScrolled(EventMouseScrolled& e);
 		void OnMouseButtonPressed(EventMouseButtonPressed& e);
-		void OnWindowResize(EventWidowResize& e);
+		void OnWindowResize(EventWidowResize& e); //TODO - should this be handled by the application class?
 
 	private:
 		ely::Window& m_window;

@@ -4,6 +4,7 @@
 
 namespace ely
 {
+	//TODO - make all static
 	class Input
 	{
 	public:

@@ -28,11 +28,11 @@ namespace ely {
 		m_framebuffer_alt(m_window.BufferWidth(), m_window.BufferHeight())
 	{
 		//TODO - this event stuff shouldn't be in the client?
-		ely::EventDispatcher::SetCallback(this, &EditorLayer::OnKeyPressed);
-		ely::EventDispatcher::SetCallback(this, &EditorLayer::OnMouseMoved);
-		ely::EventDispatcher::SetCallback(this, &EditorLayer::OnMouseScrolled);
-		ely::EventDispatcher::SetCallback(this, &EditorLayer::OnWindowResize);
-		ely::EventDispatcher::SetCallback(this, &EditorLayer::OnMouseButtonPressed);
+	  EventDispatcher::SetCallback(this, &EditorLayer::OnKeyPressed);
+		EventDispatcher::SetCallback(this, &EditorLayer::OnMouseMoved);
+		EventDispatcher::SetCallback(this, &EditorLayer::OnMouseScrolled);
+		EventDispatcher::SetCallback(this, &EditorLayer::OnWindowResize);
+		EventDispatcher::SetCallback(this, &EditorLayer::OnMouseButtonPressed);
 	}
 
 
@@ -96,10 +96,22 @@ namespace ely {
 		//alt_mesh_comp.SetEnableRender(true);
 	}
 
-	
+	/*void EditorLayer::OnEvent(Event& event)
+	{
+	}*/
 
+	void EditorLayer::OnEvent(events_v2::Event& e)
+	{
+		//EventDispatcher dispatcher(e);
 
-	void EditorLayer::OnKeyPressed(ely::EventKeyPressed& e)
+		//dispatcher.Dispatch<EventKeyPressed>(std::bind(&EditorLayer::OnKeyPressed, this, std::placeholders::_1));
+		//dispatcher.Dispatch<EventMouseMoved>(std::bind(&EditorLayer::OnMouseMoved, this, std::placeholders::_1));
+		//dispatcher.Dispatch<EventMouseScrolled>(std::bind(&EditorLayer::OnMouseScrolled, this, std::placeholders::_1));
+		//dispatcher.Dispatch<EventMouseButtonPressed>(std::bind(&EditorLayer::OnMouseButtonPressed, this, std::placeholders::_1));
+		//dispatcher.Dispatch<EventWidowResize>(std::bind(&EditorLayer::OnWindowResize, this, std::placeholders::_1));
+	}
+
+	void EditorLayer::OnKeyPressed(EventKeyPressed& e)
 	{
 		if (e.key == GLFW_KEY_ESCAPE)
 			Application::GetInstance().Close();
@@ -120,7 +132,7 @@ namespace ely {
 		}
 	}
 
-	void EditorLayer::OnMouseMoved(ely::EventMouseMoved& e)
+	void EditorLayer::OnMouseMoved(EventMouseMoved& e)
 	{
 		if (!m_window.GetCursorEnabled())
 		{
@@ -128,17 +140,17 @@ namespace ely {
 		}
 	}
 
-	void EditorLayer::OnMouseScrolled(ely::EventMouseScrolled& e)
+	void EditorLayer::OnMouseScrolled(EventMouseScrolled& e)
 	{
 		m_scene.GetCameraController().OnMouseScrolled(e);
 	}
 
-	void EditorLayer::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
+	void EditorLayer::OnMouseButtonPressed(EventMouseButtonPressed& e)
 	{
-		m_scene.OnEvent(e);
+		m_scene.OnEvent(e); //TODO - fix this !
 	}
 
-	void EditorLayer::OnWindowResize(ely::EventWidowResize& e)
+	void EditorLayer::OnWindowResize(EventWidowResize& e)
 	{
 		m_scene.GetCameraController().OnWindowResize(e);
 	}

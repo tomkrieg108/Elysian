@@ -31,8 +31,10 @@ public:
 	void OnAttach() override;
 	void OnDetach() override;
 	void OnUpdate(double time_step) override;
-	void OnImGuiRender() override;
+	void OnEvent(ely::Event& event) override;
 
+	void OnImGuiRender() override;
+	
 private:
 	void OnKeyPressed(ely::EventKeyPressed& e);
 	void OnMouseMoved(ely::EventMouseMoved& e);

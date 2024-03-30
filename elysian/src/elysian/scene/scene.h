@@ -34,7 +34,7 @@ namespace ely {
 			void EndScene();
 			void RenderScene();
 			void UpdateScene(double time_step);
-			void OnEvent(Event& event);
+			void OnEvent(Event& event); //TODO - fix this !
 
 			void SetRenderable(Entity& entity, bool val);
 			void DisplayCoords(Entity& entity, bool val);

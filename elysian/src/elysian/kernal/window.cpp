@@ -63,12 +63,13 @@ namespace ely
 		glfwGetFramebufferSize(m_window, &m_params.buffer_width, &m_params.buffer_height);
 		OpenGLRenderer::SetViewport(m_params.buffer_width, m_params.buffer_height);
 
-		if(params.vsync_enabled)
-			glfwSwapInterval(1); // Enable vsync
+		params.vsync_enabled ? glfwSwapInterval(1) : glfwSwapInterval(0);
+			
 
 		//set callbacks
 		glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			//TODO - make input a static class
 			win->GetInput().MouseButtonPressed(button, action, mods);
 			});
 
@@ -94,9 +95,15 @@ namespace ely
 			win->m_params.height = height;
 			glfwGetFramebufferSize(win->GetWindowHandle(), &(win->m_params.buffer_width), &(win->m_params.buffer_height));
 
+			//TODO - should this be somewhere else?
 			OpenGLRenderer::SetViewport(win->m_params.buffer_width, win->m_params.buffer_height);
-			ely::EventWidowResize e{ (uint32_t)win->m_params.buffer_width, (uint32_t)win->m_params.buffer_height };
-			ely::EventDispatcher::Dispatch(e);
+
+			EventWidowResize e{ (uint32_t)win->m_params.buffer_width, (uint32_t)win->m_params.buffer_height };
+			EventDispatcher::Dispatch(e);
+
+			events_v2::EventWidowResize event;
+			auto& callback_func = win->GetEventCallback();
+			callback_func(event); //event is std::placeholder::_1 in MakeCallback
 		});
 
 		glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
@@ -104,7 +111,10 @@ namespace ely
 		});
 
 		glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
-				//CORE_TRACE("Window closed");
+			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			events_v2::EventWidowClose event;
+			auto& callback_func = win->GetEventCallback();
+			callback_func(event); 
 		});
 
 		
@@ -114,15 +124,27 @@ namespace ely
 
 		glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int codepoint) {
 			//CORE_INFO("Char typed");
+			
 		});
 
 		glfwSetWindowPosCallback(m_window, [](GLFWwindow* window, int xpos, int ypos) {
-			//CORE_INFO("Window moved");
+			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			
+			events_v2::EventWindowMove event{ (uint32_t)xpos, (uint32_t)ypos };
+			auto& callback_func = win->GetEventCallback();
+			callback_func(event);
 		});
 
 
 		glfwSetWindowFocusCallback(m_window, [](GLFWwindow* window, int focused) {
 			//CORE_INFO("Window focus");
+			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+			
+			auto& callback_func = win->GetEventCallback();
+			if (focused)
+				callback_func(events_v2::EventWindowFocus());
+			else
+				callback_func(events_v2::EventWindowLostFocus());
 		});
 
 		glfwSetWindowIconifyCallback(m_window, [](GLFWwindow* window, int iconified) {
@@ -132,6 +154,8 @@ namespace ely
 		glfwSetWindowMaximizeCallback(m_window, [](GLFWwindow* window, int maximized) {
 			//CORE_INFO("Window maximized");
 		});
+
+
 		
 	  //glViewport(0, 0, m_params.buffer_width, m_params.buffer_height);
 		OpenGLRenderer::SetViewport(m_params.buffer_width, m_params.buffer_height);

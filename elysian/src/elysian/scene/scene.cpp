@@ -252,6 +252,7 @@ namespace ely {
 			}
 		}
 
+		//TODO - fix this !
 		void Scene::OnEvent(Event& event)
 		{
 			EventWidowResize* e = dynamic_cast<EventWidowResize*>(&event);

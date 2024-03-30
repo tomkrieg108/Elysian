@@ -3,104 +3,355 @@
 
 namespace ely
 {
-	enum class EventType : uint32_t
-	{
-		None,
-		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
-		ViewportResize,
-		AppTick, AppUpdate, AppRender,
-		KeyPressed, KeyReleased, KeyTyped,
-		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
-		Count
-	};
+	inline namespace events_v1 {
+
+		enum class EventType : uint32_t
+		{
+			None,
+			WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
+			ViewportResize,
+			AppTick, AppUpdate, AppRender, //TODO - used ?
+			KeyPressed, KeyReleased, KeyTyped,
+			MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
+			Count
+		};
+
+		//NOTE: # prefex converts a macro parameter to a string literal without expanding the parameter defn:
+		//https://learn.microsoft.com/en-us/cpp/preprocessor/stringizing-operator-hash?view=msvc-170
 
 #define STATIC_EVENT_TYPE(type) static_cast<uint32_t>(EventType::type)  
 
-	struct Event
-	{
-		virtual ~Event() = default;
-		virtual EventType Type() { return EventType::None; }
-		static uint32_t Count() { return STATIC_EVENT_TYPE(Count); }
-		bool handled = false;
-	};
+		struct Event
+		{
+			virtual ~Event() = default;
+			virtual EventType Type() { return EventType::None; }
+			virtual const char* GetName() const { return ""; }
+			virtual std::string ToString() const { return GetName(); }
+			static uint32_t Count() { return STATIC_EVENT_TYPE(Count); }
+			bool handled = false;
+		};
 
-	struct EventKeyPressed : public Event
-	{
-		EventKeyPressed() : key{ 0 } {}
-		EventKeyPressed(int32_t key) : key{ key } {}
-		EventType Type() override { return EventType::KeyPressed; }
-		static uint32_t StaticType() { return STATIC_EVENT_TYPE(KeyPressed);}
-		int32_t key;
-	};
+		struct EventKeyPressed : public Event
+		{
+			EventKeyPressed() : key{ 0 } {}
+			EventKeyPressed(int32_t key) : key{ key } {}
+			EventType Type() override { return EventType::KeyPressed; }
+			const char* GetName() const { return "Key Pressed"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(KeyPressed); }
+			int32_t key;
+		};
 
-	struct EventKeyReleased : public Event
-	{
-		EventKeyReleased() : key{ 0 } {}
-		EventKeyReleased(int32_t key) : key{ key } {}
-		EventType Type() override { return EventType::KeyReleased; }
-		static uint32_t StaticType() { return STATIC_EVENT_TYPE(KeyReleased); }
-		int32_t key;
-	};
+		struct EventKeyReleased : public Event
+		{
+			EventKeyReleased() : key{ 0 } {}
+			EventKeyReleased(int32_t key) : key{ key } {}
+			EventType Type() override { return EventType::KeyReleased; }
+			const char* GetName() const { return "Key Released"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(KeyReleased); }
+			int32_t key;
+		};
 
-	struct EventMouseMoved : public Event
-	{
-		EventMouseMoved() : x{ 0 }, y{ 0 }, delta_x{ 0 }, delta_y{ 0 } {}
-		EventMouseMoved(float x, float y, float delta_x, float delta_y) :
-			x{ x }, y{ y }, delta_x{ delta_x }, delta_y{ delta_y } {}
-		EventType Type() override { return EventType::MouseMoved; }
-		static uint32_t StaticType() { return STATIC_EVENT_TYPE(MouseMoved); }
-		float x, y;
-		float delta_x, delta_y;
-	};
+		struct EventMouseMoved : public Event
+		{
+			EventMouseMoved() : x{ 0 }, y{ 0 }, delta_x{ 0 }, delta_y{ 0 } {}
+			EventMouseMoved(float x, float y, float delta_x, float delta_y) :
+				x{ x }, y{ y }, delta_x{ delta_x }, delta_y{ delta_y } {}
+			EventType Type() override { return EventType::MouseMoved; }
+			const char* GetName() const { return "Mouse Moved"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(MouseMoved); }
+			float x, y;
+			float delta_x, delta_y;
+		};
 
-	struct EventMouseScrolled : public Event
-	{
-		EventMouseScrolled() : x_offset{ 0 }, y_offset{ 0 } {}
-		EventMouseScrolled(float x_offset, float y_offset) :
-			x_offset{ x_offset }, y_offset{ y_offset } {}
-		EventType Type() override { return EventType::MouseScrolled; }
-		static uint32_t StaticType() { return STATIC_EVENT_TYPE(MouseScrolled); }
-		float x_offset, y_offset;
-	};
+		struct EventMouseScrolled : public Event
+		{
+			EventMouseScrolled() : x_offset{ 0 }, y_offset{ 0 } {}
+			EventMouseScrolled(float x_offset, float y_offset) :
+				x_offset{ x_offset }, y_offset{ y_offset } {}
+			EventType Type() override { return EventType::MouseScrolled; }
+			const char* GetName() const { return "Mouse Scrolled"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(MouseScrolled); }
+			float x_offset, y_offset;
+		};
 
-	struct EventMouseButtonPressed : public Event
-	{
-		EventMouseButtonPressed() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
-		EventMouseButtonPressed(float x, float y, int btn, int action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
-		EventType Type() override { return EventType::MouseButtonPressed; }
-		static uint32_t StaticType() { return STATIC_EVENT_TYPE(MouseButtonPressed); }
-		float x, y;
-		int btn, action;
-	};
+		struct EventMouseButtonPressed : public Event
+		{
+			EventMouseButtonPressed() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
+			EventMouseButtonPressed(float x, float y, int btn, int action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
+			EventType Type() override { return EventType::MouseButtonPressed; }
+			const char* GetName() const { return "Mouse Button Pressed"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(MouseButtonPressed); }
+			float x, y;
+			int btn, action;
+		};
 
-	struct EventMouseButtonReleased : public Event
-	{
-		EventMouseButtonReleased() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
-		EventMouseButtonReleased(float const x, float const y, int const btn, int const action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
-		EventType Type() override { return EventType::MouseButtonReleased; }
-		static uint32_t StaticType() { return STATIC_EVENT_TYPE(MouseButtonReleased); }
-		float x, y;
-		int btn, action;
-	};
+		struct EventMouseButtonReleased : public Event
+		{
+			EventMouseButtonReleased() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
+			EventMouseButtonReleased(float const x, float const y, int const btn, int const action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
+			EventType Type() override { return EventType::MouseButtonReleased; }
+			const char* GetName() const { return "Mouse Button Releasd"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(MouseButtonReleased); }
+			float x, y;
+			int btn, action;
+		};
 
-	struct EventWidowResize : public Event
-	{
-		EventWidowResize() : buffer_width{ 0 }, buffer_height{ 0 } {}
-		EventWidowResize(uint32_t const _buffer_width, uint32_t const _buffer_height) :
-			buffer_width{ _buffer_width }, buffer_height{ _buffer_height } {}
-		EventType Type() override { return EventType::WindowResize; }
-		static uint32_t StaticType() { return STATIC_EVENT_TYPE(WindowResize); }
-		uint32_t buffer_width, buffer_height;
-	};
+		struct EventWidowResize : public Event
+		{
+			EventWidowResize() : buffer_width{ 0 }, buffer_height{ 0 } {}
+			EventWidowResize(uint32_t const _buffer_width, uint32_t const _buffer_height) :
+				buffer_width{ _buffer_width }, buffer_height{ _buffer_height } {}
+			EventType Type() override { return EventType::WindowResize; }
+			const char* GetName() const { return "Window Resized"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(WindowResize); }
+			uint32_t buffer_width, buffer_height;
+		};
 
-	struct EventViewportResize : public Event
-	{
-		EventViewportResize() = default;
-		EventViewportResize(uint32_t const width, uint32_t const height) :
-			width{ width }, height{ height } {}
-		EventType Type() override { return EventType::ViewportResize; }
-		static uint32_t StaticType() { return STATIC_EVENT_TYPE(ViewportResize); }
-		uint32_t width = 0, height = 0;
-	};
+		struct EventViewportResize : public Event
+		{
+			EventViewportResize() = default;
+			EventViewportResize(uint32_t const width, uint32_t const height) :
+				width{ width }, height{ height } {}
+			EventType Type() override { return EventType::ViewportResize; }
+			const char* GetName() const { return "Viewport Resized"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(ViewportResize); }
+			uint32_t width = 0, height = 0;
+		};
+
+		struct EventWindowMoved : public Event
+		{
+			EventWindowMoved() = default;
+			EventWindowMoved(uint32_t const xpos, uint32_t const ypos) :
+				xpos{ xpos }, ypos{ ypos } {}
+			EventType Type() override { return EventType::ViewportResize; }
+			const char* GetName() const { return "Window Moved"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(ViewportResize); }
+			uint32_t xpos = 0, ypos = 0;
+		};
+
+		struct EventWindowFocus : public Event
+		{
+			EventWindowFocus() = default;
+			EventWindowFocus(uint32_t const focused) :
+				focused{ focused } {}
+			EventType Type() override { return EventType::ViewportResize; }
+			const char* GetName() const { return "Window Focused"; }
+			static uint32_t StaticType() { return STATIC_EVENT_TYPE(ViewportResize); }
+			uint32_t focused = 0;
+		};
+
+
+		//Allows it to be used with spdlog
+		inline std::ostream& operator<<(std::ostream& os, const Event& e)
+		{
+			return os << e.ToString();
+		}
+
+	}
+}
+
+namespace ely {
+
+	 namespace events_v2 {
+
+		enum class EventType
+		{
+			None,
+			WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMove,
+			ViewportResize,
+			KeyPressed, KeyReleased, KeyTyped,
+			MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
+		};
+
+		//NOTE: # prefex converts a macro parameter to a string literal without expanding the parameter defn:
+		//https://learn.microsoft.com/en-us/cpp/preprocessor/stringizing-operator-hash?view=msvc-170
+
+
+		struct Event
+		{
+			virtual ~Event() = default;
+			virtual EventType Type() { return EventType::None; }
+			virtual const char* GetName() const { return ""; }
+			virtual std::string ToString() const { return GetName(); }
+			
+			bool handled = false;
+		};
+
+		//------------------------------------------------------------------
+		// Window events
+		//------------------------------------------------------------------
+
+		struct EventWidowClose : public Event
+		{
+			EventWidowClose() {}
+
+			EventType Type() override { return EventType::WindowClose; }
+			static EventType StaticType() { return EventType::WindowClose; }
+			const char* GetName() const { return "Window Close"; }
+		};
+
+		struct EventWidowResize : public Event
+		{
+			EventWidowResize() : buffer_width{ 0 }, buffer_height{ 0 } {}
+			EventWidowResize(uint32_t buffer_width, uint32_t buffer_height) : buffer_width{ buffer_width }, buffer_height{ buffer_height } {}
+
+			EventType Type() override { return EventType::WindowResize; }
+			static EventType StaticType() { return EventType::WindowResize; }
+			const char* GetName() const { return "Window Resized"; }
+
+			uint32_t buffer_width, buffer_height;
+		};
+
+		struct EventWindowFocus : public Event
+		{
+			EventWindowFocus() {}
+
+			EventType Type() override { return EventType::WindowFocus; }
+			static EventType StaticType() { return EventType::WindowFocus; }
+			const char* GetName() const { return "Window Focused"; }
+		};
+
+		struct EventWindowLostFocus : public Event
+		{
+			EventWindowLostFocus() {}
+
+			EventType Type() override { return EventType::WindowLostFocus; }
+			static EventType StaticType() { return EventType::WindowLostFocus; }
+			const char* GetName() const { return "Window Lost Focused"; }
+		};
+
+		struct EventWindowMove : public Event
+		{
+			EventWindowMove() = default;
+			EventWindowMove(uint32_t xpos, uint32_t ypos) : xpos{ xpos }, ypos{ ypos } {}
+
+			EventType Type() override { return EventType::WindowMove; }
+			static EventType StaticType() { return EventType::WindowMove; }
+			const char* GetName() const { return "Window Moved"; }
+
+			uint32_t xpos = 0, ypos = 0;
+		};
+
+		//------------------------------------------------------------------
+		// Viewport events
+		//------------------------------------------------------------------
+
+		struct EventViewportResize : public Event
+		{
+			EventViewportResize() = default;
+			EventViewportResize(uint32_t width, uint32_t height) : width{ width }, height{ height } {}
+
+			EventType Type() override { return EventType::ViewportResize; }
+			static EventType StaticType() { return EventType::ViewportResize; }
+			const char* GetName() const { return "Viewport Resized"; }
+
+			uint32_t width = 0, height = 0;
+		};
+
+		//------------------------------------------------------------------
+		// Key events
+		//------------------------------------------------------------------
+
+		struct EventKeyPressed : public Event
+		{
+			EventKeyPressed() : key{ 0 } {}
+			EventKeyPressed(int32_t key) : key{ key } {}
+
+			EventType Type() override { return EventType::KeyPressed; }
+			static EventType StaticType() { return EventType::KeyPressed; }
+			const char* GetName() const { return "Key Pressed"; }
+			
+			int32_t key;
+		};
+
+		struct EventKeyReleased : public Event
+		{
+			EventKeyReleased() : key{ 0 } {}
+			EventKeyReleased(int32_t key) : key{ key } {}
+
+			EventType Type() override { return EventType::KeyReleased; }
+			static EventType StaticType() { return EventType::KeyReleased; }
+			const char* GetName() const { return "Key Released"; }
+			
+			int32_t key;
+		};
+
+		//TODO need to record the repeat count?
+		struct EventKeyTyped : public Event
+		{
+			EventKeyTyped() : key{ 0 } {}
+			EventKeyTyped(int32_t key) : key{ key } {}
+
+			EventType Type() override { return EventType::KeyReleased; }
+			static EventType StaticType() { return EventType::KeyReleased; }
+			const char* GetName() const { return "Key Typed"; }
+
+			int32_t key;
+		};
+
+		//------------------------------------------------------------------
+		// Mouse events
+		// TODO - support horizontal scroll?
+		//------------------------------------------------------------------
+
+		struct EventMouseButtonPressed : public Event
+		{
+			EventMouseButtonPressed() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
+			EventMouseButtonPressed(float x, float y, int btn, int action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
+
+			EventType Type() override { return EventType::MouseButtonPressed; }
+			static EventType StaticType() { return EventType::MouseButtonPressed; }
+			const char* GetName() const { return "Mouse Button Pressed"; }
+
+			float x, y;
+			int btn, action;
+		};
+
+		struct EventMouseButtonReleased : public Event
+		{
+			EventMouseButtonReleased() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
+			EventMouseButtonReleased(float x, float y, int btn, int action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
+
+			EventType Type() override { return EventType::MouseButtonReleased; }
+			static EventType StaticType() { return EventType::MouseButtonReleased; }
+			const char* GetName() const { return "Mouse Button Releasd"; }
+
+			float x, y;
+			int btn, action;
+		};
+
+		struct EventMouseMoved : public Event
+		{
+			EventMouseMoved() : x{ 0 }, y{ 0 }, delta_x{ 0 }, delta_y{ 0 } {}
+			EventMouseMoved(float x, float y, float delta_x, float delta_y) : x{ x }, y{ y }, delta_x{ delta_x }, delta_y{ delta_y } {}
+
+			EventType Type() override { return EventType::MouseMoved; }
+			static EventType StaticType() { return EventType::MouseMoved; }
+			const char* GetName() const { return "Mouse Moved"; }
+			
+			float x, y;
+			float delta_x, delta_y;
+		};
+
+		struct EventMouseScrolled : public Event
+		{
+			EventMouseScrolled() : x_offset{ 0 }, y_offset{ 0 } {}
+			EventMouseScrolled(float x_offset, float y_offset) : x_offset{ x_offset }, y_offset{ y_offset } {}
+
+			EventType Type() override { return EventType::MouseScrolled; }
+			static EventType StaticType() { return EventType::MouseScrolled; }
+			const char* GetName() const { return "Mouse Scrolled"; }
+			
+			float x_offset, y_offset;
+		};
+
+		
+		//Allows it to be used with spdlog
+		inline std::ostream& operator<<(std::ostream& os, const Event& e)
+		{
+			return os << e.ToString();
+		}
+
+	}
 
 }

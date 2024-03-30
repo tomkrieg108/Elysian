@@ -27,21 +27,36 @@ namespace ely
 		virtual void OnUpdate(double delta_time) {}
 		Window& GetWindow() { return *m_window; }
 		ImGuiLayer& GetImGuiLayer() { return *m_imgui_layer; }
-
-		//can these be protected?
-		void Run(); 
 		void Close();
 
 		static Application& GetInstance() { return *s_instance; }
 
+		void OnEvent(events_v2::Event& e);
+		void Run();
+
+	private:
+
+		bool OnWindowClose(events_v2::EventWidowClose& e);
+		bool OnWindowResize(events_v2::EventWidowResize& e);
+		
+		template<typename T, typename E>
+		static auto MakeCallback(void (T::* callback_fn)(E&), T* instance) 
+		{
+			std::function<void(E&)> val = std::bind(callback_fn, instance, std::placeholders::_1);
+			return std::bind(callback_fn, instance, std::placeholders::_1);
+		}
+
+		template<typename T, typename E>
+		auto MakeCallback(void (T::* callback_fn)(E&)) { return std::bind(callback_fn, this, std::placeholders::_1);}
+		
 	private:
 		Window* m_window = nullptr;
 		ImGuiLayer* m_imgui_layer = nullptr;
 		LayerStack m_layer_stack;
+		bool m_running = true;
 
 		static Application* s_instance;
 	};
 
 	Application* CreateApplication(); //defined in client
-
 }
