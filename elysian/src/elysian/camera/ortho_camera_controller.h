@@ -25,12 +25,15 @@ namespace ely
 
 		const OrthoCamera& GetCamera() const { return m_camera; }
 		void OnUpdate(double delta_time);
+
 		void OnMouseMoved(EventMouseMoved& e);
 		void OnMouseScrolled(EventMouseScrolled& e);
 		void OnWindowResize(EventWidowResize& e);
 		void OnMouseButtonPressed(EventMouseButtonPressed& e);
 
 	private:
+
+		//TODO - put somewhere else ( or use glm). Duplicated from perspective camera controller
 		glm::mat4 GetRotationMatX(float angle) const;
 		glm::mat4 GetRotationMatY(float angle) const;
 		glm::mat4 GetRotationMatZ(float angle) const ;

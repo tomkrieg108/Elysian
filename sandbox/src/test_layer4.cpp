@@ -26,12 +26,6 @@ TestLayer4::TestLayer4() :
 	m_framebuffer(m_window.BufferWidth(), m_window.BufferHeight()),
 	m_framebuffer_alt(m_window.BufferWidth(), m_window.BufferHeight())
 {
-	//TODO - handled by the OnEvent() method
-	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnKeyPressed);
-	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnMouseMoved);
-	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnMouseScrolled);
-	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnWindowResize);
-	ely::EventDispatcher::SetCallback(this, &TestLayer4::OnMouseButtonPressed);
 }
 
 void TestLayer4::OnAttach()
@@ -61,8 +55,8 @@ void TestLayer4::OnUpdate(double time_step)
 	m_scene.GetCameraController().OnUpdate(time_step);
 
 	//render to screen
-	glm::vec4 clear_color{ 0.1f,0.1f,0.1f,1.0f };
-	m_scene.BeginScene("Main Camera"s, clear_color);
+	ely::OpenGLRenderer::SetLineWidth(1.0);
+	m_scene.BeginScene("Main Camera"s, glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
 	m_scene.UpdateScene(time_step);
 	m_scene.RenderScene();
 	m_scene.EndScene();
@@ -70,7 +64,9 @@ void TestLayer4::OnUpdate(double time_step)
 	//-----------------------------------------------------------------------------------
 	//Render to framebuffer (main camera)
 	//-----------------------------------------------------------------------------------
-	m_scene.BeginScene("Main Camera"s, m_framebuffer); //this is going to reset the same view and proj mat in all the shaders!
+	ely::OpenGLRenderer::SetLineWidth(2.0);
+	m_framebuffer.Bind();
+	m_scene.BeginScene("Main Camera"s, glm::vec4{ 0.05f, 0.05f, 0.2f, 1.0f }); //Set the same view and proj mat in all the shaders again!
 	m_scene.RenderScene();
 	m_scene.EndScene();
 	m_framebuffer.Unbind();
@@ -86,7 +82,9 @@ void TestLayer4::OnUpdate(double time_step)
 	main_mesh_comp.SetEnableRender(true);
 	alt_mesh_comp.SetEnableRender(false);
 
-	m_scene.BeginScene("Alt Camera"s, m_framebuffer_alt); //this is going to reset the same view and proj mat in all the shaders!
+	ely::OpenGLRenderer::SetLineWidth(2.0);
+	m_framebuffer_alt.Bind();
+	m_scene.BeginScene("Alt Camera"s, glm::vec4{ 0.05f, 0.05f, 0.2f, 1.0f });
 	m_scene.RenderScene();
 	m_scene.EndScene();
 	m_framebuffer_alt.Unbind();
@@ -95,10 +93,73 @@ void TestLayer4::OnUpdate(double time_step)
 	alt_mesh_comp.SetEnableRender(true);
 }
 
-void TestLayer4::OnEvent(ely::Event& event)
+void TestLayer4::OnEvent(ely::Event& e)
 {
-	//TODO
+	ely::EventDispatcher dispatcher(e);
+
+	dispatcher.Dispatch<ely::EventKeyPressed>(std::bind(&TestLayer4::OnKeyPressed, this, std::placeholders::_1));
+	dispatcher.Dispatch<ely::EventMouseMoved>(std::bind(&TestLayer4::OnMouseMoved, this, std::placeholders::_1));
+	dispatcher.Dispatch<ely::EventMouseScrolled>(std::bind(&TestLayer4::OnMouseScrolled, this, std::placeholders::_1));
+	dispatcher.Dispatch<ely::EventMouseButtonPressed>(std::bind(&TestLayer4::OnMouseButtonPressed, this, std::placeholders::_1));
+	dispatcher.Dispatch<ely::EventWidowResize>(std::bind(&TestLayer4::OnWindowResize, this, std::placeholders::_1));
 }
+
+bool TestLayer4::OnKeyPressed(ely::EventKeyPressed& e)
+{
+	//CORE_TRACE(" TestLayer4::OnKeyPressed() called: {}", e);
+
+	if (e.key == GLFW_KEY_ESCAPE)
+		ely::Application::GetInstance().Close();
+	else if (e.key == GLFW_KEY_SPACE)
+		m_window.ToggleCursorEnabled();
+	
+	else if (e.key == GLFW_KEY_T)
+	{
+		auto& main_camera_entity = m_scene.FindEntityByName("Main Camera"s);
+		auto& alt_camera_entity = m_scene.FindEntityByName("Alt Camera"s);
+
+		ely::Entity controlled_camera_entity = m_scene.GetControlledCameraEntity();
+		auto& tag = (std::string&)controlled_camera_entity.GetComponent<ely::TagComponent>();
+		if (tag == "Main Camera"s)
+			m_scene.SetControlledCameraEntity(alt_camera_entity);
+		else
+			m_scene.SetControlledCameraEntity(main_camera_entity);
+	}
+
+	return true;
+}
+
+bool TestLayer4::OnMouseMoved(ely::EventMouseMoved& e)
+{
+	//CORE_TRACE(" TestLayer4::OnMouseMoved() called: {}", e);
+	if (!m_window.GetCursorEnabled())
+		m_scene.GetCameraController().OnMouseMoved(e);
+
+	return true;
+}
+
+
+bool TestLayer4::OnMouseScrolled(ely::EventMouseScrolled& e)
+{
+	//CORE_TRACE(" TestLayer4::OnMouseScrolled2() called: {}", e);
+	m_scene.GetCameraController().OnMouseScrolled(e);
+	return true;
+}
+
+bool TestLayer4::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
+{
+	//CORE_TRACE(" TestLayer4::OnMouseButtonPressed2() called: {},{}", e.x, e.y);
+	m_scene.OnMouseButtonPressed(e);
+	return true;
+}
+
+bool TestLayer4::OnWindowResize(ely::EventWidowResize& e)
+{
+	CORE_WARN(" TestLayer4::OnWindowResize() called: {}", e);
+	m_scene.OnWindowResize(e);
+	return true;
+}
+
 
 void TestLayer4::OnImGuiRender()
 {
@@ -111,12 +172,19 @@ void TestLayer4::OnImGuiRender()
 		ImGui::Text(" %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
 
+	if (ImGui::CollapsingHeader("Main Camera"))
+	{
+		auto& main_camera_entity = m_scene.FindEntityByName("Main Camera"s);
+		auto& camera = (ely::PerspectiveCamera&)(main_camera_entity.GetComponent<ely::PerspectiveCameraComponent>());
+		ImGui::SliderFloat("Aspect Ratio", camera.AspectRatioPtr(), 0.2f, 6.0f);
+	}
+
 	if (ImGui::CollapsingHeader("Light Properties"))
 	{
-		//ImGui::SliderFloat3("Light Pos ", &(m_light_pos[0]), -5.0f, 5.0f);
-		//ImGui::SliderFloat3("Ambient ", &(m_light_ambient[0]), 0.0f, 1.0f);
-		//ImGui::SliderFloat3("Diffuse ", &(m_light_diffuse[0]), 0.0f, 1.0f);
-		//ImGui::SliderFloat3("Specular ", &(m_light_specular[0]), 0.0f, 1.0f);
+		/*ImGui::SliderFloat3("Light Pos ", &(m_light_pos[0]), -5.0f, 5.0f);
+		ImGui::SliderFloat3("Ambient ", &(m_light_ambient[0]), 0.0f, 1.0f);
+		ImGui::SliderFloat3("Diffuse ", &(m_light_diffuse[0]), 0.0f, 1.0f);
+		ImGui::SliderFloat3("Specular ", &(m_light_specular[0]), 0.0f, 1.0f);*/
 	}
 	if (ImGui::CollapsingHeader("Box Properties"))
 	{
@@ -133,7 +201,7 @@ void TestLayer4::OnImGuiRender()
 	}
 	if (ImGui::CollapsingHeader("Framebuffer - alt camera"))
 	{
-		float tex_height = 400.0;
+		float tex_height = 400.0f;
 		float tex_width = tex_height * m_window.AspectRatio();
 		uint64_t color_attachment_id = (uint64_t)m_framebuffer_alt.GetColourAttachmentID();
 		ImTextureID tex_id = (void*)color_attachment_id;
@@ -141,52 +209,9 @@ void TestLayer4::OnImGuiRender()
 	}
 
 	ImGui::End();
+
+	//demo window
+	//static bool show = true;
+	//ImGui::ShowDemoWindow(&show);
 }
-
-
-void TestLayer4::OnKeyPressed(ely::EventKeyPressed& e)
-{
-	if (e.key == GLFW_KEY_ESCAPE)
-		ely::Application::GetInstance().Close();
-		//m_window.ShutDown();
-	else if (e.key == GLFW_KEY_SPACE)
-		m_window.ToggleCursorEnabled();
-
-	else if (e.key == GLFW_KEY_T)
-	{
-		auto& main_camera_entity = m_scene.FindEntityByName("Main Camera"s);
-		auto& alt_camera_entity = m_scene.FindEntityByName("Alt Camera"s);
-
-		ely::Entity controlled_camera_entity = m_scene.GetControlledCameraEntity();
-		auto& tag = (std::string&)controlled_camera_entity.GetComponent<ely::TagComponent>();
-		if (tag == "Main Camera"s)
-			m_scene.SetControlledCameraEntity(alt_camera_entity);
-		else
-			m_scene.SetControlledCameraEntity(main_camera_entity);
-	}
-}
-
-void TestLayer4::OnMouseMoved(ely::EventMouseMoved& e)
-{
-	if (!m_window.GetCursorEnabled())
-	{
-		m_scene.GetCameraController().OnMouseMoved(e);
-	}
-}
-
-void TestLayer4::OnMouseScrolled(ely::EventMouseScrolled& e)
-{
-	m_scene.GetCameraController().OnMouseScrolled(e);
-}
-
-void TestLayer4::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
-{
-	m_scene.OnEvent(e);
-}
-
-void TestLayer4::OnWindowResize(ely::EventWidowResize& e)
-{
-	m_scene.GetCameraController().OnWindowResize(e);
-}
-
 

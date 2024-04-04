@@ -50,7 +50,8 @@ namespace ely
     else
       m_is_complete = true;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glViewport(0, 0, m_width, m_height);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0); //unbind
   }
 
 	OpenGLFramebuffer::~OpenGLFramebuffer()
@@ -62,14 +63,13 @@ namespace ely
 
   void OpenGLFramebuffer::Bind() const
   {
-    //NOTE:
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0); //renders to the screen
     glBindFramebuffer(GL_FRAMEBUFFER, m_id);
-    glViewport(0, 0, m_width, m_height);
+    //glViewport(0, 0, m_width, m_height);
   }
 
   void OpenGLFramebuffer::Unbind() const
   {
+    //renders to the screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
 }

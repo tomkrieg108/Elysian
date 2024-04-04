@@ -3,7 +3,7 @@
 
 namespace ely
 {
-	inline namespace events_v1 {
+	 namespace events_v1 {
 
 		enum class EventType : uint32_t
 		{
@@ -152,15 +152,25 @@ namespace ely
 
 namespace ely {
 
-	 namespace events_v2 {
+	inline namespace events_v2 {
 
 		enum class EventType
 		{
 			None,
-			WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMove,
+			WindowClose, WindowResize, WindowMove, WindowFocusChange, WindowIconifyChange,
 			ViewportResize,
 			KeyPressed, KeyReleased, KeyTyped,
 			MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
+		};
+
+		enum EventCategory
+		{
+			None = 0,
+			EventCategoryApplication = BIT(0),
+			EventCategoryInput = BIT(1),
+			EventCategoryKeyboard = BIT(2),
+			EventCategoryMouse = BIT(3),
+			EventCategoryMouseButton = BIT(4)
 		};
 
 		//NOTE: # prefex converts a macro parameter to a string literal without expanding the parameter defn:
@@ -170,9 +180,11 @@ namespace ely {
 		struct Event
 		{
 			virtual ~Event() = default;
-			virtual EventType Type() { return EventType::None; }
+			virtual EventType Type() const { return EventType::None; }
+			virtual int GetCategoryFlags() const = 0;
 			virtual const char* GetName() const { return ""; }
 			virtual std::string ToString() const { return GetName(); }
+			bool IsInCategory(EventCategory category) { return GetCategoryFlags() & category; }
 			
 			bool handled = false;
 		};
@@ -185,7 +197,8 @@ namespace ely {
 		{
 			EventWidowClose() {}
 
-			EventType Type() override { return EventType::WindowClose; }
+			EventType Type() const override { return EventType::WindowClose; }
+			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::WindowClose; }
 			const char* GetName() const { return "Window Close"; }
 		};
@@ -195,42 +208,60 @@ namespace ely {
 			EventWidowResize() : buffer_width{ 0 }, buffer_height{ 0 } {}
 			EventWidowResize(uint32_t buffer_width, uint32_t buffer_height) : buffer_width{ buffer_width }, buffer_height{ buffer_height } {}
 
-			EventType Type() override { return EventType::WindowResize; }
+			EventType Type() const override { return EventType::WindowResize; }
+			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::WindowResize; }
 			const char* GetName() const { return "Window Resized"; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += " - width: " + std::to_string(buffer_width) + ", height: " + std::to_string(buffer_height);
+				return s;
+			}
 
 			uint32_t buffer_width, buffer_height;
 		};
 
-		struct EventWindowFocus : public Event
+		struct EventWindowFocusChange : public Event
 		{
-			EventWindowFocus() {}
+			EventWindowFocusChange(int focused) : has_focus { focused } {}
 
-			EventType Type() override { return EventType::WindowFocus; }
-			static EventType StaticType() { return EventType::WindowFocus; }
-			const char* GetName() const { return "Window Focused"; }
+			EventType Type() const override { return EventType::WindowFocusChange; }
+			int GetCategoryFlags() const override { return EventCategoryApplication; }
+			static EventType StaticType() { return EventType::WindowFocusChange; }
+			const char* GetName() const { return "Window Focus Change"; }
+
+			int has_focus = 0;
 		};
 
-		struct EventWindowLostFocus : public Event
+		struct EventWindowIconifyChange : public Event
 		{
-			EventWindowLostFocus() {}
+			EventWindowIconifyChange(int iconified) : is_iconified{ iconified } {}
 
-			EventType Type() override { return EventType::WindowLostFocus; }
-			static EventType StaticType() { return EventType::WindowLostFocus; }
-			const char* GetName() const { return "Window Lost Focused"; }
+			EventType Type() const override { return EventType::WindowIconifyChange; }
+			int GetCategoryFlags() const override { return EventCategoryApplication; }
+			static EventType StaticType() { return EventType::WindowIconifyChange; }
+			const char* GetName() const { return "Window Iconify Change"; }
+
+			int is_iconified = 0;
 		};
 
+		
 		struct EventWindowMove : public Event
 		{
 			EventWindowMove() = default;
 			EventWindowMove(uint32_t xpos, uint32_t ypos) : xpos{ xpos }, ypos{ ypos } {}
 
-			EventType Type() override { return EventType::WindowMove; }
+			EventType Type() const override { return EventType::WindowMove; }
+			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::WindowMove; }
 			const char* GetName() const { return "Window Moved"; }
 
 			uint32_t xpos = 0, ypos = 0;
 		};
+
+
 
 		//------------------------------------------------------------------
 		// Viewport events
@@ -241,9 +272,17 @@ namespace ely {
 			EventViewportResize() = default;
 			EventViewportResize(uint32_t width, uint32_t height) : width{ width }, height{ height } {}
 
-			EventType Type() override { return EventType::ViewportResize; }
+			EventType Type() const override { return EventType::ViewportResize; }
+			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::ViewportResize; }
 			const char* GetName() const { return "Viewport Resized"; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += " - width: " + std::to_string(width) + ", height: " + std::to_string(height);
+				return s;
+			}
 
 			uint32_t width = 0, height = 0;
 		};
@@ -257,7 +296,8 @@ namespace ely {
 			EventKeyPressed() : key{ 0 } {}
 			EventKeyPressed(int32_t key) : key{ key } {}
 
-			EventType Type() override { return EventType::KeyPressed; }
+			EventType Type() const override { return EventType::KeyPressed; }
+			int GetCategoryFlags() const override { return EventCategoryKeyboard | EventCategoryInput; }
 			static EventType StaticType() { return EventType::KeyPressed; }
 			const char* GetName() const { return "Key Pressed"; }
 			
@@ -269,7 +309,8 @@ namespace ely {
 			EventKeyReleased() : key{ 0 } {}
 			EventKeyReleased(int32_t key) : key{ key } {}
 
-			EventType Type() override { return EventType::KeyReleased; }
+			EventType Type() const override { return EventType::KeyReleased; }
+			int GetCategoryFlags() const override { return EventCategoryKeyboard | EventCategoryInput; }
 			static EventType StaticType() { return EventType::KeyReleased; }
 			const char* GetName() const { return "Key Released"; }
 			
@@ -282,7 +323,8 @@ namespace ely {
 			EventKeyTyped() : key{ 0 } {}
 			EventKeyTyped(int32_t key) : key{ key } {}
 
-			EventType Type() override { return EventType::KeyReleased; }
+			EventType Type() const override { return EventType::KeyReleased; }
+			int GetCategoryFlags() const override { return EventCategoryKeyboard | EventCategoryInput; }
 			static EventType StaticType() { return EventType::KeyReleased; }
 			const char* GetName() const { return "Key Typed"; }
 
@@ -299,7 +341,8 @@ namespace ely {
 			EventMouseButtonPressed() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
 			EventMouseButtonPressed(float x, float y, int btn, int action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
 
-			EventType Type() override { return EventType::MouseButtonPressed; }
+			EventType Type() const override { return EventType::MouseButtonPressed; }
+			int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryMouseButton | EventCategoryInput; }
 			static EventType StaticType() { return EventType::MouseButtonPressed; }
 			const char* GetName() const { return "Mouse Button Pressed"; }
 
@@ -312,7 +355,8 @@ namespace ely {
 			EventMouseButtonReleased() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
 			EventMouseButtonReleased(float x, float y, int btn, int action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
 
-			EventType Type() override { return EventType::MouseButtonReleased; }
+			EventType Type() const override { return EventType::MouseButtonReleased; }
+			int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryMouseButton | EventCategoryInput; }
 			static EventType StaticType() { return EventType::MouseButtonReleased; }
 			const char* GetName() const { return "Mouse Button Releasd"; }
 
@@ -325,7 +369,8 @@ namespace ely {
 			EventMouseMoved() : x{ 0 }, y{ 0 }, delta_x{ 0 }, delta_y{ 0 } {}
 			EventMouseMoved(float x, float y, float delta_x, float delta_y) : x{ x }, y{ y }, delta_x{ delta_x }, delta_y{ delta_y } {}
 
-			EventType Type() override { return EventType::MouseMoved; }
+			EventType Type() const override { return EventType::MouseMoved; }
+			int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryInput; }
 			static EventType StaticType() { return EventType::MouseMoved; }
 			const char* GetName() const { return "Mouse Moved"; }
 			
@@ -338,7 +383,8 @@ namespace ely {
 			EventMouseScrolled() : x_offset{ 0 }, y_offset{ 0 } {}
 			EventMouseScrolled(float x_offset, float y_offset) : x_offset{ x_offset }, y_offset{ y_offset } {}
 
-			EventType Type() override { return EventType::MouseScrolled; }
+			EventType Type() const override { return EventType::MouseScrolled; }
+			int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryInput; }
 			static EventType StaticType() { return EventType::MouseScrolled; }
 			const char* GetName() const { return "Mouse Scrolled"; }
 			

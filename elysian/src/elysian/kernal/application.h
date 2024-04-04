@@ -31,14 +31,17 @@ namespace ely
 
 		static Application& GetInstance() { return *s_instance; }
 
-		void OnEvent(events_v2::Event& e);
+		void OnEvent(Event& e);
 		void Run();
 
 	private:
 
-		bool OnWindowClose(events_v2::EventWidowClose& e);
-		bool OnWindowResize(events_v2::EventWidowResize& e);
-		
+		//Application level events - handled in application.cpp
+		bool OnWindowClose(EventWidowClose& e);
+		bool OnWindowResize(EventWidowResize& e);
+		bool OnWindowFocusChange(EventWindowFocusChange& e);
+		bool OnWindowIconifyChange(EventWindowIconifyChange& e);
+
 		template<typename T, typename E>
 		static auto MakeCallback(void (T::* callback_fn)(E&), T* instance) 
 		{

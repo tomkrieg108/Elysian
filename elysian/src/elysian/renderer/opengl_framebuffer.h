@@ -4,6 +4,7 @@
 
 namespace ely
 {
+	//TODO set this up with input parameters / spec (similar to texture2D)
 	class OpenGLFramebuffer
 	{
 	public:
@@ -20,6 +21,10 @@ namespace ely
 		uint32_t GetDepthAttachmentID() const {
 			return m_depth_attachment_id;
 		}
+		
+		uint32_t GetWidth() const { return m_width; }
+		uint32_t GetHeight() const { return m_height; }
+		float GetAspectRatio() const { return (float(m_width) / (float)(m_height)); }
 
 		void Bind() const;
 		void Unbind() const;

@@ -12,6 +12,17 @@
 #include "elysian/scene/scene.h"
 #include "elysian/kernal/uuid.h"
 
+//TODO - is all this needed?
+#include "elysian/renderer/opengl_shader.h"
+#include "elysian/renderer/opengl_shader_utils.h"
+#include "elysian/renderer/opengl_texture_2d.h"
+#include "elysian/renderer/opengl_vertex_array.h"
+#include "elysian/renderer/opengl_buffer.h"
+#include "elysian/renderer/opengl_framebuffer.h"
+#include "elysian/renderer/opengl_uniform_buffer.h"
+
+#include "elysian/model/model_lgl.h"
+
 #include "editor_layer.h"
 
 #include <glm/glm.hpp>
@@ -27,31 +38,31 @@ namespace ely {
 		m_framebuffer(m_window.BufferWidth(), m_window.BufferHeight()),
 		m_framebuffer_alt(m_window.BufferWidth(), m_window.BufferHeight())
 	{
-		//TODO - this event stuff shouldn't be in the client?
-	  EventDispatcher::SetCallback(this, &EditorLayer::OnKeyPressed);
-		EventDispatcher::SetCallback(this, &EditorLayer::OnMouseMoved);
-		EventDispatcher::SetCallback(this, &EditorLayer::OnMouseScrolled);
-		EventDispatcher::SetCallback(this, &EditorLayer::OnWindowResize);
-		EventDispatcher::SetCallback(this, &EditorLayer::OnMouseButtonPressed);
+		m_scene = new Scene();
 	}
 
-
+	EditorLayer::~EditorLayer()
+	{
+		delete m_scene;
+	}
+ 
 	void EditorLayer::OnAttach()
 	{
-		m_scene.CreateGridEntity();
-		m_scene.CreateCoordSysEntity();
-		m_scene.CreateDrirectionalLightEntity(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light"s);
-		m_scene.CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube"s);
+		m_scene->CreateGridEntity();
+		m_scene->CreateCoordSysEntity();
+		m_scene->CreateDrirectionalLightEntity(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light"s);
+		m_scene->CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube"s);
 
-		auto& main_camera_entity = m_scene.CreatePerspectiveCameraEntity(glm::vec3(0.0f, 3.0f, 15.0f), "Main Camera"s);
-		m_scene.SetRenderable(main_camera_entity, false);
-		m_scene.SetControlledCameraEntity(main_camera_entity);
+		auto& main_camera_entity = m_scene->CreatePerspectiveCameraEntity(glm::vec3(0.0f, 3.0f, 15.0f), "Main Camera"s);
+		m_scene->SetRenderable(main_camera_entity, false);
+		m_scene->SetControlledCameraEntity(main_camera_entity);
 
-		auto& alt_camera_entity = m_scene.CreatePerspectiveCameraEntity(glm::vec3(4.0, 1.0, 7.0), "Alt Camera"s);
+		auto& alt_camera_entity = m_scene->CreatePerspectiveCameraEntity(glm::vec3(4.0, 1.0, 7.0), "Alt Camera"s);
 		auto& mesh_comp = alt_camera_entity.GetComponent<ely::MeshComponent>();
-		m_scene.SetRenderable(alt_camera_entity, true);
+		m_scene->SetRenderable(alt_camera_entity, true);
 
-		m_scene.CreateQuadEntity(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad"s); //NOTE: relies on main camera=> need to create main cam first
+		//uses viewport data
+		m_scene->CreateQuadEntity2(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad"s); //NOTE: relies on main camera=> need to create main cam first
 	}
 
 	void EditorLayer::OnDetach()
@@ -60,59 +71,53 @@ namespace ely {
 
 	void EditorLayer::OnUpdate(double time_step)
 	{
-		m_scene.GetCameraController().OnUpdate(time_step);
+		if(m_viewport_data.forcused && m_viewport_data.hovered)
+			m_scene->GetCameraController().OnUpdate(time_step);
 
-
-		//Render to screen
-	/*	glm::vec4 clear_color{ 0.1f,0.1f,0.1f,1.0f };
-		m_scene.BeginScene("Main Camera"s, clear_color);
-		m_scene.UpdateScene(time_step);
-		m_scene.RenderScene();
-		m_scene.EndScene();*/
-
-	
 		//Render to framebuffer (main camera)
-		m_scene.BeginScene("Main Camera"s, m_framebuffer); //this is going to reset the same view and proj mat in all the shaders!
-		m_scene.UpdateScene(time_step);
-		m_scene.RenderScene();
-		m_scene.EndScene();
+		ely::OpenGLRenderer::SetLineWidth(1.0);
+		m_framebuffer.Bind();
+		m_scene->BeginScene("Main Camera"s, glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
+		m_scene->UpdateScene(time_step);
+		m_scene->RenderScene();
+		m_scene->EndScene();
 		m_framebuffer.Unbind();
 
 		
 		//Render to framebuffer (Alt camera)
-		//auto& main_camera_entity = m_scene.FindEntityByName("Main Camera"s);
-		//auto& alt_camera_entity = m_scene.FindEntityByName("Alt Camera"s);
-		//auto& main_mesh_comp = main_camera_entity.GetComponent<ely::MeshComponent>();
-		//auto& alt_mesh_comp = alt_camera_entity.GetComponent<ely::MeshComponent>();
-		//main_mesh_comp.SetEnableRender(true);
-		//alt_mesh_comp.SetEnableRender(false);
+		auto& main_camera_entity = m_scene->FindEntityByName("Main Camera"s);
+		auto& alt_camera_entity = m_scene->FindEntityByName("Alt Camera"s);
+		auto& main_mesh_comp = main_camera_entity.GetComponent<MeshComponent>();
+		auto& alt_mesh_comp = alt_camera_entity.GetComponent<MeshComponent>();
+		main_mesh_comp.SetEnableRender(true);
+		alt_mesh_comp.SetEnableRender(false);
 
-		//m_scene.BeginScene("Alt Camera"s, m_framebuffer_alt); //this is going to reset the same view and proj mat in all the shaders!
-		//m_scene.RenderScene();
-		//m_scene.EndScene();
-		//m_framebuffer_alt.Unbind();
+		m_framebuffer_alt.Bind();
+		m_scene->BeginScene("Alt Camera"s, glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
+		m_scene->RenderScene();
+		m_scene->EndScene();
+		m_framebuffer_alt.Unbind();
 
-		//main_mesh_comp.SetEnableRender(false);
-		//alt_mesh_comp.SetEnableRender(true);
+		main_mesh_comp.SetEnableRender(false);
+		alt_mesh_comp.SetEnableRender(true);
 	}
 
-	/*void EditorLayer::OnEvent(Event& event)
+	
+	void EditorLayer::OnEvent(Event& e)
 	{
-	}*/
+		EventDispatcher dispatcher(e);
 
-	void EditorLayer::OnEvent(events_v2::Event& e)
-	{
-		//EventDispatcher dispatcher(e);
-
-		//dispatcher.Dispatch<EventKeyPressed>(std::bind(&EditorLayer::OnKeyPressed, this, std::placeholders::_1));
-		//dispatcher.Dispatch<EventMouseMoved>(std::bind(&EditorLayer::OnMouseMoved, this, std::placeholders::_1));
-		//dispatcher.Dispatch<EventMouseScrolled>(std::bind(&EditorLayer::OnMouseScrolled, this, std::placeholders::_1));
-		//dispatcher.Dispatch<EventMouseButtonPressed>(std::bind(&EditorLayer::OnMouseButtonPressed, this, std::placeholders::_1));
-		//dispatcher.Dispatch<EventWidowResize>(std::bind(&EditorLayer::OnWindowResize, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventKeyPressed>(std::bind(&EditorLayer::OnKeyPressed, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventMouseMoved>(std::bind(&EditorLayer::OnMouseMoved, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventMouseScrolled>(std::bind(&EditorLayer::OnMouseScrolled, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventMouseButtonPressed>(std::bind(&EditorLayer::OnMouseButtonPressed, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventViewportResize>(std::bind(&EditorLayer::OnViewportResize, this, std::placeholders::_1));
 	}
 
-	void EditorLayer::OnKeyPressed(EventKeyPressed& e)
+	bool EditorLayer::OnKeyPressed(EventKeyPressed& e)
 	{
+		//CORE_TRACE(" EditorLayer::OnKeyPressed() called: {}", e);
+
 		if (e.key == GLFW_KEY_ESCAPE)
 			Application::GetInstance().Close();
 		else if (e.key == GLFW_KEY_SPACE)
@@ -120,39 +125,54 @@ namespace ely {
 
 		else if (e.key == GLFW_KEY_T)
 		{
-			auto& main_camera_entity = m_scene.FindEntityByName("Main Camera"s);
-			auto& alt_camera_entity = m_scene.FindEntityByName("Alt Camera"s);
+			auto& main_camera_entity = m_scene->FindEntityByName("Main Camera"s);
+			auto& alt_camera_entity = m_scene->FindEntityByName("Alt Camera"s);
 
-			ely::Entity controlled_camera_entity = m_scene.GetControlledCameraEntity();
+			ely::Entity controlled_camera_entity = m_scene->GetControlledCameraEntity();
 			auto& tag = (std::string&)controlled_camera_entity.GetComponent<ely::TagComponent>();
 			if (tag == "Main Camera"s)
-				m_scene.SetControlledCameraEntity(alt_camera_entity);
+				m_scene->SetControlledCameraEntity(alt_camera_entity);
 			else
-				m_scene.SetControlledCameraEntity(main_camera_entity);
+				m_scene->SetControlledCameraEntity(main_camera_entity);
 		}
+
+		return true;
 	}
 
-	void EditorLayer::OnMouseMoved(EventMouseMoved& e)
+	bool EditorLayer::OnMouseMoved(EventMouseMoved& e)
 	{
+		//CORE_TRACE(" EditorLayer::OnMouseMoved() called: {}", e);
 		if (!m_window.GetCursorEnabled())
-		{
-			m_scene.GetCameraController().OnMouseMoved(e);
-		}
+			m_scene->GetCameraController().OnMouseMoved(e);
+	
+		return true;
 	}
 
-	void EditorLayer::OnMouseScrolled(EventMouseScrolled& e)
+	bool EditorLayer::OnMouseScrolled(EventMouseScrolled& e)
 	{
-		m_scene.GetCameraController().OnMouseScrolled(e);
+		//CORE_TRACE(" EditorLayer::OnMouseScrolled() called: {}", e);
+		m_scene->GetCameraController().OnMouseScrolled(e);
+		return true;
 	}
 
-	void EditorLayer::OnMouseButtonPressed(EventMouseButtonPressed& e)
+	bool EditorLayer::OnMouseButtonPressed(EventMouseButtonPressed& e)
 	{
-		m_scene.OnEvent(e); //TODO - fix this !
+		CORE_INFO(" EditorLayer::OnMouseButtonPressed() unmodified: {} {}", e.x, e.y);
+		//Set the mouse position relative to the viewport
+		//TODO - dubious?
+		e.x = m_viewport_data.mouse_pos_viewport.x;
+		e.y = m_viewport_data.mouse_pos_viewport.y;
+		CORE_INFO(" EditorLayer::OnMouseButtonPressed() Updated: {} {}", e.x, e.y);
+		m_scene->OnMouseButtonPressed(e);
+		return true;
 	}
 
-	void EditorLayer::OnWindowResize(EventWidowResize& e)
+	bool EditorLayer::OnViewportResize(EventViewportResize& e)
 	{
-		m_scene.GetCameraController().OnWindowResize(e);
+		//TODO  - this is handled in the IMGui section below
+		//CORE_TRACE(" EditorLayer::OnViewportResize() called: {}", e);
+		//m_scene.OnViewportResize(e);
+		return true;
 	}
 
 	void EditorLayer::OnImGuiRender()
@@ -203,7 +223,9 @@ namespace ely {
 		if (opt_fullscreen)
 			ImGui::PopStyleVar(2);
 
-
+		//ImVec2 p = ImGui::GetWindowViewport()->Pos;
+		//CORE_WARN("DockSpace Viewport pos: {},{} ", p.x, p.y);
+		
 		// Submit the DockSpace
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -246,14 +268,14 @@ namespace ely {
 			ImGui::EndMenuBar();
 		}
 
+		//TODO
 		//Cherno reckons this is meant to come after all the windows (so that all panels are enclosed in the dockspace)
 		// but not according to imgu_demo.cpp - still works if put here
-
-		ImGui::End(); 
+		//ImGui::End(); 
 
 		//-----------------------------------------------------------------------------------------
 
-		ImGui::Begin("Info & Stats");
+		ImGui::Begin("Render Stats");
 
 		if (ImGui::CollapsingHeader("Window"))
 		{
@@ -264,50 +286,82 @@ namespace ely {
 		if (ImGui::CollapsingHeader("Framebuffer - main camera"))
 		{
 			float tex_height = 400.0f;
-			float tex_width = tex_height * m_window.AspectRatio();
+			float tex_width = tex_height * m_viewport_data.size.x / m_viewport_data.size.y;
 			uint64_t color_attachment_id = (uint64_t)m_framebuffer.GetColourAttachmentID(); //uint64_t to stop compiler warning
 			ImTextureID tex_id = (void*)color_attachment_id;
 			ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 		}
+
 		if (ImGui::CollapsingHeader("Framebuffer - alt camera"))
 		{
-			float tex_height = 400.0;
-			float tex_width = tex_height * m_window.AspectRatio();
+			float tex_height = 400.0f;
+			float tex_width = tex_height * m_viewport_data.size.x / m_viewport_data.size.y;
 			uint64_t color_attachment_id = (uint64_t)m_framebuffer_alt.GetColourAttachmentID();
 			ImTextureID tex_id = (void*)color_attachment_id;
 			ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 		}
 
-		ImGui::End(); //End of the window
+		ImGui::End(); //End of render stats the panel
 
 		//-----------------------------------------------------------------------------------------
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 		ImGui::Begin("Viewport");
+
 		ImVec2 im_viewport_size = ImGui::GetContentRegionAvail();
+		OpenGLRenderer::SetViewport(0,0, (uint32_t)im_viewport_size.x, (uint32_t)im_viewport_size.y);
 		
-		if (*(reinterpret_cast<glm::vec2*>(&im_viewport_size)) != m_viewport_size)
+		if (*(reinterpret_cast<glm::vec2*>(&im_viewport_size)) != m_viewport_data.size)
 		{
-			m_viewport_size = { im_viewport_size.x, im_viewport_size.y };
-			m_framebuffer.Reset((uint32_t)(m_viewport_size.x), (uint32_t)(m_viewport_size.y));
-
-			//TODO - this is a bit dubious
-			ely::EventViewportResize e{ (uint32_t)(m_viewport_size.x), (uint32_t)(m_viewport_size.y) };
-			m_scene.GetCameraController().OnViewportResize(e);
+			//m_viewport_size = { im_viewport_size.x, im_viewport_size.y };
+			m_framebuffer.Reset((uint32_t)(im_viewport_size.x), (uint32_t)(im_viewport_size.y));
+			//update gl viewport to be same size as ImGui viewport
+			//TODO  - check this!!!
+			OpenGLRenderer::SetViewport(0, 0, (uint32_t)im_viewport_size.x, (uint32_t)im_viewport_size.y);
+			ely::EventViewportResize e{ (uint32_t)(im_viewport_size.x), (uint32_t)(im_viewport_size.y) };
+			m_scene->OnViewportResize(e);
 		}
-	
-		//CORE_TRACE("Viewport size: {}, {}", m_viewport_size.x, m_viewport_size.y);
 
+		//update viewport data
+		//https://github.com/ocornut/imgui/issues/3404
+		m_viewport_data.size = { ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y };
+		m_viewport_data.window_pos = { ImGui::GetWindowPos().x, ImGui::GetWindowPos().y };
+		m_viewport_data.viewport_pos = { ImGui::GetWindowViewport()->Pos.x, ImGui::GetWindowViewport()->Pos.y };
+		m_viewport_data.cursor_screen_pos = { ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y };
+		m_viewport_data.mouse_pos = { ImGui::GetMousePos().x, ImGui::GetMousePos().y };
+
+		m_viewport_data.mouse_pos_viewport = { ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x,
+			ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y };
+
+		m_viewport_data.forcused = ImGui::IsWindowFocused();
+		m_viewport_data.hovered = ImGui::IsWindowHovered();
+
+		Application::GetInstance().GetImGuiLayer().BlockEvents(!m_viewport_data.forcused || !m_viewport_data.hovered);
+
+		// Need to remove call to ImGui::Image() for this to be displayed
+		/*ImGui::Text("Focused: %i", m_viewport_data.forcused);
+		ImGui::Text("Hovered: %i", m_viewport_data.hovered);
+		ImGui::Text("Viewport size: %.1f %.1f", m_viewport_data.size.x, m_viewport_data.size.y);
+		ImGui::Text("Win pos: %.1f %.1f", m_viewport_data.window_pos.x, m_viewport_data.window_pos.y);
+		ImGui::Text("Main Viewport pos: %.1f %.1f", m_viewport_data.viewport_pos.x, m_viewport_data.viewport_pos.y);
+		ImGui::Text("Mouse pos: %.1f %.1f", m_viewport_data.mouse_pos.x, m_viewport_data.mouse_pos.y);
+		ImGui::Text("Cursor screen pos: %.1f %.1f", m_viewport_data.cursor_screen_pos.x, m_viewport_data.cursor_screen_pos.y);
+		ImGui::Text("Mouse pos in viewport: %.2f %.2f", m_viewport_data.mouse_pos_viewport.x, m_viewport_data.mouse_pos_viewport.y);*/
+
+		//TODO - needs a bit of a rework! App is setting data for the engine!!??
+		m_scene->SetViewportSize(m_viewport_data.size);
+	
 		uint64_t color_attachment_id = (uint64_t)m_framebuffer.GetColourAttachmentID(); //uint64_t to stop compiler warning
 		ImTextureID tex_id = (void*)color_attachment_id;
-		ImGui::Image(tex_id, ImVec2(m_viewport_size.x, m_viewport_size.y), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
+		ImGui::Image(tex_id, ImVec2(im_viewport_size.x, im_viewport_size.y), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
 
-		ImGui::End(); //End of viewport
+		ImGui::End(); //End of viewport panel 
 		ImGui::PopStyleVar();
 
-		//------------------------------------------------------------------------------------------------------
+		ImGui::End();  //end of (dockspace demo) window
+
 		//demo window
-		//static bool show = true;
-		//ImGui::ShowDemoWindow(&show);
+		static bool show = true;
+		ImGui::ShowDemoWindow(&show);
 	}
 
 }

@@ -10,11 +10,13 @@ namespace ely
 	
 	void OpenGLRenderer::Init()
 	{
-		//glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS); // AOGL p20
 		glEnable(GL_LINE_SMOOTH);
+
+		//TODO - this causes display problems!
+		//glEnable(GL_BLEND); 
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	void OpenGLRenderer::SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)

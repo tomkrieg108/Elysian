@@ -12,16 +12,19 @@ namespace ely
 
 		void OnAttach() override;
 		void OnDetach() override;
-		
+		void OnEvent(Event& event) override;
 		void Begin();
 		void End();
 
 		void SetDarkThemeColors();
 
-		//uint32_t GetActiveWidgetID() const;
+		void BlockEvents(bool block) { m_block_events = block; }
 
 		static bool WantCaptureMouse();
 		static bool WantCaptureKeyboard();
+
+	private:
+		bool m_block_events = true;
 	};
 
 }

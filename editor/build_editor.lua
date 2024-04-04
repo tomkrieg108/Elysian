@@ -35,6 +35,8 @@ project "editor"
         "elysian"
     }
 
+    --defines {"EDITOR"} --doesn't work!?
+
     filter "system:windows"
         systemversion "latest"
         defines { "WINDOWS" }

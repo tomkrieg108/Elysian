@@ -35,6 +35,8 @@ project "sandbox"
         "elysian"
     }
 
+    --defines {"SANDBOX"} --doesn't work!?
+
     filter "system:windows"
         systemversion "latest"
         defines { "WINDOWS" }

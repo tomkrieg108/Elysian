@@ -3,6 +3,7 @@
 
 namespace ely
 {
+	//TODO - might want to combine ortho and perspective into a single class?
 	class OrthoCamera
 	{
 		friend class OrthoCameraController;

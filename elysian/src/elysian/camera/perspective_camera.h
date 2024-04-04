@@ -29,9 +29,11 @@ namespace ely
 
 		float GetFov() const { return m_fov; }
 		float GetAspectRatio() const { return m_aspect_ratio; }
+		float* AspectRatioPtr() { return &m_aspect_ratio; } //for ImGui
 		float GetNear() const { return m_near; }
 		float GetFar() const { return m_far; }
 		void SetFov(float fov) { m_fov = fov; }
+		void Zoom(float amount);
 
 	private:
 		float m_aspect_ratio = 1.0f;			// = width/height

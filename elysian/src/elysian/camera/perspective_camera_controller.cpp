@@ -47,6 +47,17 @@ namespace ely {
 		camera_transform = glm::translate(camera_transform, glm::vec3(amount, 0, 0));
 	}
 
+	void PerspectiveCameraController::MoveVertically(float amount)
+	{
+		//TODO
+		//needs to be done in world coords - not local camera coords
+	}
+
+	void PerspectiveCameraController::InvertPitch()
+	{
+		//TODO
+	}
+
 	void PerspectiveCameraController::Turn(float delta_yaw, float delta_pitch)
 	{
 		auto& camera_transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
@@ -71,27 +82,7 @@ namespace ely {
 		camera_transform = camera_transform * rot_x;  //rotate about X local axis
 	}
 
-	void PerspectiveCameraController::Zoom(float amount)
-	{
-		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
-
-		auto fov = camera.GetFov();
-		camera.SetFov(fov + amount);
-		if (camera.GetFov() > 75.0f)
-			camera.SetFov(75.0f);
-		if (camera.GetFov() < 10.0f)
-			camera.SetFov(10.0f);
-	}
-
-	void PerspectiveCameraController::MoveVertically(float amount)
-	{
-		//needs to be done in world coords - not local camera coords
-	}
-
-	void PerspectiveCameraController::InvertPitch()
-	{
-	}
-
+	
 	void PerspectiveCameraController::OnMouseMoved(EventMouseMoved& e)
 	{
 		//if (ImGuiLayer::WantCaptureMouse())
@@ -104,25 +95,27 @@ namespace ely {
 
 	void PerspectiveCameraController::OnMouseScrolled(EventMouseScrolled& e)
 	{
-		Zoom(e.y_offset);
+		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
+		camera.Zoom(e.y_offset);
 	}
 
-	void PerspectiveCameraController::OnMouseButtonPressed(EventMouseButtonPressed& e)
-	{
-	}
-
+	// these are updated for all cameras in the scene (not just the controlled camera) - done in scene.cpp
+#if 0 
 	void PerspectiveCameraController::OnWindowResize(EventWidowResize& e)
 	{
 		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
 		camera.SetAspectRatio((float)e.buffer_width, (float)e.buffer_height);
 	}
 
+	//TODO - needs work!
 	void PerspectiveCameraController::OnViewportResize(EventViewportResize& e)
 	{
 		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
 		camera.SetAspectRatio((float)e.width, (float)e.height);
 	}
-
+#endif
+	
+	//TODO - this thould be somewhere else - or just use glm!
 	//angle in degrees
 	glm::mat4 PerspectiveCameraController::GetRotationMatX(float angle) const
 	{

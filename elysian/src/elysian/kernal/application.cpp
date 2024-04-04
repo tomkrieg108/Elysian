@@ -6,6 +6,11 @@
 #include "elysian/renderer/opengl_shader.h"
 #include "elysian/imgui/im_gui_layer.h"
 
+#include <thread>
+
+using namespace std::literals;  // For suffixes
+using namespace std::chrono_literals;
+
 namespace ely
 {
 	Application* Application::s_instance = nullptr;
@@ -14,9 +19,9 @@ namespace ely
 	{
 		//TODO: include assertion / check that s_instance doesn't already exist ?
 		s_instance = this;
-		Window::WindowParams params;
-		params.title = true;
-		m_window = Window::Create(params);
+		Window::WindowParams window_params;
+		window_params.title = title;
+		m_window = Window::Create(window_params);
 
 		OpenGLRenderer::Init();
 		Texture2DRepo::Init();
@@ -32,6 +37,7 @@ namespace ely
 
 	Application::~Application()
 	{
+		Application::PopOverlay(m_imgui_layer);
 		delete m_imgui_layer;
 	}
 
@@ -63,39 +69,47 @@ namespace ely
 		m_running = false;
 	}
 
-	bool Application::OnWindowClose(events_v2::EventWidowClose& e)
+	bool Application::OnWindowClose(EventWidowClose& e)
 	{
-		CORE_INFO("Application::OnWindowClose() called {}", e);
+		//CORE_INFO("Application::OnWindowClose() called {}", e);
 		m_running = false;
 		return true;
 	}
 
-	bool Application::OnWindowResize(events_v2::EventWidowResize& e)
+	bool Application::OnWindowResize(EventWidowResize& e)
 	{
-		CORE_INFO("Application::OnWindowResize() called {}", e);
+		//CORE_INFO("Application::OnWindowResize() called {}", e);
 		return true;
 	}
 
-	
-#if 1
-	void Application::OnEvent(events_v2::Event& e)
+	bool Application::OnWindowFocusChange(EventWindowFocusChange& e)
+	{
+		//CORE_INFO("Application::OnWindowFocusChange() called {}", e);
+		return true;
+	}
+
+	bool Application::OnWindowIconifyChange(EventWindowIconifyChange& e)
+	{
+		//CORE_INFO("Application::OnWindowIconifyChange() called {}", e);
+		return true;
+	}
+
+	void Application::OnEvent(Event& e)
 	{
 		/*
 		Cherno
 		This is going to get called from window.cpp via m_event_callback
 		*/
-
-		CORE_TRACE("Application::OnEvent() {} ", e);
-		events_v2::EventDispatcher dispatcher(e);
+		EventDispatcher dispatcher(e);
 
 		//NOTE: & is compulsory for member functions, optional for free functions
-		dispatcher.Dispatch<events_v2::EventWidowClose>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1 ));
-		dispatcher.Dispatch<events_v2::EventWidowResize>(std::bind(&Application::OnWindowResize, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventWidowClose>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1 ));
+		dispatcher.Dispatch<EventWindowFocusChange>(std::bind(&Application::OnWindowFocusChange, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventWindowIconifyChange>(std::bind(&Application::OnWindowIconifyChange, this, std::placeholders::_1));
 
 		//std::function<bool(Event&)> callback = std::bind(&Application::OnWindowResize, this, std::placeholders::_1); //compile error!
 		//auto callback = std::bind(&Application::OnWindowResize, this, std::placeholders::_1); //ok!
 		
-
 		for (auto it = m_layer_stack.rbegin(); it != m_layer_stack.rend(); ++it)
 		{
 			if (e.handled)
@@ -103,7 +117,7 @@ namespace ely
 			(*it)->OnEvent(e);
 		}
 	}
-#endif
+
 
 	void Application::Run()
 	{
@@ -117,8 +131,11 @@ namespace ely
 			last_time = now;
 
 			if (m_window->IsMinimised())
+			{
+				m_window->OnUpdate(); //without this iconified window doesn't re-opened
 				continue;
-
+			}
+				
 			m_window->Clear();
 
 			this->OnUpdate(delta_time);

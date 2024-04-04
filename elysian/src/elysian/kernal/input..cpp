@@ -5,6 +5,9 @@
 #include "elysian/events/event_dispatcher.h"
 #include "elysian/kernal/application.h"
 
+
+//TODO - make input a static class
+
 namespace ely
 {
 	Input::Input()
@@ -28,8 +31,8 @@ namespace ely
 		m_last_x = (float)xpos;
 		m_last_y = (float)ypos;
 
-		EventMouseMoved e{ m_last_x, m_last_y, m_delta_x, m_delta_y };
-		EventDispatcher::Dispatch(e);
+		events_v1::EventMouseMoved e{ m_last_x, m_last_y, m_delta_x, m_delta_y };
+		events_v1::EventDispatcher::Dispatch(e);
 	}
 
 	void Input::MouseButtonPressed(int button, int action, int mods) const
@@ -37,36 +40,37 @@ namespace ely
 		//TODO: action (press or release) not needed in e 
 		if (action == GLFW_PRESS)
 		{
-			EventMouseButtonPressed e{ m_last_x, m_last_y, button, action };
-			EventDispatcher::Dispatch(e);
+			events_v1::EventMouseButtonPressed e{ m_last_x, m_last_y, button, action };
+			events_v1::EventDispatcher::Dispatch(e);
 		}
 		if (action == GLFW_RELEASE)
 		{
-			EventMouseButtonReleased e{ m_last_x, m_last_y, button, action };
-			EventDispatcher::Dispatch(e);
+			events_v1::EventMouseButtonReleased e{ m_last_x, m_last_y, button, action };
+			events_v1::EventDispatcher::Dispatch(e);
 		}
 	}
 
 	void Input::MouseScrolled(double xoffset, double yoffset) const
 	{
-		EventMouseScrolled e{ float(xoffset), float(yoffset) };
-		EventDispatcher::Dispatch(e);
+		events_v1::EventMouseScrolled e{ float(xoffset), float(yoffset) };
+		events_v1::EventDispatcher::Dispatch(e);
 	}
 
 	void Input::KeyAction(int key, int code, int action, int mode) const
 	{
 		if (action == GLFW_PRESS)
 		{
-			EventKeyPressed e{ key };
-			EventDispatcher::Dispatch(e);
+			events_v1::EventKeyPressed e{ key };
+			events_v1::EventDispatcher::Dispatch(e);
 		}
 		else if (action == GLFW_RELEASE)
 		{
-			EventKeyReleased e{ key };
-			EventDispatcher::Dispatch(e);
+			events_v1::EventKeyReleased e{ key };
+			events_v1::EventDispatcher::Dispatch(e);
 		}
 		else if (action == GLFW_REPEAT)
 		{
+			//TODO
 		}
 	}
 

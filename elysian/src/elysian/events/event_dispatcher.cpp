@@ -3,14 +3,14 @@
 
 namespace ely
 {
-	inline namespace events_v1 {
+	 namespace events_v1 {
 		EventDispatcher EventDispatcher::s_instance;
 	}
 }
 
 namespace ely {
 
-	namespace events_v2 {
+	inline namespace events_v2 {
 
 	}
 

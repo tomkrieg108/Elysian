@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "elysian/kernal/application.h"
 #include "elysian/events/event_dispatcher.h"
 #include "elysian/renderer/opengl_shader.h"
 #include "elysian/model/mesh_primitives.h"
@@ -21,13 +22,6 @@ GammaTestLayer::GammaTestLayer(ely::Window& window) :
 	glEnable(GL_LINE_SMOOTH);
 
 	m_window.SetClearColour(glm::vec4(0.6f, 0.6, 0.0f, 1.0f));
-
-	//register event handlers
-	ely::EventDispatcher::SetCallback(this, &GammaTestLayer::OnKeyPressed);
-	ely::EventDispatcher::SetCallback(this, &GammaTestLayer::OnMouseMoved);
-	ely::EventDispatcher::SetCallback(this, &GammaTestLayer::OnMouseScrolled);
-	ely::EventDispatcher::SetCallback(this, &GammaTestLayer::OnWindowResize);
-	ely::EventDispatcher::SetCallback(this, &GammaTestLayer::OnMouseButtonPressed);
 
 	//buffer setup
 	m_vbo_grid = ely::MeshPrimitive::GetGridVertexBuffer(20.0f, 1.0f);
@@ -63,6 +57,18 @@ void GammaTestLayer::OnAttach()
 void GammaTestLayer::OnDetach()
 {
 }
+
+void GammaTestLayer::OnEvent(ely::Event& e)
+{
+	ely::EventDispatcher dispatcher(e);
+
+	dispatcher.Dispatch<ely::EventKeyPressed>(std::bind(&GammaTestLayer::OnKeyPressed, this, std::placeholders::_1));
+	dispatcher.Dispatch<ely::EventMouseMoved>(std::bind(&GammaTestLayer::OnMouseMoved, this, std::placeholders::_1));
+	dispatcher.Dispatch<ely::EventMouseScrolled>(std::bind(&GammaTestLayer::OnMouseScrolled, this, std::placeholders::_1));
+	dispatcher.Dispatch<ely::EventMouseButtonPressed>(std::bind(&GammaTestLayer::OnMouseButtonPressed, this, std::placeholders::_1));
+	dispatcher.Dispatch<ely::EventWidowResize>(std::bind(&GammaTestLayer::OnWindowResize, this, std::placeholders::_1));
+}
+
 
 void GammaTestLayer::OnUpdate(double time_step)
 {
@@ -201,30 +207,41 @@ void GammaTestLayer::OnImGuiRender()
 	}
 }
 
-void GammaTestLayer::OnKeyPressed(ely::EventKeyPressed& e)
+
+bool GammaTestLayer::OnKeyPressed(ely::EventKeyPressed& e)
 {
 	if (e.key == GLFW_KEY_ESCAPE)
-		m_window.ShutDown();
+		ely::Application::GetInstance().Close();
+		//m_window.ShutDown();
 	else if (e.key == GLFW_KEY_SPACE)
 		m_window.ToggleCursorEnabled();
+
+	return true;
 }
 
-void GammaTestLayer::OnMouseMoved(ely::EventMouseMoved& e)
+bool GammaTestLayer::OnMouseMoved(ely::EventMouseMoved& e)
 {
 	if (!m_window.GetCursorEnabled())
 		m_camera_controller.OnMouseMoved(e);
+
+	return true;
 }
 
-void GammaTestLayer::OnMouseScrolled(ely::EventMouseScrolled& e)
+bool GammaTestLayer::OnMouseScrolled(ely::EventMouseScrolled& e)
 {
 	m_camera_controller.OnMouseScrolled(e);
+
+	return true;
 }
 
-void GammaTestLayer::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
+bool GammaTestLayer::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
 {
+	return true;
 }
 
-void GammaTestLayer::OnWindowResize(ely::EventWidowResize& e)
+bool GammaTestLayer::OnWindowResize(ely::EventWidowResize& e)
 {
 	m_camera_controller.OnWindowResize(e);
+
+	return true;
 }

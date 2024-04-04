@@ -50,7 +50,7 @@ namespace ely
 		m_params.width = video_mode->width;
 		m_params.height = video_mode->height;
 
-		auto m_window = glfwCreateWindow(params.width, params.height, params.title.c_str(), NULL, NULL);
+		auto m_window = glfwCreateWindow(params.width, params.height, params.title.c_str(), NULL, NULL); //TODO - title not displayed
 		if (!m_window)
 		{
 			CORE_ERROR("GLFW window creation failed");
@@ -69,41 +69,76 @@ namespace ely
 		//set callbacks
 		glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			//TODO - make input a static class
-			win->GetInput().MouseButtonPressed(button, action, mods);
-			});
+			//win->GetInput().MouseButtonPressed(button, action, mods);
+
+			//from win->GetInput().MouseButtonPressed(button, action, mods);
+			double xpos, ypos;
+			glfwGetCursorPos(window, &xpos, &ypos);
+			if (action == GLFW_PRESS)
+				win->GetEventCallback()(EventMouseButtonPressed{ (float)xpos, (float)ypos, button, action });
+			if (action == GLFW_RELEASE)
+				win->GetEventCallback()(EventMouseButtonReleased{ (float)xpos, (float)ypos, button, action }); 
+		});
 
 		glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xoffset, double yoffset) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			win->GetInput().MouseScrolled(xoffset, yoffset);
+			//win->GetInput().MouseScrolled(xoffset, yoffset);
+			EventMouseScrolled event{ float(xoffset), float(yoffset) };
+			win->GetEventCallback()(event);
 		});
 
 		glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xpos, double ypos) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			win->GetInput().MouseMoved(xpos, ypos);
+			//win->GetInput().MouseMoved(xpos, ypos);
+			static float last_x = 0, last_y = 0, delta_x = 0, delta_y = 0;
+			static bool mouse_first_moved = false;
+
+			if (!mouse_first_moved)
+			{
+				mouse_first_moved = true;
+				last_x = (float)xpos;
+				last_y = (float)ypos;
+			}
+
+			//top left is (0,0)
+			//mouse up & mouse right give pos deltas with this
+			delta_x = (float)xpos - last_x;
+			delta_y = last_y - (float)ypos;
+
+			last_x = (float)xpos;
+			last_y = (float)ypos;
+
+			EventMouseMoved event{ last_x, last_y, delta_x, delta_y };
+			win->GetEventCallback()(event);
 		});
 
 
 		glfwSetKeyCallback(m_window, [](GLFWwindow* glfw_window, int key, int code, int action, int mode) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(glfw_window));
-			win->GetInput().KeyAction(key, code, action, mode);
+			//win->GetInput().KeyAction(key, code, action, mode);
+
+			//from 	win->GetInput().KeyAction()
+			if (action == GLFW_PRESS)
+				win->GetEventCallback()(EventKeyPressed{ key });
+			else if (action == GLFW_RELEASE)
+				win->GetEventCallback()(EventKeyReleased{ key });
+			else if (action == GLFW_REPEAT) {}
+			//TODO
 		});
 
 		glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			win->m_params.width = width;
 			win->m_params.height = height;
+
+			//update window dramebuffer width and height (excludes window border and title bar)
 			glfwGetFramebufferSize(win->GetWindowHandle(), &(win->m_params.buffer_width), &(win->m_params.buffer_height));
 
 			//TODO - should this be somewhere else?
 			OpenGLRenderer::SetViewport(win->m_params.buffer_width, win->m_params.buffer_height);
-
-			EventWidowResize e{ (uint32_t)win->m_params.buffer_width, (uint32_t)win->m_params.buffer_height };
-			EventDispatcher::Dispatch(e);
-
-			events_v2::EventWidowResize event;
+			EventWidowResize event{ (uint32_t)win->m_params.buffer_width, (uint32_t)win->m_params.buffer_height };
 			auto& callback_func = win->GetEventCallback();
-			callback_func(event); //event is std::placeholder::_1 in MakeCallback
+			callback_func(event); //event is std::placeholder::_1 in MakeCallback.  TODO. I like EventDispatcher::Dispatch(e); better!!
 		});
 
 		glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
@@ -112,7 +147,7 @@ namespace ely
 
 		glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
-			events_v2::EventWidowClose event;
+			EventWidowClose event;
 			auto& callback_func = win->GetEventCallback();
 			callback_func(event); 
 		});
@@ -124,40 +159,36 @@ namespace ely
 
 		glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int codepoint) {
 			//CORE_INFO("Char typed");
-			
 		});
 
 		glfwSetWindowPosCallback(m_window, [](GLFWwindow* window, int xpos, int ypos) {
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			
-			events_v2::EventWindowMove event{ (uint32_t)xpos, (uint32_t)ypos };
+			EventWindowMove event{ (uint32_t)xpos, (uint32_t)ypos };
 			auto& callback_func = win->GetEventCallback();
 			callback_func(event);
 		});
 
-
 		glfwSetWindowFocusCallback(m_window, [](GLFWwindow* window, int focused) {
-			//CORE_INFO("Window focus");
 			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
 			
+			EventWindowFocusChange event{ focused };
 			auto& callback_func = win->GetEventCallback();
-			if (focused)
-				callback_func(events_v2::EventWindowFocus());
-			else
-				callback_func(events_v2::EventWindowLostFocus());
+			callback_func(event);
 		});
 
 		glfwSetWindowIconifyCallback(m_window, [](GLFWwindow* window, int iconified) {
-			//CORE_INFO("Window iconified");
+			Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+			EventWindowIconifyChange event{ iconified };
+			auto& callback_func = win->GetEventCallback();
+			callback_func(event);
 		});
 
 		glfwSetWindowMaximizeCallback(m_window, [](GLFWwindow* window, int maximized) {
 			//CORE_INFO("Window maximized");
 		});
 
-
-		
-	  //glViewport(0, 0, m_params.buffer_width, m_params.buffer_height);
 		OpenGLRenderer::SetViewport(m_params.buffer_width, m_params.buffer_height);
 
 		glfwSetWindowUserPointer(m_window, this);  //Used for setup of event handlers
@@ -208,6 +239,7 @@ namespace ely
 		//OpenGLRenderer::SetClearColor(col);
 		//OpenGLRenderer::ClearBuffers();
 
+		////TODO:  use opengl_renderer
 		glClearColor(col.r, col.g, col.b, col.a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
@@ -215,8 +247,8 @@ namespace ely
 	//TODO this stuff should be in the renderer API
 	void Window::OnUpdate()
 	{
-		glfwSwapBuffers(m_context->GetWindowHandle()); //TODO:  should be in opengl_context
 		glfwPollEvents();
+		glfwSwapBuffers(m_context->GetWindowHandle()); //TODO:  use the call in opengl_context
 	}
 
 	bool Window::ShouldClose()

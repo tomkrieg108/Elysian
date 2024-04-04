@@ -19,6 +19,7 @@ namespace ely
 	*/
 	glm::mat4 PerspectiveCamera::GetProjMatrix() const
 	{
+		//CORE_WARN("PerspectiveCamera::GetProjMatrix called: fov, ar, near, far {} {} {} {}", m_fov, m_aspect_ratio, m_near, m_far);
 		return glm::perspective(glm::radians(m_fov), m_aspect_ratio, m_near, m_far);
 	}
 
@@ -75,9 +76,17 @@ namespace ely
 
 	void PerspectiveCamera::SetAspectRatio(float width, float height)
 	{
-		if (height == 0.0f)
+		/*if (height == 0.0f)
 			m_aspect_ratio = 1.0f;
-		else
+		else*/
 			m_aspect_ratio = width / height;
+
+		//CORE_WARN(" PerspectiveCamera::SetAspectRatio called: {}", m_aspect_ratio);
+	}
+
+	void PerspectiveCamera::Zoom(float amount)
+	{
+		(m_fov + amount) > 75.0f ? m_fov = 75.0f : m_fov = (m_fov + amount);
+		(m_fov + amount) < 1.0f ? m_fov = 1.0f : m_fov = (m_fov + amount);
 	}
 }

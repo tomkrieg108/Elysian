@@ -8,7 +8,7 @@ namespace ely
 	//TODO = can set this up to be like an observer rather than event system
 	//also setup so that can call free functions
 
-	 inline namespace events_v1 {
+	  namespace events_v1 {
 
 		template<typename E> using EventCallbackFn = std::function<void(E&)>;
 
@@ -113,7 +113,7 @@ namespace ely
 
 			void DefaultCallBack(Event& e)
 			{
-				CORE_TRACE("Default callback called");
+				//CORE_TRACE("Default callback called");
 			}
 
 			std::array<IEventCallback*, STATIC_EVENT_TYPE(Count)> m_callback_list;
@@ -128,7 +128,7 @@ namespace ely {
 	Chernos version
 	Event category not included for now
 	*/
-	 namespace events_v2 {
+	inline namespace events_v2 {
 
 		using EventCallbackFn = std::function<void(Event&)>;
 
@@ -147,7 +147,6 @@ namespace ely {
 				if (m_event.Type() == E::StaticType())
 				{
 					m_event.handled |= func(static_cast<E&>(m_event));
-					//func(static_cast<E&>(m_event));
 					return true;
 				}
 				return false;

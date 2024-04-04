@@ -156,15 +156,14 @@ namespace ely
 		UpdateFunc m_update_func; //NOTE can used operator bool to check if contains no callable target
 	};
 
-
 	//-----------------------------------------------------------------------------
+
 	using EventHandler = std::function<void(Event&)>;
 	class EventHandlerComponent
 	{
 	public:
 		EventHandlerComponent() = default;
-		EventHandlerComponent(EventHandler func) : m_event_handler{func} {}
-
+		EventHandlerComponent(EventHandler func) : m_event_handler{ func } {}
 		void OnEvent(Event& event) { m_event_handler(event); }
 	private:
 		EventHandler m_event_handler;

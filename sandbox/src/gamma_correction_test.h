@@ -22,14 +22,16 @@ public:
 	void OnAttach() override;
 	void OnDetach() override;
 	void OnUpdate(double time_step) override;
+	void OnEvent(ely::Event& event) override;
 	void OnImGuiRender() override;
 
 private:
-	void OnKeyPressed(ely::EventKeyPressed& e);
-	void OnMouseMoved(ely::EventMouseMoved& e);
-	void OnMouseScrolled(ely::EventMouseScrolled& e);
-	void OnMouseButtonPressed(ely::EventMouseButtonPressed& e);
-	void OnWindowResize(ely::EventWidowResize& e);
+
+	bool OnKeyPressed(ely::EventKeyPressed& e);
+	bool OnMouseMoved(ely::EventMouseMoved& e);
+	bool OnMouseScrolled(ely::EventMouseScrolled& e);
+	bool OnMouseButtonPressed(ely::EventMouseButtonPressed& e);
+	bool OnWindowResize(ely::EventWidowResize& e);
 
 private:
 	ely::Window& m_window;

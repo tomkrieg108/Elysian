@@ -14,7 +14,7 @@ namespace ely
 	public:
 		struct WindowParams
 		{
-			std::string title{ "Elysiun App" };
+			std::string title{ "App" };
 			uint32_t width = 1200;
 			uint32_t height = 800;
 			int32_t buffer_height = 1200; //set in Init()
@@ -58,8 +58,8 @@ namespace ely
 		static Window* Create(const WindowParams& initial_params = WindowParams());
 
 		//Cherno
-		void SetEventCallback(const events_v2::EventCallbackFn& callback) { m_event_callback = callback; }
-		events_v2::EventCallbackFn& GetEventCallback() { return m_event_callback; }
+		void SetEventCallback(const EventCallbackFn& callback) { m_event_callback = callback; }
+		EventCallbackFn& GetEventCallback() { return m_event_callback; }
 
 	private:
 		void Init(const WindowParams& initial_params);
@@ -79,7 +79,7 @@ namespace ely
 			Is called in Window.  
 			TODO better to be in event dispatcher thing
 		*/
-		events_v2::EventCallbackFn m_event_callback;
+		EventCallbackFn m_event_callback;
 	};
 
 }

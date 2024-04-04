@@ -19,7 +19,7 @@ public:
 
 	~Sandbox()
 	{
-		this->PopLayer(test_layer4);
+		//this->PopLayer(test_layer4);
 	}
 	
 	void OnUpdate(double delta_time) override

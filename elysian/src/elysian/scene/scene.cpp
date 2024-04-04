@@ -97,7 +97,8 @@ namespace ely {
 			return entity;
 		}
 
-		Entity Scene::CreateQuadEntity(const glm::vec3& position, const std::string& name)
+		//this is to try out with the viewport in the editor
+		Entity Scene::CreateQuadEntity2(const glm::vec3& position, const std::string& name)
 		{
 			Entity entity = CreateEntity(name);
 			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
@@ -107,18 +108,25 @@ namespace ely {
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("colored_basic")));
 			Entity camera_entity = FindEntityByName("Main Camera"s);
 
-			decltype(auto) event_handler = [entity, camera_entity](Event& event) mutable
-			{
+			//NOTE  this is based on info book about mouse picking
+			decltype(auto) event_handler = [entity, camera_entity, this](Event& event) mutable
+				{
 					EventMouseButtonPressed* e = dynamic_cast<EventMouseButtonPressed*>(&event);
 					if (e == nullptr)
 						return;
 
-					auto& transform = (glm::mat4&)entity.GetComponent<TransformComponent>();
+					CORE_WARN("Scene::CreateQuadEntity2 - event data  (x,y): ({},{})", e->x, e->y);
+					CORE_WARN("Scene::CreateQuadEntity2 - viewport size (x,y): ({},{})", this->m_viewport_size.x, this->m_viewport_size.y);
 
+					auto& transform = (glm::mat4&)entity.GetComponent<TransformComponent>();
 					auto& window = Application::GetInstance().GetWindow();
-					float x = (2.0f * float(e->x)) / window.BufferWidth() - 1.0f;
-					float y = 1.0f - (2.0f * float(e->y)) / window.BufferHeight();
+					
+					//position of mouse click (in e) *should* be relative to the main viewport
+					float x = (2.0f * float(e->x)) / this->m_viewport_size.x - 1.0f;
+					float y = 1.0f - (2.0f * float(e->y)) / this->m_viewport_size.y;
 					float z = 1.0f;
+
+					CORE_WARN("Scene::CreateQuadEntity2 - Ray NDC (z,y,z): ({},{},{})", x, y, z);
 
 					auto& camera = (PerspectiveCamera&)camera_entity.GetComponent<PerspectiveCameraComponent>();
 					auto& camera_transform = (glm::mat4&)camera_entity.GetComponent<TransformComponent>();
@@ -140,7 +148,64 @@ namespace ely {
 					transform[3][0] = floorf(intersection.x);
 					transform[3][1] = 0.0f;
 					transform[3][2] = floorf(intersection.z);
-			};
+				};
+
+			//entity.AddComponent<EventHandlerComponent>(event_handler, event_handler2);
+			entity.AddComponent<EventHandlerComponent>(event_handler);
+			return entity;
+		}
+
+		Entity Scene::CreateQuadEntity(const glm::vec3& position, const std::string& name)
+		{
+			Entity entity = CreateEntity(name);
+			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
+			auto& transform_comp = entity.GetComponent<TransformComponent>();
+			transform_comp.SetTransform(transform);
+			entity.AddComponent<MeshComponent>(MeshPrimitive::GetQuadMesh1());
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("colored_basic")));
+			Entity camera_entity = FindEntityByName("Main Camera"s);
+
+			//NOTE  this is based on info book about mouse picking
+			decltype(auto) event_handler = [entity, camera_entity](Event& event) mutable
+				{
+					EventMouseButtonPressed* e = dynamic_cast<EventMouseButtonPressed*>(&event);
+					if (e == nullptr)
+						return;
+
+					auto& transform = (glm::mat4&)entity.GetComponent<TransformComponent>();
+					//glm::mat4& tr = entity.GetComponent<TransformComponent>(); //using implicit cast fn
+
+					auto& window = Application::GetInstance().GetWindow();
+					float x = (2.0f * float(e->x)) / (float)window.BufferWidth() - 1.0f;
+					float y = 1.0f - (2.0f * float(e->y)) / (float)window.BufferHeight();
+					float z = 1.0f;
+
+					CORE_TRACE("Quad Entity click:");
+					CORE_TRACE("Ray NDC (z,y,x): ({},{},{})", x, y, z);
+
+					auto& camera = (PerspectiveCamera&)camera_entity.GetComponent<PerspectiveCameraComponent>();
+					auto& camera_transform = (glm::mat4&)camera_entity.GetComponent<TransformComponent>();
+
+					glm::vec3 ray_nds = glm::vec3(x, y, z);
+					glm::vec4 ray_clip = glm::vec4(x, y, -1, 1);
+					glm::vec4 ray_eye = camera.GetInverseProjMatrix() * ray_clip;
+
+					ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+					glm::vec4 ray_world_4d = camera_transform * ray_eye; //transform mat is the inverse of the view mat
+
+					glm::vec3 ray_world = glm::normalize(glm::vec3(ray_world_4d[0], ray_world_4d[1], ray_world_4d[2]));
+
+					glm::vec3 eye_world = glm::vec3(camera_transform[3][0], camera_transform[3][1], camera_transform[3][2]);
+					glm::vec3 grid_normal = glm::vec3(0, 1, 0);
+					float t = -glm::dot(grid_normal, eye_world) / glm::dot(grid_normal, ray_world);
+					glm::vec3 intersection = eye_world + t * ray_world;
+
+					transform[3][0] = floorf(intersection.x);
+					transform[3][1] = 0.0f;
+					transform[3][2] = floorf(intersection.z);
+				};
+
+			//entity.AddComponent<EventHandlerComponent>(event_handler, event_handler2);
 			entity.AddComponent<EventHandlerComponent>(event_handler);
 			return entity;
 		}
@@ -183,11 +248,14 @@ namespace ely {
 
 		void Scene::UploadCameraDataToShaders(const std::string& camera_name)
 		{
+			//CORE_INFO("Scene::UploadCameraDataToShaders called: {}", camera_name);
+			//std::this_thread::sleep_for(100ms);
+
 			auto camera_entity = FindEntityByName(camera_name);
 			//TODO ASSERT VALID
 			//TODO  how to find by ID?  need to save the ID of commonly acessed components?
-			auto& camera = (PerspectiveCamera)(camera_entity.GetComponent<PerspectiveCameraComponent>());
-			auto& camera_transform = (glm::mat4)(camera_entity.GetComponent<TransformComponent>());
+			auto& camera = (PerspectiveCamera&)(camera_entity.GetComponent<PerspectiveCameraComponent>());
+			auto& camera_transform = (glm::mat4&)(camera_entity.GetComponent<TransformComponent>());
 			glm::mat4 view_mat = camera.GetViewMatrix(camera_transform);
 			glm::mat4 proj_mat = camera.GetProjMatrix();
 
@@ -213,25 +281,14 @@ namespace ely {
 			auto cube_shader = ely::ShaderRepo::Get("light_map_diff_spec");
 			cube_shader->Bind();
 
-			auto& light = (DirectionalLight)light_entity.GetComponent<DirectionalLightComponent>();
+			auto& light = (DirectionalLight&)light_entity.GetComponent<DirectionalLightComponent>();
 			light.UploadDataToShader(cube_shader);
 		}
 		
 		void Scene::BeginScene(const std::string& camera_name, const glm::vec4& clear_color)
 		{
 			//Upload per scene data do shader(s)
-			OpenGLRenderer::SetLineWidth(1.0);
 			UploadCameraDataToShaders(camera_name); //TODO should be part of renderer api
-			UploadLightDataToShader();
-			OpenGLRenderer::SetClearColor(clear_color);
-			OpenGLRenderer::ClearBuffers();
-		}
-
-		void Scene::BeginScene(const std::string& camera_name, const OpenGLFramebuffer& framebuffer, const glm::vec4& clear_color)
-		{
-			framebuffer.Bind();
-			OpenGLRenderer::SetLineWidth(2.0);
-			UploadCameraDataToShaders(camera_name);
 			UploadLightDataToShader();
 			OpenGLRenderer::SetClearColor(clear_color);
 			OpenGLRenderer::ClearBuffers();
@@ -239,7 +296,7 @@ namespace ely {
 
 		void Scene::EndScene()
 		{
-			
+		//TODO	
 		}
 
 		void Scene::UpdateScene(double time_step)
@@ -252,22 +309,61 @@ namespace ely {
 			}
 		}
 
-		//TODO - fix this !
-		void Scene::OnEvent(Event& event)
+		bool Scene::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
 		{
-			EventWidowResize* e = dynamic_cast<EventWidowResize*>(&event);
-			if (e != nullptr)
-			{
-				m_camera_controller.OnWindowResize(*e);
-				return;
-			}
-			auto view = m_registry.view<EventHandlerComponent>();
+			//CORE_TRACE("Scene::OnMouseButtonPressed(): (z,y): ({},{})", e.x, e.y);
 
+			auto view = m_registry.view<EventHandlerComponent>();
 			for (auto entity : view)
 			{
 				auto& comp = view.get<EventHandlerComponent>(entity);
-				comp.OnEvent(event);
+				comp.OnEvent(e);
 			}
+			return true;
+		}
+
+		//Only applies to the controlled camera
+		bool Scene::OnMouseMoved(ely::EventMouseMoved& e) 
+		{
+			m_camera_controller.OnMouseMoved(e);
+			return true;
+		}
+
+		//Only applies to the controlled camera
+		bool Scene::OnMouseScrolled(ely::EventMouseScrolled& e)
+		{
+			m_camera_controller.OnMouseScrolled(e);
+			return true;
+		}
+
+		//Apply to all cameras in the scene for sandbox app
+		bool Scene::OnWindowResize(ely::EventWidowResize& e)
+		{
+			if ((e.buffer_width == 0) || (e.buffer_height == 0))
+				return true; //minimized
+
+			auto view = m_registry.view<PerspectiveCameraComponent>();
+			for (auto camera_entity : view)
+			{
+				PerspectiveCamera& camera = view.get<PerspectiveCameraComponent>(camera_entity);
+				camera.SetAspectRatio((float)e.buffer_width, (float)e.buffer_height);
+			}
+			return true;
+		}
+
+		//Apply to all cameras in the scene for editor app
+		bool Scene::OnViewportResize(ely::EventViewportResize& e)
+		{
+			if ((e.width == 0) || (e.height == 0))
+				return true; //minimized
+
+			auto view = m_registry.view<PerspectiveCameraComponent>();
+			for (auto camera_entity : view)
+			{
+				PerspectiveCamera& camera = view.get<PerspectiveCameraComponent>(camera_entity);
+				camera.SetAspectRatio((float)e.width, (float)e.height);
+			}
+			return true;
 		}
 
 		void Scene::RenderScene()
@@ -316,27 +412,21 @@ namespace ely {
 
 		void Scene::SetRenderable(Entity& entity, bool val)
 		{
-			//TODO - use asserts?
-			if (!entity)
-				return;
 			if(entity.HasComponent<MeshComponent>())
 			{
 				auto& mesh_comp = entity.GetComponent<MeshComponent>();
 				mesh_comp.SetEnableRender(val);
 			}
 		}
+
 		void Scene::DisplayCoords(Entity& entity, bool val)
 		{
-			//TODO - use asserts?
-			if (!entity)
-				return;
 			if (entity.HasComponent<MeshComponent>())
 			{
 				auto& mesh_comp = entity.GetComponent<MeshComponent>();
 				mesh_comp.SetShowCoords(val);
 			}
 		}
-
 
 		//cherno ch77
 		/*
@@ -395,6 +485,5 @@ namespace ely {
 			}
 		}
 		*/
-
 
 }
