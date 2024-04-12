@@ -4,30 +4,29 @@
 
 namespace ely
 {
-	//TODO - make all static
 	class Input
 	{
+		
 	public:
-		Input();
-		~Input() = default;
 
-		void MouseMoved(double xpos, double ypos);
-		glm::vec2 Input::QueryMousePosition();
+		static float GetMouseX();
+		static float GetMouseY();
+		static glm::vec2 GetMousePosition();
+		static void SetPreviousMousePosition(float x, float y);
 
-		void MouseButtonPressed(int button, int action, int mods) const;
-		void MouseScrolled(double xoffset, double yoffset) const;
-		void KeyAction(int key, int code, int action, int mode) const;
+		static float GetMouseDeltaX(float new_x);
+		static float GetMouseDeltaY(float new_y);
+		static glm::vec2 GetMouseDelta(float new_x, float new_y);
 
-		bool IsKeyPressed(int key) const;
-		bool IsMouseButtonPressed(int button) const;
+		static bool IsKeyPressed(int key);
+		static bool IsMousebuttonPressed(int button);
 
-		float GetMouseX() const { return m_last_x; }
-		float GetMouseY() const { return m_last_y; }
-		float GetMouseDeltaX() const { return m_delta_x; }
-		float GetMouseDeltaY() const { return m_delta_y; }
+		static void SetMouseFirstMoved();
+		static bool GetMouseFirstMoved();
 
 	private:
-		float m_last_x = 0, m_last_y = 0, m_delta_x = 0, m_delta_y = 0;
-		bool m_mouse_first_moved = false;
+		static float m_last_x, m_last_y; //mouse pos prior to the previous mouse move
+		static bool m_mouse_first_moved;
 	};
+		
 }

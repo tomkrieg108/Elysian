@@ -61,18 +61,17 @@ namespace ely {
 
 		const float move_speed = 5.0f;
 		const float move_amount = move_speed * (float)(delta_time);
-		Input& input = Application::GetInstance().GetWindow().GetInput();
-
-		if (input.IsKeyPressed(GLFW_KEY_W))
+		
+		if (Input::IsKeyPressed(GLFW_KEY_W))
 			MoveUp(-move_amount);
 
-		if (input.IsKeyPressed(GLFW_KEY_S))
+		if (Input::IsKeyPressed(GLFW_KEY_S))
 			MoveUp(move_amount);
 
-		if (input.IsKeyPressed(GLFW_KEY_A))
+		if (Input::IsKeyPressed(GLFW_KEY_A))
 			MoveRight(-move_amount);
 
-		if (input.IsKeyPressed(GLFW_KEY_D))
+		if (Input::IsKeyPressed(GLFW_KEY_D))
 			MoveRight(move_amount);
 	}
 

@@ -44,5 +44,5 @@ private:
 private:
 	ely::Window& m_window;
 	ely::OpenGLFramebuffer m_framebuffer, m_framebuffer_alt;
-	ely::Scene m_scene;
+	ely::Scene m_scene; //TODO - mae as a ref or pointer
 };

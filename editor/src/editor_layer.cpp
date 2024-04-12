@@ -49,7 +49,6 @@ namespace ely {
 	void EditorLayer::OnAttach()
 	{
 		m_scene->CreateGridEntity();
-		m_scene->CreateCoordSysEntity();
 		m_scene->CreateDrirectionalLightEntity(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light"s);
 		m_scene->CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube"s);
 

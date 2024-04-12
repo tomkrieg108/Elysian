@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "elysian/kernal/base.h"
+#include "elysian/kernal/log.h"
 #include "elysian/kernal/application.h"
 #include "elysian/renderer/opengl_renderer.h"
 #include "elysian/camera/perspective_camera.h"
@@ -43,14 +44,10 @@ namespace ely {
 			Entity entity = CreateEntity("Grid");
 			entity.AddComponent<MeshComponent>(MeshPrimitive::GetGridMesh(20.0f));
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("coords")));
-			return entity;
-		}
 
-		Entity Scene::CreateCoordSysEntity()
-		{
-			Entity entity = CreateEntity("Coord System");
-			entity.AddComponent<MeshComponent>(MeshPrimitive::GetCoordSystemMesh(20.0f));
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("coords")));
+			//TODO - seems a bit dubious
+			m_camera_controller.SetGridEntity(entity);
+
 			return entity;
 		}
 
@@ -89,9 +86,9 @@ namespace ely {
 				float angle = (float)time_step; // 1/60 radians 
 				transform = glm::rotate(transform, angle, rot_axis);
 				//orbit box about world y axis
-				glm::mat4 orbit_axis = glm::mat4(1.0f);
-				orbit_axis = glm::rotate(orbit_axis, angle, glm::vec3(0, 1, 0));
-				transform = orbit_axis * transform;
+				glm::mat4 orbit_transform = glm::mat4(1.0f);
+				orbit_transform = glm::rotate(orbit_transform, angle, glm::vec3(0, 1, 0));
+				transform = orbit_transform * transform;
 			};
 			entity.AddComponent<UpdatableComponent>(update_func);
 			return entity;
@@ -311,8 +308,10 @@ namespace ely {
 
 		bool Scene::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
 		{
-			//CORE_TRACE("Scene::OnMouseButtonPressed(): (z,y): ({},{})", e.x, e.y);
-
+			bool alt_pressed = Input::IsKeyPressed(GLFW_KEY_LEFT_ALT) || Input::IsKeyPressed(GLFW_KEY_RIGHT_ALT);
+			if (alt_pressed || (e.btn != GLFW_MOUSE_BUTTON_LEFT))
+				return true;
+		
 			auto view = m_registry.view<EventHandlerComponent>();
 			for (auto entity : view)
 			{
@@ -323,6 +322,7 @@ namespace ely {
 		}
 
 		//Only applies to the controlled camera
+		//TODO - don't think this us used anywhere
 		bool Scene::OnMouseMoved(ely::EventMouseMoved& e) 
 		{
 			m_camera_controller.OnMouseMoved(e);
@@ -368,7 +368,7 @@ namespace ely {
 
 		void Scene::RenderScene()
 		{
-			//auto group = m_registry.group<TransformComponent, MeshComponent, ShaderHandleComponent>(); // groups are faster for multiple components, but this crashes
+			//auto group = m_registry.group<TransformComponent, MeshComponent, ShaderHandleComponent>(); // groups are apparently faster for multiple components, but this crashes
 			auto view = m_registry.view<TagComponent, TransformComponent, MeshComponent, ShaderHandleComponent>();
 
 			for (auto entity : view)
@@ -379,24 +379,22 @@ namespace ely {
 					continue;
 
 				auto& shader = (Shader&)(shader_comp.GetShader());
-				//TODO do this in DrawMesh()
+				//TODO do this in DrawMesh() / renderer
 				shader.Bind();
 				shader.SetUniformMat4f("u_model", (glm::mat4)(transform_comp));
 
 				auto& mesh = (Mesh)(mesh_comp);
-				mesh.UploadMaterialToShader(shader);
+				mesh.UploadMaterialToShader(shader); //TODO shoud be done in renderer
 				OpenGLRenderer::DrawMesh(mesh, shader);
-
-				if (tag_comp.m_tag == "Coord System"s)
-					continue;
 
 				if (mesh_comp.GetShowCoords())
 				{
-					auto& coords_entity = FindEntityByName("Coord System"s);
-					auto& coords_mesh = (Mesh&)coords_entity.GetComponent<MeshComponent>();
-					auto& coords_shader = (Shader&)(coords_entity.GetComponent<ShaderHandleComponent>().GetShader());
+					auto& coords_mesh = MeshPrimitive::GetCoordSystemMesh(20.0f);
+					auto& coords_shader = *(ShaderRepo::Get("coords"));
+
 					glm::mat4 transform = transform_comp;
-					transform =	glm::scale(transform, glm::vec3(0.1f));
+					if(tag_comp.m_tag != "Grid"s)
+						transform =	glm::scale(transform, glm::vec3(0.1f));
 					coords_shader.Bind();
 					coords_shader.SetUniformMat4f("u_model", transform);
 					OpenGLRenderer::DrawMesh(coords_mesh, coords_shader);

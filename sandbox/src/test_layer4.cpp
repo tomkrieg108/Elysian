@@ -31,7 +31,7 @@ TestLayer4::TestLayer4() :
 void TestLayer4::OnAttach()
 {
 	m_scene.CreateGridEntity();
-	m_scene.CreateCoordSysEntity();
+	//m_scene.CreateCoordSysEntity();
 	m_scene.CreateDrirectionalLightEntity(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light"s);
 	m_scene.CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube"s);
 	
@@ -101,6 +101,8 @@ void TestLayer4::OnEvent(ely::Event& e)
 	dispatcher.Dispatch<ely::EventMouseMoved>(std::bind(&TestLayer4::OnMouseMoved, this, std::placeholders::_1));
 	dispatcher.Dispatch<ely::EventMouseScrolled>(std::bind(&TestLayer4::OnMouseScrolled, this, std::placeholders::_1));
 	dispatcher.Dispatch<ely::EventMouseButtonPressed>(std::bind(&TestLayer4::OnMouseButtonPressed, this, std::placeholders::_1));
+
+	//TODO - should be in application.cpp
 	dispatcher.Dispatch<ely::EventWidowResize>(std::bind(&TestLayer4::OnWindowResize, this, std::placeholders::_1));
 }
 
@@ -110,6 +112,8 @@ bool TestLayer4::OnKeyPressed(ely::EventKeyPressed& e)
 
 	if (e.key == GLFW_KEY_ESCAPE)
 		ely::Application::GetInstance().Close();
+
+	//TODO - this no longer used
 	else if (e.key == GLFW_KEY_SPACE)
 		m_window.ToggleCursorEnabled();
 	
@@ -131,17 +135,14 @@ bool TestLayer4::OnKeyPressed(ely::EventKeyPressed& e)
 
 bool TestLayer4::OnMouseMoved(ely::EventMouseMoved& e)
 {
-	//CORE_TRACE(" TestLayer4::OnMouseMoved() called: {}", e);
-	if (!m_window.GetCursorEnabled())
-		m_scene.GetCameraController().OnMouseMoved(e);
-
+	//if (!m_window.GetCursorEnabled())
+	m_scene.GetCameraController().OnMouseMoved(e);
 	return true;
 }
 
-
 bool TestLayer4::OnMouseScrolled(ely::EventMouseScrolled& e)
 {
-	//CORE_TRACE(" TestLayer4::OnMouseScrolled2() called: {}", e);
+	//CORE_TRACE(" TestLayer4::OnMouseScrolled() called: {}", e);
 	m_scene.GetCameraController().OnMouseScrolled(e);
 	return true;
 }
@@ -155,7 +156,7 @@ bool TestLayer4::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
 
 bool TestLayer4::OnWindowResize(ely::EventWidowResize& e)
 {
-	CORE_WARN(" TestLayer4::OnWindowResize() called: {}", e);
+	//CORE_WARN(" TestLayer4::OnWindowResize() called: {}", e);
 	m_scene.OnWindowResize(e);
 	return true;
 }

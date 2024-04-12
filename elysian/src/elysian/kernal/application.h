@@ -26,6 +26,7 @@ namespace ely
 		void PopOverlay(Layer* layer);
 		virtual void OnUpdate(double delta_time) {}
 		Window& GetWindow() { return *m_window; }
+
 		ImGuiLayer& GetImGuiLayer() { return *m_imgui_layer; }
 		void Close();
 

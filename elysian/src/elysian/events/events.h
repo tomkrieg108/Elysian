@@ -157,7 +157,7 @@ namespace ely {
 		enum class EventType
 		{
 			None,
-			WindowClose, WindowResize, WindowMove, WindowFocusChange, WindowIconifyChange,
+			WindowClose, WindowResize, WindowMove, WindowFocusChange, WindowHoverChange, WindowIconifyChange,
 			ViewportResize,
 			KeyPressed, KeyReleased, KeyTyped,
 			MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled,
@@ -195,8 +195,7 @@ namespace ely {
 
 		struct EventWidowClose : public Event
 		{
-			EventWidowClose() {}
-
+			EventWidowClose() = default;
 			EventType Type() const override { return EventType::WindowClose; }
 			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::WindowClose; }
@@ -205,44 +204,80 @@ namespace ely {
 
 		struct EventWidowResize : public Event
 		{
-			EventWidowResize() : buffer_width{ 0 }, buffer_height{ 0 } {}
+			EventWidowResize() = delete;
 			EventWidowResize(uint32_t buffer_width, uint32_t buffer_height) : buffer_width{ buffer_width }, buffer_height{ buffer_height } {}
 
 			EventType Type() const override { return EventType::WindowResize; }
 			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::WindowResize; }
-			const char* GetName() const { return "Window Resized"; }
+			const char* GetName() const { return "Window Resized: "; }
 
 			std::string ToString() const override
 			{
 				std::string s = std::string{ GetName() };
-				s += " - width: " + std::to_string(buffer_width) + ", height: " + std::to_string(buffer_height);
+				s += "( " + std::to_string(buffer_width) + "," + std::to_string(buffer_height) + ")";
 				return s;
 			}
 
-			uint32_t buffer_width, buffer_height;
+			uint32_t buffer_width = 0, buffer_height = 0;
 		};
 
 		struct EventWindowFocusChange : public Event
 		{
+			EventWindowFocusChange() = delete;
 			EventWindowFocusChange(int focused) : has_focus { focused } {}
 
 			EventType Type() const override { return EventType::WindowFocusChange; }
 			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::WindowFocusChange; }
-			const char* GetName() const { return "Window Focus Change"; }
+			const char* GetName() const { return "Window Focus Change: "; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s +=  std::to_string(has_focus);
+				return s;
+			}
 
 			int has_focus = 0;
 		};
 
+		struct EventWindowHoverChange : public Event
+		{
+			EventWindowHoverChange() = delete;
+			EventWindowHoverChange(int hovered) : hovered{ hovered } {}
+
+			EventType Type() const override { return EventType::WindowHoverChange; }
+			int GetCategoryFlags() const override { return EventCategoryApplication; }
+			static EventType StaticType() { return EventType::WindowHoverChange; }
+			const char* GetName() const { return "Window Hover Change: "; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += std::to_string(hovered);
+				return s;
+			}
+
+			int hovered = 0;
+		};
+
 		struct EventWindowIconifyChange : public Event
 		{
+			EventWindowIconifyChange() = delete;
 			EventWindowIconifyChange(int iconified) : is_iconified{ iconified } {}
 
 			EventType Type() const override { return EventType::WindowIconifyChange; }
 			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::WindowIconifyChange; }
-			const char* GetName() const { return "Window Iconify Change"; }
+			const char* GetName() const { return "Window Iconify Change: "; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += std::to_string(is_iconified);
+				return s;
+			}
 
 			int is_iconified = 0;
 		};
@@ -250,17 +285,23 @@ namespace ely {
 		
 		struct EventWindowMove : public Event
 		{
-			EventWindowMove() = default;
+			EventWindowMove() = delete;
 			EventWindowMove(uint32_t xpos, uint32_t ypos) : xpos{ xpos }, ypos{ ypos } {}
 
 			EventType Type() const override { return EventType::WindowMove; }
 			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::WindowMove; }
-			const char* GetName() const { return "Window Moved"; }
+			const char* GetName() const { return "Window Moved: "; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += "( " + std::to_string(xpos) + "," + std::to_string(ypos) + ")";
+				return s;
+			}
 
 			uint32_t xpos = 0, ypos = 0;
 		};
-
 
 
 		//------------------------------------------------------------------
@@ -269,18 +310,18 @@ namespace ely {
 
 		struct EventViewportResize : public Event
 		{
-			EventViewportResize() = default;
+			EventViewportResize() = delete;
 			EventViewportResize(uint32_t width, uint32_t height) : width{ width }, height{ height } {}
 
 			EventType Type() const override { return EventType::ViewportResize; }
 			int GetCategoryFlags() const override { return EventCategoryApplication; }
 			static EventType StaticType() { return EventType::ViewportResize; }
-			const char* GetName() const { return "Viewport Resized"; }
+			const char* GetName() const { return "Viewport Resized: "; }
 
 			std::string ToString() const override
 			{
 				std::string s = std::string{ GetName() };
-				s += " - width: " + std::to_string(width) + ", height: " + std::to_string(height);
+				s += "( " + std::to_string(height) + "," + std::to_string(width) + ")";
 				return s;
 			}
 
@@ -293,40 +334,62 @@ namespace ely {
 
 		struct EventKeyPressed : public Event
 		{
-			EventKeyPressed() : key{ 0 } {}
-			EventKeyPressed(int32_t key) : key{ key } {}
+			EventKeyPressed() = delete;
+			EventKeyPressed(int32_t key, bool repeated = false) : key{ key }, repeated{ repeated } {}
 
 			EventType Type() const override { return EventType::KeyPressed; }
 			int GetCategoryFlags() const override { return EventCategoryKeyboard | EventCategoryInput; }
 			static EventType StaticType() { return EventType::KeyPressed; }
-			const char* GetName() const { return "Key Pressed"; }
+			const char* GetName() const { return "Key Pressed: "; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += "key: " + std::to_string(key) + "Repeat? " +  std::to_string(repeated);
+				return s;
+			}
 			
-			int32_t key;
+			int32_t key = 0;
+			bool repeated = false;
 		};
 
 		struct EventKeyReleased : public Event
 		{
-			EventKeyReleased() : key{ 0 } {}
+			EventKeyReleased() = delete;
 			EventKeyReleased(int32_t key) : key{ key } {}
 
 			EventType Type() const override { return EventType::KeyReleased; }
 			int GetCategoryFlags() const override { return EventCategoryKeyboard | EventCategoryInput; }
 			static EventType StaticType() { return EventType::KeyReleased; }
-			const char* GetName() const { return "Key Released"; }
+			const char* GetName() const { return "Key Released: "; }
 			
-			int32_t key;
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += "key: " + std::to_string(key);
+				return s;
+			}
+
+			int32_t key = 0;
 		};
 
 		//TODO need to record the repeat count?
 		struct EventKeyTyped : public Event
 		{
-			EventKeyTyped() : key{ 0 } {}
+			EventKeyTyped() = delete;
 			EventKeyTyped(int32_t key) : key{ key } {}
 
 			EventType Type() const override { return EventType::KeyReleased; }
 			int GetCategoryFlags() const override { return EventCategoryKeyboard | EventCategoryInput; }
 			static EventType StaticType() { return EventType::KeyReleased; }
-			const char* GetName() const { return "Key Typed"; }
+			const char* GetName() const { return "Key Typed: "; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += "key: " + std::to_string(key);
+				return s;
+			}
 
 			int32_t key;
 		};
@@ -338,43 +401,62 @@ namespace ely {
 
 		struct EventMouseButtonPressed : public Event
 		{
-			EventMouseButtonPressed() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
-			EventMouseButtonPressed(float x, float y, int btn, int action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
+			EventMouseButtonPressed() = delete;
+			EventMouseButtonPressed(float x, float y, int btn) : x{ x }, y{ y }, btn{ btn } {}
 
 			EventType Type() const override { return EventType::MouseButtonPressed; }
 			int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryMouseButton | EventCategoryInput; }
 			static EventType StaticType() { return EventType::MouseButtonPressed; }
-			const char* GetName() const { return "Mouse Button Pressed"; }
+			const char* GetName() const { return "Mouse Button Pressed: "; }
 
-			float x, y;
-			int btn, action;
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += "Btn: " + std::to_string(btn) + " Pos: " + "( " + std::to_string(x) + "," + std::to_string(y) + ")";
+				return s;
+			}
+
+			float x = 0, y = 0;
+			int btn = 0;
 		};
 
 		struct EventMouseButtonReleased : public Event
 		{
-			EventMouseButtonReleased() : x{ 0 }, y{ 0 }, btn{ 0 }, action{ 0 } {}
-			EventMouseButtonReleased(float x, float y, int btn, int action) : x{ x }, y{ y }, btn{ btn }, action{ action } {}
+			EventMouseButtonReleased() = delete;
+			EventMouseButtonReleased(float x, float y, int btn) : x{ x }, y{ y }, btn{ btn } {}
 
 			EventType Type() const override { return EventType::MouseButtonReleased; }
 			int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryMouseButton | EventCategoryInput; }
 			static EventType StaticType() { return EventType::MouseButtonReleased; }
-			const char* GetName() const { return "Mouse Button Releasd"; }
+			const char* GetName() const { return "Mouse Button Releasd: "; }
 
-			float x, y;
-			int btn, action;
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += "Btn: " + std::to_string(btn) + " Pos: " + "( " + std::to_string(x) + "," + std::to_string(y) + ")";
+				return s;
+			}
+
+			float x = 0, y = 0;
+			int btn = 0;
 		};
 
 		struct EventMouseMoved : public Event
 		{
-			EventMouseMoved() : x{ 0 }, y{ 0 }, delta_x{ 0 }, delta_y{ 0 } {}
-			EventMouseMoved(float x, float y, float delta_x, float delta_y) : x{ x }, y{ y }, delta_x{ delta_x }, delta_y{ delta_y } {}
+			EventMouseMoved() = delete;
+			EventMouseMoved(float delta_x, float delta_y) : delta_x{ delta_x }, delta_y{ delta_y } {}
 
 			EventType Type() const override { return EventType::MouseMoved; }
 			int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryInput; }
 			static EventType StaticType() { return EventType::MouseMoved; }
-			const char* GetName() const { return "Mouse Moved"; }
+			const char* GetName() const { return "Mouse Moved: "; }
 			
-			float x, y;
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += " Delta: " + std::to_string(delta_x) + "," + std::to_string(delta_y) + ")";
+				return s;
+			}
 			float delta_x, delta_y;
 		};
 
@@ -386,7 +468,14 @@ namespace ely {
 			EventType Type() const override { return EventType::MouseScrolled; }
 			int GetCategoryFlags() const override { return EventCategoryMouse | EventCategoryInput; }
 			static EventType StaticType() { return EventType::MouseScrolled; }
-			const char* GetName() const { return "Mouse Scrolled"; }
+			const char* GetName() const { return "Mouse Scrolled: "; }
+
+			std::string ToString() const override
+			{
+				std::string s = std::string{ GetName() };
+				s += "Offset: " + std::to_string(x_offset) + "," + std::to_string(y_offset) + ")";
+				return s;
+			}
 			
 			float x_offset, y_offset;
 		};

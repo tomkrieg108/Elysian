@@ -19,10 +19,9 @@ namespace ely {
 
 			Entity CreateEntity(const std::string& name = ""s);
 			Entity CreateGridEntity();
-			Entity CreateCoordSysEntity();
 			Entity CreateOrbitingCubeEntity(const glm::vec3& position, const std::string& name);
 			Entity CreateQuadEntity(const glm::vec3& position, const std::string& name);
-			Entity CreateQuadEntity2(const glm::vec3& position, const std::string& name);
+			Entity CreateQuadEntity2(const glm::vec3& position, const std::string& name); //for editor
 			Entity CreateDrirectionalLightEntity(const glm::vec3& position, const std::string& name);
 			Entity CreatePerspectiveCameraEntity(const glm::vec3& position, const std::string& name);
 
@@ -56,7 +55,7 @@ namespace ely {
 
 		private:
 			entt::registry m_registry;
-			std::unordered_map<UUID, entt::entity> m_entity_map; //TODO - what's this used for!?
+			std::unordered_map<UUID, entt::entity> m_entity_map; //TODO - what's this used for!? - might be better to use the entity name as the key
 			PerspectiveCameraController m_camera_controller; //TODO - make as an component attached to camera entity?
 			Entity m_controlled_camera_entity;
 
