@@ -7,6 +7,8 @@
 #include <entt/entt.hpp>
 #include <imgui_docking/imgui.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace ely {
 
 	SceneHeirachyPanel::SceneHeirachyPanel(Ref<Scene>& scene) : 
@@ -34,8 +36,19 @@ namespace ely {
 		}
 		ImGui::End();
 
-		//ImGui::Begin("Properties");
-		//ImGui::End();
+		/*if (ImGui::IsWindowHovered && ImGui::IsMouseDown(0))
+		{
+			m_selected_entity = {};
+		}*/
+
+		//--------------------------------------------------
+
+		ImGui::Begin("Properties");
+		if (m_selected_entity)
+		{
+			DrawComponents(m_selected_entity);
+		}
+		ImGui::End();
 	}
 
 	void SceneHeirachyPanel::DrawEntityNode(Entity entity)
@@ -44,7 +57,7 @@ namespace ely {
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 		if (m_selected_entity == entity)
 			flags |= ImGuiTreeNodeFlags_Selected;
-		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)entity, flags, tag.c_str());
+		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)753737374346, flags, tag.c_str()); //(uint64_t) has to be non-const in entity class for this to work?
 	
 		if (ImGui::IsItemClicked()) {
 			m_selected_entity = entity;
@@ -52,12 +65,40 @@ namespace ely {
 			
 		if (opened)
 		{
-			bool opened = ImGui::TreeNodeEx((void *)753737374347, flags, tag.c_str());
+			bool opened = ImGui::TreeNodeEx((void *)(uint64_t)753737374347, flags, tag.c_str());
 			if(opened) 
 				ImGui::TreePop();
 			ImGui::TreePop();
 		}
+
+
 	}
 
+	void SceneHeirachyPanel::DrawComponents(Entity entity)
+	{
+		if (entity.HasComponent<TagComponent>())
+		{
+			std::string& tag = entity.GetComponent<TagComponent>();
+
+			static char buffer[256];
+			memset(buffer, 0, sizeof(buffer));
+			strcpy_s(buffer, sizeof(buffer), tag.c_str());
+			if (ImGui::InputText("Tag", buffer, sizeof(buffer)))
+			{
+				tag = std::string(buffer);
+			}
+		}
+
+		if (entity.HasComponent<TransformComponent>())
+		{
+			if (ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform"))
+			{
+				glm::mat4& mat = entity.GetComponent<TransformComponent>();
+				ImGui::DragFloat3("position", glm::value_ptr(mat[3]), 0.1, 0, 0);
+				ImGui::TreePop();
+			}
+			
+		}
+	}
 
 }
