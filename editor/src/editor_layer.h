@@ -38,6 +38,7 @@ namespace ely {
 		Window& m_window;
 		OpenGLFramebuffer m_framebuffer, m_framebuffer_alt;
 		ImGuiViewPortData m_viewport_data;
-		Scene* m_scene;
+		
+		Ref<Scene> m_scene;
 	};
 }

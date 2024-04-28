@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.h" //TODO - not using pch?
 
 #include "elysian/kernal/application.h"
 #include "elysian/events/event_dispatcher.h"
@@ -38,7 +38,7 @@ GammaTestLayer::GammaTestLayer(ely::Window& window) :
 	tex_params.enable_srgb = true;
 
 	//framebuffer setup
-	m_framebuffer = new ely::OpenGLFramebuffer(window.BufferWidth(), window.BufferHeight(), tex_params);
+	m_framebuffer = new ely::OpenGLFramebuffer({ window.BufferWidth(), window.BufferHeight(), tex_params });
 
 	//texture setup
 	m_texture = new ely::OpenGLTexture2D("grass2.png");
@@ -212,18 +212,13 @@ bool GammaTestLayer::OnKeyPressed(ely::EventKeyPressed& e)
 {
 	if (e.key == GLFW_KEY_ESCAPE)
 		ely::Application::GetInstance().Close();
-		//m_window.ShutDown();
-	else if (e.key == GLFW_KEY_SPACE)
-		m_window.ToggleCursorEnabled();
-
+		
 	return true;
 }
 
 bool GammaTestLayer::OnMouseMoved(ely::EventMouseMoved& e)
 {
-	if (!m_window.GetCursorEnabled())
-		m_camera_controller.OnMouseMoved(e);
-
+	m_camera_controller.OnMouseMoved(e);
 	return true;
 }
 

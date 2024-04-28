@@ -5,7 +5,7 @@ project "sandbox"
     language "C++"
     cppdialect "C++17"
     staticruntime "off"
-    targetdir ("%{wks.location}/bin/" .. output_dir .. "/%{prj.name}")
+    targetdir ("%{wks.location}/bin/" .. output_dir .. "/%{prj.name}") --"%{wks.location} is solution location
 	objdir ("%{wks.location}/bin-int/" .. output_dir .. "/%{prj.name}")
 
     files 
@@ -18,6 +18,7 @@ project "sandbox"
     {
         "src",
         "%{wks.location}/elysian/src",
+        --"%{wks.location}",
 
         "%{include_dir.glfw}",
         "%{include_dir.glad}",
@@ -34,8 +35,6 @@ project "sandbox"
         --dont need to specify libdirs for libs in the same workspace (see premake docs)
         "elysian"
     }
-
-    --defines {"SANDBOX"} --doesn't work!?
 
     filter "system:windows"
         systemversion "latest"

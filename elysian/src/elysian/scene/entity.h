@@ -1,8 +1,6 @@
 #pragma once
 #include "elysian/kernal/base.h"
 #include "elysian/scene/component.h"
-#include "elysian/model/mesh.h"
-#include <glm/glm.hpp>
 #include <entt/entt.hpp>
 
 using namespace std::literals;
@@ -65,17 +63,27 @@ namespace ely {
 				m_registry->remove<T>(m_entity_handle);
 			}
 
-			//casts
 			operator entt::entity() const{ return m_entity_handle; }
 			operator std::int32_t() const { return (std::int32_t)m_entity_handle; }
+			operator std::int64_t()  { return (std::int64_t)m_entity_handle; }
 			operator bool() const { return m_entity_handle != entt::null; }
+
+			bool operator==(const Entity& other) const
+			{
+				return m_entity_handle == other.m_entity_handle && m_registry == other.m_registry;
+			}
+
+			bool operator!=(const Entity& other) const
+			{
+				return !(*this == other);
+			}
 
 			UUID GetUUID() { return GetComponent<IDComponent>(); }
 			const std::string& GetName() { return GetComponent<TagComponent>(); }
 
 		private:
 			entt::entity m_entity_handle = entt::null;
-			entt::registry* m_registry = nullptr;
+			entt::registry* m_registry = nullptr; 
 		};
 
 }

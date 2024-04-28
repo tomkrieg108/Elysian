@@ -9,6 +9,9 @@
 
 namespace ely
 {
+
+	uint32_t Window::s_window_count = 0;
+
 	Window::Window(const WindowParams& params) :
 		m_params{ params }
 	{
@@ -46,9 +49,11 @@ namespace ely
 		//glfwWindowHint(GLFW_SAMPLES, 4);	//for MSAA multi-sample anti-aliasing
 		//See anton cha2
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		
 		const GLFWvidmode* video_mode = glfwGetVideoMode(monitor);
 		m_params.width = video_mode->width;
 		m_params.height = video_mode->height;
+		m_params.monitor_aspect_ratio = (float)m_params.width / (float)m_params.height;
 
 		auto m_window = glfwCreateWindow(params.width, params.height, params.title.c_str(), NULL, NULL); //TODO - title not displayed
 		if (!m_window)
@@ -56,7 +61,7 @@ namespace ely
 			CORE_ERROR("GLFW window creation failed");
 			glfwTerminate();
 		}
-		
+	
 		m_context = new OpenGLContext(m_window);
 		m_context->Init();
 		
@@ -193,15 +198,6 @@ namespace ely
 	bool Window::IsMinimised() const
 	{
 		return (bool)glfwGetWindowAttrib(m_context->GetWindowHandle(), GLFW_ICONIFIED);
-	}
-
-	void Window::ToggleCursorEnabled()
-	{
-		if (m_params.cursor_enabled)
-			glfwSetInputMode(m_context->GetWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		else
-			glfwSetInputMode(m_context->GetWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		m_params.cursor_enabled = !m_params.cursor_enabled;
 	}
 
 	void Window::SetCursorEnabled(bool enabled)

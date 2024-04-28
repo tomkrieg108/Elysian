@@ -17,25 +17,14 @@ namespace ely
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		
 		ImGuiIO& io = ImGui::GetIO(); 
-		//(void)io; //??!!
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-//TODO keep this for sandbox too - pretty handy to be able to move ImGui panels out of the main window (still render directly to screen for sandbox)
-//TODO sort out defines in lua scrips for editor and sandbox - don't seem to be working!
-
-#if 1
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport
-#endif
-
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoTaskBarIcons;
-		//io.ConfigFlags |= ImGuiConfigFlags_ViewportsNoMerge;
-
-		float fontSize = 20.0f;
-		//note that file path is relative to working dir, which is where the proj file (core) is by default - see proj properties->debugging
+		float fontSize = 20.0f; 	//NOTE - different fonts can be downloaded from google fonts
+		
+		//io.Fonts is ImVector2<ImFont*>
+		//NOTE - file path is relative to working dir, which is where the proj file (core) is by default - see proj properties->debugging
 		io.Fonts->AddFontFromFileTTF("../../assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
 		io.FontDefault = io.Fonts->AddFontFromFileTTF("../../assets/fonts/opensans/OpenSans-Regular.ttf", fontSize);
 		ImGui::StyleColorsDark();
@@ -73,6 +62,7 @@ namespace ely
 	void ImGuiLayer::End()
 	{
 		ImGuiIO& io = ImGui::GetIO();
+		//TODO - next 2 lines not currently used
 		Application& app = Application::GetInstance();
 		io.DisplaySize = ImVec2((float)app.GetWindow().Width(), (float)app.GetWindow().Height());
 
@@ -120,11 +110,6 @@ namespace ely
 		colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 		colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.15f, 0.1505f, 0.151f, 1.0f };
 	}
-
-	/*uint32_t ImGuiLayer::GetActiveWidgetID() const
-	{
-		return GImGui->ActiveId;
-	}*/
 
 	bool ImGuiLayer::WantCaptureMouse()
 	{

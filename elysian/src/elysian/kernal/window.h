@@ -21,6 +21,7 @@ namespace ely
 			int32_t buffer_width = 800; //set in Init()
 			bool vsync_enabled = true;
 			bool cursor_enabled = true;
+			float monitor_aspect_ratio;
 			glm::vec4 clear_colour = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f); //TODO - should be a renderer parameter
 		};
 		
@@ -33,17 +34,15 @@ namespace ely
 		uint32_t Width() const { return m_params.width; }
 		uint32_t BufferWidth() const { return m_params.buffer_width; }
 		uint32_t BufferHeight() const { return m_params.buffer_height; }
-		
-		float AspectRatio() const {
-			return (float)BufferWidth() / (float)BufferHeight();
-		}
+		float AspectRatio() const { return (float)BufferWidth() / (float)BufferHeight(); }
+		float MonitorAspectRatio() const {return m_params.monitor_aspect_ratio;}
+
 
 		GLFWwindow* GetWindowHandle() const;
 		bool GetCursorEnabled() const { return m_params.cursor_enabled; }
 		void SetCursorEnabled(bool enabled);
-		void ToggleCursorEnabled();
-
-		void SetClearColour(glm::vec4 clear_colour) { m_params.clear_colour = clear_colour; }
+		
+		void SetClearColour(glm::vec4 clear_colour) { m_params.clear_colour = clear_colour; } //TODO -in renderer!
 
 		bool IsMinimised() const;
 		void Clear();
@@ -55,7 +54,7 @@ namespace ely
 
 		static Window* Create(const WindowParams& initial_params = WindowParams());
 
-		//Cherno - TODO - better to go with event_handler
+		//Cherno - TODO - better to set this up event_handler
 		void SetEventCallback(const EventCallbackFn& callback) { m_event_callback = callback; }
 		EventCallbackFn& GetEventCallback() { return m_event_callback; }
 

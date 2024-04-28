@@ -8,39 +8,40 @@ namespace ely
 	class OpenGLFramebuffer
 	{
 	public:
-		OpenGLFramebuffer(uint32_t width, uint32_t height, 
-			const OpenGLTexture2D::Params& params = { GL_LINEAR,GL_LINEAR,GL_REPEAT,GL_REPEAT,true,false,false });
+
+		struct FrameBufferParams
+		{
+			uint32_t width{ 1200 };
+			uint32_t height{ 720 };
+			OpenGLTexture2D::Params tex_params{ GL_LINEAR,GL_LINEAR,GL_REPEAT,GL_REPEAT,true,false,false }; //TODO  compile error for c++20 - ok in C++ 17
+		};
+
+	public:
+		
+		OpenGLFramebuffer(FrameBufferParams params);
+		OpenGLFramebuffer(uint32_t width, uint32_t height );
 		~OpenGLFramebuffer();
 
-		void Reset(uint32_t width, uint32_t height, const OpenGLTexture2D::Params& params ={ GL_LINEAR,GL_LINEAR,GL_REPEAT,GL_REPEAT,true,false,false });
+		void Reset(FrameBufferParams params);
+		void Reset(uint32_t width, uint32_t height);
 
-		uint32_t GetColourAttachmentID() const {
-			return m_colour_attachment_id;
-		}
-
-		uint32_t GetDepthAttachmentID() const {
-			return m_depth_attachment_id;
-		}
+		uint32_t GetColourAttachmentID() const {return m_colour_attachment_id;}
+		uint32_t GetDepthAttachmentID() const { return m_depth_attachment_id; }
 		
-		uint32_t GetWidth() const { return m_width; }
-		uint32_t GetHeight() const { return m_height; }
-		float GetAspectRatio() const { return (float(m_width) / (float)(m_height)); }
+		uint32_t GetWidth() const { return m_parameters.width; }
+		uint32_t GetHeight() const { return m_parameters.height; }
+		float GetAspectRatio() const { return (float(m_parameters.width) / (float)(m_parameters.height)); }
 
 		void Bind() const;
 		void Unbind() const;
-
 		bool IsComplete() const { return m_is_complete; }
 
 	private:
 		uint32_t m_id = 0;
 		uint32_t m_colour_attachment_id = 0;
 		uint32_t m_depth_attachment_id = 0;
-		
-		//TODO - setup a params struct to pass into a framebuffer (similar to texture2d)
-		uint32_t m_width = 1200;
-		uint32_t m_height = 720;
-		OpenGLTexture2D::Params m_texture_params;
 
+		FrameBufferParams m_parameters;
 		bool m_is_complete = false;
 	};
 }

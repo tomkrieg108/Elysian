@@ -6,8 +6,6 @@
 #include "elysian/renderer/opengl_shader.h"
 #include "elysian/imgui/im_gui_layer.h"
 
-#include <thread>
-
 using namespace std::literals;  // For suffixes
 using namespace std::chrono_literals;
 

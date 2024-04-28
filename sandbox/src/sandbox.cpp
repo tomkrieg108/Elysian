@@ -1,14 +1,11 @@
 
 #include "elysian/kernal/entry_point.h"
-#include "elysian/kernal/application.h"
-#include "test_layer4.h"
-#include "gamma_correction_test.h"
+#include "sandbox.h"
 
-class Sandbox : public ely::Application
-{
-public:
-	Sandbox() :
-	ely::Application("Sandbox")
+namespace ely {
+
+	Sandbox::Sandbox() :
+		Application("Sandbox")
 	{
 		test_layer4 = new TestLayer4();
 		this->PushLayer(test_layer4);
@@ -17,22 +14,18 @@ public:
 		//this->PushLayer(gamma_test_layer);
 	}
 
-	~Sandbox()
+	Sandbox::~Sandbox()
 	{
 		//this->PopLayer(test_layer4);
 	}
-	
-	void OnUpdate(double delta_time) override
+
+	void Sandbox::OnUpdate(double delta_time)
 	{
 	}
 
-private:
-	TestLayer4* test_layer4 = nullptr;
-	GammaTestLayer* gamma_test_layer = nullptr;
-};
+	Application* CreateApplication()
+	{
+		return new Sandbox();
+	}
 
-ely::Application* ely::CreateApplication()
-{
-	return new Sandbox();
 }
-

@@ -7,6 +7,8 @@
 #include "elysian/camera/perspective_camera_controller.h"
 #include "elysian/light/directional_light.h"
 #include "elysian/model/mesh_primitives.h"
+//#include "scriptable_entity.h"
+#include "elysian/scene/native_scripts/rotate_and_orbit.h"
 #include "scene.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -36,13 +38,13 @@ namespace ely {
 		void Scene::DestroyEntity(Entity entity)
 		{
 			m_entity_map.erase(entity.GetUUID());
-			m_registry.destroy(entity);
+			m_registry.destroy(entity); //implicit conversion to entt::entity - see entity.h
 		}
 
 		Entity Scene::CreateGridEntity()
 		{
 			Entity entity = CreateEntity("Grid");
-			entity.AddComponent<MeshComponent>(MeshPrimitive::GetGridMesh(20.0f));
+			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetGridMesh(20.0f));
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("coords")));
 
 			//TODO - seems a bit dubious
@@ -58,10 +60,21 @@ namespace ely {
 			entity.GetComponent<TransformComponent>().SetTransform(transform);
 			Mesh mesh = MeshPrimitive::GetCubeMesh1();
 			mesh.SetMaterial(*MaterialRepo::Get("empty")); //TODO make this a parameter to ctr
-			auto& mesh_comp = entity.AddComponent<MeshComponent>(mesh);
+			auto& mesh_comp = entity.AddComponent<MeshRendererComponent>(mesh);
 			mesh_comp.SetEnableRender(false); //TODO make this a parameter to ctr
 			auto& camera_comp = entity.AddComponent<PerspectiveCameraComponent>();
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white")));
+			return entity;
+		}
+
+		Entity Scene::CreateBoxEntity()
+		{
+			Entity entity = CreateEntity("Box");
+			glm::mat4 transform{ 1.0f };
+			auto& transform_comp = entity.GetComponent<TransformComponent>();
+			transform_comp.SetTransform(transform);
+			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("light_map_diff_spec")));
 			return entity;
 		}
 
@@ -69,28 +82,11 @@ namespace ely {
 		{
 			Entity entity = CreateEntity(name);
 			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
-
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
-			entity.AddComponent<MeshComponent>(MeshPrimitive::GetCubeMesh1());
+			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("light_map_diff_spec")));
-			
-			decltype(auto) update_func = [entity](double time_step) mutable 
-			{
-				//NOTE - captured variables are const by default - use the mutable keyword.  capture by reference caused crash
-				//NOTE - didn't work when passed the transform_comp. had to pass entity
-				auto& transform_comp = entity.GetComponent<TransformComponent>();
-				glm::mat4& transform = (glm::mat4&)transform_comp;
-				//rotate cube
-				glm::vec3 rot_axis = glm::vec3(1, 1, 1);
-				float angle = (float)time_step; // 1/60 radians 
-				transform = glm::rotate(transform, angle, rot_axis);
-				//orbit box about world y axis
-				glm::mat4 orbit_transform = glm::mat4(1.0f);
-				orbit_transform = glm::rotate(orbit_transform, angle, glm::vec3(0, 1, 0));
-				transform = orbit_transform * transform;
-			};
-			entity.AddComponent<UpdatableComponent>(update_func);
+			entity.AddComponent<NativeScriptableComponent>().Bind<NativeScriptRotateAndOrbit>();
 			return entity;
 		}
 
@@ -101,7 +97,7 @@ namespace ely {
 			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
-			entity.AddComponent<MeshComponent>(MeshPrimitive::GetQuadMesh1());
+			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("colored_basic")));
 			Entity camera_entity = FindEntityByName("Main Camera"s);
 
@@ -158,7 +154,7 @@ namespace ely {
 			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
-			entity.AddComponent<MeshComponent>(MeshPrimitive::GetQuadMesh1());
+			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("colored_basic")));
 			Entity camera_entity = FindEntityByName("Main Camera"s);
 
@@ -215,7 +211,7 @@ namespace ely {
 			transform = glm::scale(transform, glm::vec3(0.4f));
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
-			auto& mesh_comp = entity.AddComponent<MeshComponent>(MeshPrimitive::GetCubeMesh1());
+			auto& mesh_comp = entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
 			mesh_comp.m_mesh.SetMaterial(*MaterialRepo::Get("empty"));
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white")));
 			entity.AddComponent<DirectionalLightComponent>();
@@ -271,6 +267,7 @@ namespace ely {
 			cube_shader->SetUniform3f("u_view_pos", camera.GetPosition(camera_transform));
 		}
 
+		//TODO - should be in renderer module
 		void Scene::UploadLightDataToShader()
 		{
 			auto light_entity = FindEntityByName("Directional Light");
@@ -293,17 +290,28 @@ namespace ely {
 
 		void Scene::EndScene()
 		{
-		//TODO	
+		//TODO	- this shoud call destroy on all the scriptable components
 		}
 
+		//NOTE:  this should be OnScenePlay()
+		//call OnDesctroy in OnSceneStop()
 		void Scene::UpdateScene(double time_step)
 		{
-			auto view = m_registry.view<UpdatableComponent>();
+			auto view = m_registry.view<NativeScriptableComponent>();
 			for (auto entity : view)
 			{
-				auto& updatable_comp = view.get<UpdatableComponent>(entity);
-				updatable_comp.OnUpdate(time_step);
+				auto& script_comp = view.get<NativeScriptableComponent>(entity);
+				if (!script_comp.m_instance)
+				{
+					script_comp.m_instance = script_comp.InstantiateScript();
+					script_comp.m_instance->m_entity = { entity, &m_registry };
+					script_comp.m_instance->OnCreate();
+				}
+				script_comp.m_instance->OnUpdate(time_step);
 			}
+
+			//m_registry.view<UpdatableComponent>().each([]() {
+			//	});
 		}
 
 		bool Scene::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
@@ -368,12 +376,14 @@ namespace ely {
 
 		void Scene::RenderScene()
 		{
-			//auto group = m_registry.group<TransformComponent, MeshComponent, ShaderHandleComponent>(); // groups are apparently faster for multiple components, but this crashes
-			auto view = m_registry.view<TagComponent, TransformComponent, MeshComponent, ShaderHandleComponent>();
+			//auto group = m_registry.group<TransformComponent, MeshRendererComponent, ShaderHandleComponent>(); // groups are apparently faster for multiple components, but this crashes
+			auto view = m_registry.view<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>();
 
 			for (auto entity : view)
 			{
-				auto& [tag_comp, transform_comp, mesh_comp, shader_comp] = view.get<TagComponent, TransformComponent, MeshComponent, ShaderHandleComponent>(entity);
+				//auto& [tag_comp] = view.get< TagComponent>(entity);
+					
+				auto [tag_comp, transform_comp, mesh_comp, shader_comp] = view.get<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>(entity);
 
 				if (!mesh_comp.GetEnableRender())
 					continue;
@@ -383,13 +393,13 @@ namespace ely {
 				shader.Bind();
 				shader.SetUniformMat4f("u_model", (glm::mat4)(transform_comp));
 
-				auto& mesh = (Mesh)(mesh_comp);
+				auto& mesh = (Mesh&)(mesh_comp);
 				mesh.UploadMaterialToShader(shader); //TODO shoud be done in renderer
 				OpenGLRenderer::DrawMesh(mesh, shader);
 
 				if (mesh_comp.GetShowCoords())
 				{
-					auto& coords_mesh = MeshPrimitive::GetCoordSystemMesh(20.0f);
+					auto coords_mesh = MeshPrimitive::GetCoordSystemMesh(20.0f);
 					auto& coords_shader = *(ShaderRepo::Get("coords"));
 
 					glm::mat4 transform = transform_comp;
@@ -410,18 +420,18 @@ namespace ely {
 
 		void Scene::SetRenderable(Entity& entity, bool val)
 		{
-			if(entity.HasComponent<MeshComponent>())
+			if(entity.HasComponent<MeshRendererComponent>())
 			{
-				auto& mesh_comp = entity.GetComponent<MeshComponent>();
+				auto& mesh_comp = entity.GetComponent<MeshRendererComponent>();
 				mesh_comp.SetEnableRender(val);
 			}
 		}
 
 		void Scene::DisplayCoords(Entity& entity, bool val)
 		{
-			if (entity.HasComponent<MeshComponent>())
+			if (entity.HasComponent<MeshRendererComponent>())
 			{
-				auto& mesh_comp = entity.GetComponent<MeshComponent>();
+				auto& mesh_comp = entity.GetComponent<MeshRendererComponent>();
 				mesh_comp.SetShowCoords(val);
 			}
 		}
@@ -437,7 +447,7 @@ namespace ely {
 		{
 			//glm::value_ptr with imgui
 
-			struct MeshComponent
+			struct MeshRendererComponent
 			{
 				float data;
 			};
@@ -459,7 +469,7 @@ namespace ely {
 			entt::entity entity = m_registry.create(); //return val is uint32_t
 
 			auto& transform = m_registry.emplace<TransformComponent>(entity, glm::mat4(1.0f));
-			m_registry.emplace<MeshComponent>(entity);
+			m_registry.emplace<MeshRendererComponent>(entity);
 
 			//m_registry.on_construct<TransformComponent>().connect<&OnTransformConstruct>; //compile error
 
@@ -475,11 +485,11 @@ namespace ely {
 				TransformComponent& component = m_registry.get<TransformComponent>(entity);
 			}
 
-			auto group = m_registry.group<TransformComponent>(entt::get < MeshComponent>);
+			auto group = m_registry.group<TransformComponent>(entt::get < MeshRendererComponent>);
 
 			for (auto entity : group)
 			{
-				auto& [transform, mesh] = group.get<TransformComponent, MeshComponent>(entity);
+				auto& [transform, mesh] = group.get<TransformComponent, MeshRendererComponent>(entity);
 			}
 		}
 		*/

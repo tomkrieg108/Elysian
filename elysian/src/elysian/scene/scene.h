@@ -3,10 +3,10 @@
 #include "elysian/kernal/base.h"
 #include "elysian/events/events.h"
 #include "elysian/renderer/opengl_framebuffer.h"
-#include "entity.h"
+#include "elysian/scene/entity.h"
 #include "elysian/camera/perspective_camera_controller.h"
 
-#include <entt/entt.hpp> //for m_registry & m_entity_map
+
 
 namespace ely {
 
@@ -19,6 +19,7 @@ namespace ely {
 
 			Entity CreateEntity(const std::string& name = ""s);
 			Entity CreateGridEntity();
+			Entity CreateBoxEntity();
 			Entity CreateOrbitingCubeEntity(const glm::vec3& position, const std::string& name);
 			Entity CreateQuadEntity(const glm::vec3& position, const std::string& name);
 			Entity CreateQuadEntity2(const glm::vec3& position, const std::string& name); //for editor
@@ -34,6 +35,7 @@ namespace ely {
 
 			void RenderScene();
 			void UpdateScene(double time_step);
+
 			void SetRenderable(Entity& entity, bool val);
 			void DisplayCoords(Entity& entity, bool val);
 			 
@@ -61,6 +63,10 @@ namespace ely {
 
 			//TEMP - for CreateQuadEntity2
 			glm::vec2 m_viewport_size{ 0,0 };
+
+			//TODO needed?
+			//friend class Entity;
+			//friend class SceneHeirachyPanel;  //this is defined in the sanfbax app - don't really want in the engine?
 		};
 
 }

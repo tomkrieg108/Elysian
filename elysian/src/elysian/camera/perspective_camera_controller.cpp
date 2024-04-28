@@ -14,9 +14,6 @@ namespace ely {
 
 	void PerspectiveCameraController::OnUpdate(double delta_time)
 	{
-		//if (ImGuiLayer::WantCaptureKeyboard())
-		//	return;
-
 		//If either the middle of right mouse key is pressed => disable the cursor - indicates camera move/control mode
 		bool alt_pressed = Input::IsKeyPressed(GLFW_KEY_LEFT_ALT) || Input::IsKeyPressed(GLFW_KEY_RIGHT_ALT);
 		auto& window = Application::GetInstance().GetWindow();
@@ -47,7 +44,9 @@ namespace ely {
 			m_input_mode = InputMode::Select;
 		}
 			
-		
+		if (ImGuiLayer::WantCaptureKeyboard())
+			return;
+
 		const float move_speed = 5.0f;
 		const float move_amount = move_speed * (float)(delta_time);
 		
@@ -89,6 +88,7 @@ namespace ely {
 		//TODO
 	}
 
+	//NOTE - not used
 	void PerspectiveCameraController::UpdateTransform(float delta_yaw, float delta_pitch, glm::mat4& transform_)
 	{
 		//TODO - attempt to extract pitch and yaw from transform, then using the Update() code from previous projects
@@ -212,6 +212,7 @@ namespace ely {
 		//camera_transform = camera_transform * rot_x;  //rotate about X local axis
 	}
 
+	//NOTE: NOT USED
 	void PerspectiveCameraController::RotateWorld2(float amount_x, float amount_y)
 	{
 		//Make grid a local object in the world and rotate it

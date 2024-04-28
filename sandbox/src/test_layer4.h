@@ -20,29 +20,36 @@
 
 #include "elysian/model/model_lgl.h"
 
+#include "panels/scene_heirachy_panel.h"
 
-class TestLayer4 : public ely::Layer
-{
-public:
 
-	TestLayer4();
-	~TestLayer4() = default;
+namespace ely {
 
-	void OnAttach() override;
-	void OnDetach() override;
-	void OnUpdate(double time_step) override;
-	void OnEvent(ely::Event& event) override;
-	void OnImGuiRender() override;
-	
-private:
-	bool OnKeyPressed(ely::EventKeyPressed& e);
-	bool OnMouseMoved(ely::EventMouseMoved& e);
-	bool OnMouseScrolled(ely::EventMouseScrolled& e);
-	bool OnMouseButtonPressed(ely::EventMouseButtonPressed& e);
-	bool OnWindowResize(ely::EventWidowResize& e); //TODO - should this be handled by the application class?
-	
-private:
-	ely::Window& m_window;
-	ely::OpenGLFramebuffer m_framebuffer, m_framebuffer_alt;
-	ely::Scene m_scene; //TODO - mae as a ref or pointer
-};
+	class TestLayer4 : public ely::Layer
+	{
+	public:
+
+		TestLayer4();
+		~TestLayer4() = default;
+
+		void OnAttach() override;
+		void OnDetach() override;
+		void OnUpdate(double time_step) override;
+		void OnEvent(Event& event) override;
+		void OnImGuiRender() override;
+
+	private:
+		bool OnKeyPressed(EventKeyPressed& e);
+		bool OnMouseMoved(EventMouseMoved& e);
+		bool OnMouseScrolled(EventMouseScrolled& e);
+		bool OnMouseButtonPressed(EventMouseButtonPressed& e);
+		bool OnWindowResize(EventWidowResize& e); //TODO - should this be handled by the application class?
+
+	private:
+		Window& m_window;
+		OpenGLFramebuffer m_framebuffer, m_framebuffer_alt;
+		Ref<Scene> m_scene;
+		SceneHeirachyPanel m_scene_heirachy_panel;
+	};
+
+}

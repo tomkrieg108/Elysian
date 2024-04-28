@@ -11,6 +11,7 @@
 #include "elysian/renderer/opengl_buffer.h"
 #include "elysian/renderer/opengl_framebuffer.h"
 
+
 class GammaTestLayer : public ely::Layer
 {
 public:

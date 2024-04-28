@@ -8,8 +8,14 @@
 #include "elysian/model/mesh.h"
 #include "elysian/light/directional_light.h"
 #include "elysian/renderer/opengl_vertex_array.h"
-#include <glm/glm.hpp>
 
+//#include "elysian/scene/scriptable_entity.h" //NOTE - get circular #includes with this.  need forward declaration of NativeScriptComponent
+#include <type_traits>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 using namespace std::literals;
 
@@ -36,7 +42,7 @@ namespace ely
 		TagComponent() = default;
 		TagComponent(const TagComponent& component) = default;
 		TagComponent(const std::string& tag) : m_tag{tag} {}
-		//explicit operator const std::string& () const { return m_tag; }
+		operator std::string& () { return m_tag; }
 		operator const std::string& () const { return m_tag; }
 	public:
 		std::string m_tag{ "Entity"s };
@@ -50,34 +56,71 @@ namespace ely
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent& component) = default;
 		TransformComponent(const glm::mat4& transform) : m_transform{transform} {}
+
 		void SetTransform(const glm::mat4& transform) { m_transform = transform; }
-		//explicit operator glm::mat4& () { return m_transform; }
-		//explicit operator const glm::mat4& () const { return m_transform; }
 		operator glm::mat4& () { return m_transform; }
 		operator const glm::mat4& () const { return m_transform; }
 
-	private:
+		glm::mat4 MakeTransform()
+		{
+			glm::mat4 ident_mat{ 1.0f };
+			glm::mat4 scale_mat = glm::scale(ident_mat, m_scale);
+
+			/*glm::mat4 x_rot_mat = glm::rotate(ident_mat, glm::radians(m_rotation[0]), glm::vec3{ 1.0f, 0.0f, 0.0f });
+			glm::mat4 y_rot_mat = glm::rotate(ident_mat, glm::radians(m_rotation[1]), glm::vec3{ 0.0f, 1.0f, 0.0f });
+			glm::mat4 z_rot_mat = glm::rotate(ident_mat, glm::radians(m_rotation[2]), glm::vec3{ 0.0f, 0.0f, 1.0f });*/
+
+			glm::mat4 rot_mat = glm::toMat4(glm::quat(glm::radians(m_rotation)));
+			
+
+			glm::mat4 trans_mat = glm::translate(ident_mat, m_translation);
+
+			//m_transform = trans_mat * z_rot_mat * y_rot_mat * x_rot_mat * scale_mat;
+			m_transform = trans_mat * rot_mat * scale_mat;
+
+			return m_transform;
+		}
+
+		glm::mat4& GetEulerAnglesXYZ()
+		{
+			//m_rotation = glm::extr
+			glm::quat q = glm::quat(m_rotation);
+			glm::eulerAngles(q);
+
+			//return 
+		}
+
+	public:
 		glm::mat4 m_transform = glm::mat4(1.0f);
+
+		//TODO - maybe better to store as position, rotation, scale components seperately for use in editor
+		//reconstruct matrix when any of them are modified
+		//this is what Cherno does
+		glm::vec3 m_translation{ 0.0f,0.0f,0.0f };
+		glm::vec3 m_scale{ 1.0f,1.0f,1.0f };
+		glm::vec3 m_rotation{ 0.0f,0.0f,0.0f }; //Euler angles in degrees
+
+		glm::quat q = glm::quat(m_rotation); // (0,0,0,1)
+		//glm::quat q_ident = glm::quat_identity(); //unit quaternian with zero rotation - should be the same as above
+		glm::quat q_conj = glm::conjugate(q); //(-0, -0, -0, 1);
+		int a = 1;
 	};
 
 	//---------------------------------------------------------------
 
-	class MeshComponent
+	class MeshRendererComponent
 	{
 		//TODO should perhaps make sure move constructors are availabe too
 	public:
-		MeshComponent() = default;
-		MeshComponent(const MeshComponent& component) = default;
-		MeshComponent(const Mesh& mesh) : m_mesh{ mesh } {}
+		MeshRendererComponent() = default;
+		MeshRendererComponent(const MeshRendererComponent& component) = default;
+		MeshRendererComponent(const Mesh& mesh) : m_mesh{ mesh } {}
 
 		void SetEnableRender(bool val) { m_enable_render = val; }
 		bool GetEnableRender() const { return m_enable_render; }
 
 		void SetShowCoords(bool val) { m_show_coords = val; }
 		bool GetShowCoords() const { return m_show_coords; }
-
-		//explicit operator Mesh& () { return m_mesh; }
-		//explicit operator const Mesh& () const { return m_mesh; }
 
 		operator Mesh& () { return m_mesh; }
 		operator const Mesh& () const { return m_mesh; }
@@ -96,13 +139,8 @@ namespace ely
 		PerspectiveCameraComponent() = default;
 		PerspectiveCameraComponent(const PerspectiveCameraComponent& component) = default;
 		PerspectiveCameraComponent(const PerspectiveCamera& camera) : m_camera{ camera } {}
-
-		//explicit operator PerspectiveCamera& () { return m_camera; }
-		//explicit operator const PerspectiveCamera& () const { return m_camera; }
-
 		operator PerspectiveCamera& () { return m_camera; }
 		operator const PerspectiveCamera& () const { return m_camera; }
-
 	public:
 		PerspectiveCamera m_camera;
 	};
@@ -114,7 +152,6 @@ namespace ely
 	public:
 		DirectionalLightComponent() = default;
 		DirectionalLightComponent(DirectionalLight& light) : m_light {light} {}
-
 		operator DirectionalLight& () { return m_light; }
 		operator const DirectionalLight& () const { return m_light; }
 	public:
@@ -129,19 +166,14 @@ namespace ely
 		ShaderHandleComponent() = delete;
 		ShaderHandleComponent(const ShaderHandleComponent& component) = default;
 		ShaderHandleComponent(Shader& shader) : m_shader_handle{shader} {}
-
 		const Shader& GetShader() const { return m_shader_handle.GetShader(); }
-
-		//explicit operator ShaderHandle () const { return m_shader_handle; }
-			operator ShaderHandle () const { return m_shader_handle;}
-		//operator uint32_t () const { return (uint32_t)m_shader_handle; }
-
+		operator ShaderHandle () const { return m_shader_handle;}
 	public:
 		ShaderHandle m_shader_handle;
 	};
 
 	//---------------------------------------------------------------
-
+	//TODO - obsolete!
 	using UpdateFunc = std::function<void(double)>;
 	class UpdatableComponent
 	{
@@ -156,6 +188,27 @@ namespace ely
 		UpdateFunc m_update_func; //NOTE can used operator bool to check if contains no callable target
 	};
 
+	//---------------------------------------------------------------
+	class ScriptableEntity;
+	class NativeScriptableComponent
+	{
+	public:
+		template <typename T>
+		void Bind()
+		{
+			static_assert(std::is_base_of_v<ScriptableEntity,T>);
+			InstantiateScript = []() {return static_cast<ScriptableEntity*>(new T()); };
+			DestroyScript = [](ScriptableEntity* scriptable_entity) {delete scriptable_entity;  scriptable_entity = nullptr; };
+		}
+
+	public:
+		//NOTE: could instead use std::function, but apparently it has quite a lot of overhead
+		//NOTE - can assign function pointer only to lambdas that don't capture - see above
+		ScriptableEntity* (*InstantiateScript)();
+		void (*DestroyScript)(ScriptableEntity*);
+		ScriptableEntity* m_instance = nullptr; //Defer instantiation of this until scene starts running
+	};
+
 	//-----------------------------------------------------------------------------
 
 	using EventHandler = std::function<void(Event&)>;
@@ -165,7 +218,7 @@ namespace ely
 		EventHandlerComponent() = default;
 		EventHandlerComponent(EventHandler func) : m_event_handler{ func } {}
 		void OnEvent(Event& event) { m_event_handler(event); }
-	private:
+	public:
 		EventHandler m_event_handler;
 	};
 

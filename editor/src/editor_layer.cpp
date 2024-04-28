@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "pch.h" //TODO - not using pch?
 #include "elysian/kernal/base.h"
 #include "elysian/kernal/application.h"
 #include "elysian/events/event_dispatcher.h"
@@ -38,16 +38,17 @@ namespace ely {
 		m_framebuffer(m_window.BufferWidth(), m_window.BufferHeight()),
 		m_framebuffer_alt(m_window.BufferWidth(), m_window.BufferHeight())
 	{
-		m_scene = new Scene();
 	}
 
 	EditorLayer::~EditorLayer()
 	{
-		delete m_scene;
 	}
  
 	void EditorLayer::OnAttach()
 	{
+
+		m_scene = CreateRef<Scene>();
+
 		m_scene->CreateGridEntity();
 		m_scene->CreateDrirectionalLightEntity(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light"s);
 		m_scene->CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube"s);
@@ -57,7 +58,7 @@ namespace ely {
 		m_scene->SetControlledCameraEntity(main_camera_entity);
 
 		auto& alt_camera_entity = m_scene->CreatePerspectiveCameraEntity(glm::vec3(4.0, 1.0, 7.0), "Alt Camera"s);
-		auto& mesh_comp = alt_camera_entity.GetComponent<ely::MeshComponent>();
+		auto& mesh_comp = alt_camera_entity.GetComponent<ely::MeshRendererComponent>();
 		m_scene->SetRenderable(alt_camera_entity, true);
 
 		//uses viewport data
@@ -86,8 +87,8 @@ namespace ely {
 		//Render to framebuffer (Alt camera)
 		auto& main_camera_entity = m_scene->FindEntityByName("Main Camera"s);
 		auto& alt_camera_entity = m_scene->FindEntityByName("Alt Camera"s);
-		auto& main_mesh_comp = main_camera_entity.GetComponent<MeshComponent>();
-		auto& alt_mesh_comp = alt_camera_entity.GetComponent<MeshComponent>();
+		auto& main_mesh_comp = main_camera_entity.GetComponent<MeshRendererComponent>();
+		auto& alt_mesh_comp = alt_camera_entity.GetComponent<MeshRendererComponent>();
 		main_mesh_comp.SetEnableRender(true);
 		alt_mesh_comp.SetEnableRender(false);
 
@@ -119,9 +120,7 @@ namespace ely {
 
 		if (e.key == GLFW_KEY_ESCAPE)
 			Application::GetInstance().Close();
-		else if (e.key == GLFW_KEY_SPACE)
-			m_window.ToggleCursorEnabled();
-
+		
 		else if (e.key == GLFW_KEY_T)
 		{
 			auto& main_camera_entity = m_scene->FindEntityByName("Main Camera"s);
@@ -141,9 +140,7 @@ namespace ely {
 	bool EditorLayer::OnMouseMoved(EventMouseMoved& e)
 	{
 		//CORE_TRACE(" EditorLayer::OnMouseMoved() called: {}", e);
-		if (!m_window.GetCursorEnabled())
-			m_scene->GetCameraController().OnMouseMoved(e);
-	
+		m_scene->GetCameraController().OnMouseMoved(e);
 		return true;
 	}
 
