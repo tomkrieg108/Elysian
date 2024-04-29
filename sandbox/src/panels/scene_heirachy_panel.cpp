@@ -6,6 +6,8 @@
 
 #include <entt/entt.hpp>
 #include <imgui_docking/imgui.h>
+#include <imgui_docking/imgui_internal.h>
+#include <imgui_docking/misc/cpp/imgui_stdlib.h>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -25,8 +27,7 @@ namespace ely {
 	void SceneHeirachyPanel::OnImGuiRender()
 	{
 		auto& registry = m_scene->GetRegistry();
-		auto* regp = &registry;
-
+		
 		ImGui::Begin("Scene Heirachy");
 
 		if (m_scene)
@@ -38,15 +39,17 @@ namespace ely {
 			}
 			if (ImGui::IsWindowHovered() && ImGui::IsMouseDown(0))
 				m_selected_entity = {};
-		}
 		
-		//Right click on blank space in scene heirachy window
-		if (ImGui::BeginPopupContextWindow(0,1))
-		{
-			if (ImGui::MenuItem("Create Empty Entity"))
-				m_scene->CreateEntity("Empty Entity");
 
-			ImGui::EndPopup();
+			//Right click on blank space in scene heirachy window
+			ImGuiPopupFlags flags = ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems;
+			if (ImGui::BeginPopupContextWindow(0, flags))
+			{
+				if (ImGui::MenuItem("Create Empty Entity"))
+					m_scene->CreateEntity("Empty Entity");
+
+				ImGui::EndPopup();
+			}
 		}
 		
 		ImGui::End();
@@ -59,6 +62,7 @@ namespace ely {
 			DrawComponents(m_selected_entity);
 
 			//button to create new entity
+			//TODO - only add component if doesn't already have
 
 			if (ImGui::Button("Add Component"))
 				ImGui::OpenPopup("AddComponent"); //AddComponent is the id for the popup
@@ -87,7 +91,7 @@ namespace ely {
 	{
 		auto id = (int64_t)(UUID&)entity.GetComponent<IDComponent>();;
 		std::string& tag = entity.GetComponent<TagComponent>();
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 		if (m_selected_entity == entity)
 			flags |= ImGuiTreeNodeFlags_Selected;
 		bool opened = ImGui::TreeNodeEx((void*)id, flags, tag.c_str());
@@ -98,6 +102,7 @@ namespace ely {
 		}
 
 		bool entity_deleted = false;
+		//ImGui::BeginPopupContextItem()
 		if (ImGui::BeginPopupContextItem())
 		{
 			if (ImGui::MenuItem("Delete Entity"))
@@ -124,8 +129,52 @@ namespace ely {
 			
 	}
 
+	//might wan't additional function 
+	template <typename T, typename UIFunction>
+	static void DrawComponent(const std::string& name, Entity entity, bool allow_remove, UIFunction ui_function)
+	{
+		const ImGuiTreeNodeFlags treenode_flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+
+		if (entity.HasComponent<T>())
+		{
+			auto& component = entity.GetComponent<T>();
+			ImVec2 content_region_available = ImGui::GetContentRegionAvail();
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+			float line_height = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+			ImGui::Separator();
+			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treenode_flags, name.c_str());
+			ImGui::PopStyleVar();
+			
+			ImGui::SameLine(content_region_available.x - line_height * 0.5f);
+			if (ImGui::Button("+", ImVec2{ line_height, line_height }))
+				ImGui::OpenPopup("ComponentSettings");
+			
+			bool remove_component = false;
+			if (ImGui::BeginPopup("ComponentSettings"))
+			{
+				if (allow_remove)
+				{
+					if (ImGui::MenuItem("Remove Component"))
+						remove_component = true;
+				}
+				ImGui::EndPopup();
+			}
+
+			if (open)
+			{
+				ui_function(component);
+				ImGui::TreePop();
+			}
+
+			if (remove_component)
+				entity.RemoveComponent<T>();
+		}
+	}
+
 	void SceneHeirachyPanel::DrawComponents(Entity entity)
 	{
+		// Tag ----------------------------------------------------------------
 		if (entity.HasComponent<TagComponent>())
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
@@ -141,95 +190,22 @@ namespace ely {
 			ImGui::PopStyleVar();
 		}
 
-		const ImGuiTreeNodeFlags treenode_flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap;
+		// Transform -----------------------------------------------------------
 
-		if (entity.HasComponent<TransformComponent>())
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-			bool open = ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), treenode_flags, "Transform");
-			ImGui::SameLine(ImGui::GetWindowWidth() - 30.0f);
-			if (ImGui::Button("+", ImVec2{ 30.0f, 30.0f }))
-				ImGui::OpenPopup("ComponentSettings");
-			ImGui::PopStyleVar();
-		
-			bool remove_component = false;
-			if (ImGui::BeginPopup("ComponentSettings"))
-			{
-				if (ImGui::MenuItem("Remove component"))
-					remove_component = true;
-				
-				ImGui::EndPopup();
-			}
+		DrawComponent<TransformComponent>("Transform", entity, false, [](auto& component) {
+			//TODO - static_assert for component type
+			glm::mat4& transform = (glm::mat4&)(component);
+			ImGui::DragFloat3("Position", glm::value_ptr(transform[3]), 0.1f, 0, 0);
+		});
 
-			if (open)
-			{
-				glm::mat4& mat = entity.GetComponent<TransformComponent>();
-				ImGui::DragFloat3("position", glm::value_ptr(mat[3]), 0.1f, 0, 0);
-				ImGui::TreePop();
-			}
 
-			//Shouln't be able to remove transform component
-			//if (remove_component)
-			//	entity.RemoveComponent<TransformComponent>();
-		}
+		DrawComponent<PerspectiveCameraComponent>("Perspective Camera", entity, true, [](auto& component) {
+			ImGui::Text("Perspective Camera");
+		});
 
-		if (entity.HasComponent<PerspectiveCameraComponent>())
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-			bool open = ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), treenode_flags, "Perspective Camera");
-			ImGui::SameLine(ImGui::GetWindowWidth() - 30.0f);
-			if (ImGui::Button("+", ImVec2{ 30.0f, 30.0f }))
-				ImGui::OpenPopup("ComponentSettings");
-			ImGui::PopStyleVar();
-
-			bool remove_component = false;
-			if (ImGui::BeginPopup("ComponentSettings"))
-			{
-				if (ImGui::MenuItem("Remove component"))
-					remove_component = true;
-
-				ImGui::EndPopup();
-			}
-
-			if (open)
-			{
-				PerspectiveCamera& camera = entity.GetComponent<PerspectiveCameraComponent>();
-				ImGui::Text("Perspective Camera");
-				ImGui::TreePop();
-			}
-
-			if (remove_component)
-				entity.RemoveComponent<TransformComponent>();
-		}
-
-		if (entity.HasComponent<MeshRendererComponent>())
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-			bool open = ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), treenode_flags, "Mesh Renderer");
-			ImGui::SameLine(ImGui::GetWindowWidth() - 30.0f);
-			if (ImGui::Button("+", ImVec2{ 30.0f, 30.0f }))
-				ImGui::OpenPopup("ComponentSettings");
-			ImGui::PopStyleVar();
-
-			bool remove_component = false;
-			if (ImGui::BeginPopup("ComponentSettings"))
-			{
-				if (ImGui::MenuItem("Remove component"))
-					remove_component = true;
-
-				ImGui::EndPopup();
-			}
-
-			if (open)
-			{
-				Mesh& mesh_renderer = entity.GetComponent<MeshRendererComponent>();
-				ImGui::Text("Mesh");
-				ImGui::TreePop();
-			}
-
-			if (remove_component)
-				entity.RemoveComponent<TransformComponent>();
-		}
+		DrawComponent<MeshRendererComponent>("Mesh Renderer", entity, true, [](auto& component) {
+			ImGui::Text("Mesh");
+		});
 
 	}
 

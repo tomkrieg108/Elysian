@@ -25,6 +25,7 @@ namespace ely
 		
 		//io.Fonts is ImVector2<ImFont*>
 		//NOTE - file path is relative to working dir, which is where the proj file (core) is by default - see proj properties->debugging
+		//io.Fonts->Fonts[0] => bold, /io.Fonts->Fonts[1] => regular,
 		io.Fonts->AddFontFromFileTTF("../../assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
 		io.FontDefault = io.Fonts->AddFontFromFileTTF("../../assets/fonts/opensans/OpenSans-Regular.ttf", fontSize);
 		ImGui::StyleColorsDark();
