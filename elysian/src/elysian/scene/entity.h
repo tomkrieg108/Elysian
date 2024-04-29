@@ -34,6 +34,8 @@ namespace ely {
 			T& AddComponent(Args&&... args)
 			{
 				T& component = m_registry->emplace<T>(m_entity_handle, std::forward<Args>(args)...);
+				//TODO
+				//m_scene->OnComponentAdded<T>(*this, component);  //entity needs the scene rather than registry
 				return component;
 			}
 
@@ -65,7 +67,6 @@ namespace ely {
 
 			operator entt::entity() const{ return m_entity_handle; }
 			operator std::int32_t() const { return (std::int32_t)m_entity_handle; }
-			operator std::int64_t() const { return (std::int64_t)m_entity_handle; }
 			operator bool() const { return m_entity_handle != entt::null; }
 
 			bool operator==(const Entity& other) const

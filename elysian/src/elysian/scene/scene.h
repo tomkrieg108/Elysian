@@ -56,6 +56,11 @@ namespace ely {
 			void SetViewportSize(const glm::vec2& size) { m_viewport_size = size; }
 
 		private:
+			//Todo: cherno Implement this as a bunch of specializations in the cpp file
+			//template<typename T>
+			//void OnComponentAdded(Entity entity, T& component); //called by Entity::AddComponent()
+
+		private:
 			entt::registry m_registry;
 			std::unordered_map<UUID, entt::entity> m_entity_map; //TODO - what's this used for!? - might be better to use the entity name as the key
 			PerspectiveCameraController m_camera_controller; //TODO - make as an component attached to camera entity?
