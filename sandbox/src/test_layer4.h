@@ -50,6 +50,7 @@ namespace ely {
 		OpenGLFramebuffer m_framebuffer, m_framebuffer_alt;
 		Ref<Scene> m_scene;
 		SceneHeirachyPanel m_scene_heirachy_panel;
+		Entity m_main_camera_entity, m_alt_camera_entity;
 	};
 
 }

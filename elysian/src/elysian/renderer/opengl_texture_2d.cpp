@@ -6,7 +6,7 @@
 
 namespace ely
 {
-	std::string const OpenGLTexture2D::s_texture_path = std::string{ "../../assets/textures/" };
+	std::string const OpenGLTexture2D::s_texture_path = std::string{ "assets/textures/" };
 	std::array<uint32_t, 32> OpenGLTexture2D::m_slots = { 0 };
 
 	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const Params& params) :
@@ -142,7 +142,7 @@ namespace ely
 	//Texture2D Repo
 
 	std::unordered_map<std::string, Ref<OpenGLTexture2D>> Texture2DRepo::s_texture2d_repo{};
-	std::string const Texture2DRepo::s_texture_asset_path = std::string{ "../../assets/textures/" }; //TODO - duplicated from OpenGLTexture2D
+	std::string const Texture2DRepo::s_texture_asset_path = std::string{ "assets/textures/" }; //TODO - duplicated from OpenGLTexture2D
 
 	void Texture2DRepo::Init()
 	{

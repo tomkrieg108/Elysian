@@ -30,7 +30,7 @@ namespace ely {
 			Entity GetEntityByUUID(UUID uuid);
 			void DestroyEntity(Entity entity);
 
-			void BeginScene(const std::string& camera_name, const glm::vec4& clear_color);
+			void BeginScene(const glm::vec4& clear_color);
 			void EndScene();
 
 			void RenderScene();
@@ -44,7 +44,7 @@ namespace ely {
 			Entity GetControlledCameraEntity() { return m_controlled_camera_entity; }
 			PerspectiveCameraController& GetCameraController() { return m_camera_controller; }
 
-			void UploadCameraDataToShaders(const std::string& camera_name);
+			void UploadCameraDataToShaders();
 			void UploadLightDataToShader();
 
 			bool OnMouseMoved(ely::EventMouseMoved& e);

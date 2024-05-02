@@ -66,7 +66,7 @@ namespace ely {
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white")));
 			return entity;
 		}
-
+		 
 		Entity Scene::CreateBoxEntity()
 		{
 			Entity entity = CreateEntity("Box");
@@ -156,14 +156,16 @@ namespace ely {
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("colored_basic")));
-			Entity camera_entity = FindEntityByName("Main Camera"s);
+			//Entity camera_entity = m_controlled_camera_entity;
 
 			//NOTE  this is based on info book about mouse picking
-			decltype(auto) event_handler = [entity, camera_entity](Event& event) mutable
+			decltype(auto) event_handler = [entity, this](Event& event) mutable
 				{
 					EventMouseButtonPressed* e = dynamic_cast<EventMouseButtonPressed*>(&event);
 					if (e == nullptr)
 						return;
+
+					//Entity camera_entity = m_controlled_camera_entity;
 
 					auto& transform = (glm::mat4&)entity.GetComponent<TransformComponent>();
 					//glm::mat4& tr = entity.GetComponent<TransformComponent>(); //using implicit cast fn
@@ -176,8 +178,8 @@ namespace ely {
 					CORE_TRACE("Quad Entity click:");
 					CORE_TRACE("Ray NDC (z,y,x): ({},{},{})", x, y, z);
 
-					auto& camera = (PerspectiveCamera&)camera_entity.GetComponent<PerspectiveCameraComponent>();
-					auto& camera_transform = (glm::mat4&)camera_entity.GetComponent<TransformComponent>();
+					auto& camera = (PerspectiveCamera&)m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>();
+					auto& camera_transform = (glm::mat4&)m_controlled_camera_entity.GetComponent<TransformComponent>();
 
 					glm::vec3 ray_nds = glm::vec3(x, y, z);
 					glm::vec4 ray_clip = glm::vec4(x, y, -1, 1);
@@ -239,16 +241,11 @@ namespace ely {
 			return entity;
 		}
 
-		void Scene::UploadCameraDataToShaders(const std::string& camera_name)
+		void Scene::UploadCameraDataToShaders()
 		{
-			//CORE_INFO("Scene::UploadCameraDataToShaders called: {}", camera_name);
-			//std::this_thread::sleep_for(100ms);
-
-			auto camera_entity = FindEntityByName(camera_name);
-			//TODO ASSERT VALID
-			//TODO  how to find by ID?  need to save the ID of commonly acessed components?
-			auto& camera = (PerspectiveCamera&)(camera_entity.GetComponent<PerspectiveCameraComponent>());
-			auto& camera_transform = (glm::mat4&)(camera_entity.GetComponent<TransformComponent>());
+			//TODO  When to use find by ID?  Save the ID of commonly acessed components?
+			auto& camera = (PerspectiveCamera&)(m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>());
+			auto& camera_transform = (glm::mat4&)(m_controlled_camera_entity.GetComponent<TransformComponent>());
 			glm::mat4 view_mat = camera.GetViewMatrix(camera_transform);
 			glm::mat4 proj_mat = camera.GetProjMatrix();
 
@@ -270,19 +267,21 @@ namespace ely {
 		//TODO - should be in renderer module
 		void Scene::UploadLightDataToShader()
 		{
-			auto light_entity = FindEntityByName("Directional Light");
 			//TODO - should be using the component shader
 			auto cube_shader = ely::ShaderRepo::Get("light_map_diff_spec");
 			cube_shader->Bind();
-
-			auto& light = (DirectionalLight&)light_entity.GetComponent<DirectionalLightComponent>();
-			light.UploadDataToShader(cube_shader);
+			auto view = m_registry.view<DirectionalLightComponent>();
+			for (auto entity : view)
+			{ 
+				DirectionalLight& light = view.get<DirectionalLightComponent>(entity);
+				light.UploadDataToShader(cube_shader);
+			}
 		}
 		
-		void Scene::BeginScene(const std::string& camera_name, const glm::vec4& clear_color)
+		void Scene::BeginScene(const glm::vec4& clear_color)
 		{
 			//Upload per scene data do shader(s)
-			UploadCameraDataToShaders(camera_name); //TODO should be part of renderer api
+			UploadCameraDataToShaders(); //TODO should be part of renderer api
 			UploadLightDataToShader();
 			OpenGLRenderer::SetClearColor(clear_color);
 			OpenGLRenderer::ClearBuffers();
@@ -309,9 +308,6 @@ namespace ely {
 				}
 				script_comp.m_instance->OnUpdate(time_step);
 			}
-
-			//m_registry.view<UpdatableComponent>().each([]() {
-			//	});
 		}
 
 		bool Scene::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
@@ -381,8 +377,6 @@ namespace ely {
 
 			for (auto entity : view)
 			{
-				//auto& [tag_comp] = view.get< TagComponent>(entity);
-					
 				auto [tag_comp, transform_comp, mesh_comp, shader_comp] = view.get<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>(entity);
 
 				if (!mesh_comp.GetEnableRender())

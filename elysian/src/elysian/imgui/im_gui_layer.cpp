@@ -24,10 +24,17 @@ namespace ely
 		float fontSize = 20.0f; 	//NOTE - different fonts can be downloaded from google fonts
 		
 		//io.Fonts is ImVector2<ImFont*>
-		//NOTE - file path is relative to working dir, which is where the proj file (core) is by default - see proj properties->debugging
 		//io.Fonts->Fonts[0] => bold, /io.Fonts->Fonts[1] => regular,
-		io.Fonts->AddFontFromFileTTF("../../assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("../../assets/fonts/opensans/OpenSans-Regular.ttf", fontSize);
+		
+		/*
+		NOTE - file path is relative to working dir - set manually (not premake) to location of solution file via proj properties->debugging
+		Set for each elysion lib, sandbox app, editor app (default is location of project file).  
+		Applies to all build configs (not just debug) when launched from IDE. 
+		When app is launched from command line, working dir is the location of the .exe.  So a copy of assets folder has been plced there (release only)
+		*/
+		
+		io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", fontSize);
 		ImGui::StyleColorsDark();
 		SetDarkThemeColors();
 

@@ -378,7 +378,7 @@ namespace ely
 	// ShaderRepo --------------------------------------------------------------------------------------------
 
 	std::unordered_map<std::string, Ref<Shader>> ShaderRepo::m_shader_repo{};
-	std::string const ShaderRepo::s_shader_asset_path = std::string{ "../../assets/shaders/" };
+	std::string const ShaderRepo::s_shader_asset_path = std::string{ "assets/shaders/" };
 
 	void ShaderRepo::Init()
 	{

@@ -77,7 +77,8 @@ namespace ely {
 		//Render to framebuffer (main camera)
 		ely::OpenGLRenderer::SetLineWidth(1.0);
 		m_framebuffer.Bind();
-		m_scene->BeginScene("Main Camera"s, glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
+		//m_scene->BeginScene("Main Camera"s, glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
+		m_scene->BeginScene(glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
 		m_scene->UpdateScene(time_step);
 		m_scene->RenderScene();
 		m_scene->EndScene();
@@ -85,21 +86,21 @@ namespace ely {
 
 		
 		//Render to framebuffer (Alt camera)
-		auto& main_camera_entity = m_scene->FindEntityByName("Main Camera"s);
-		auto& alt_camera_entity = m_scene->FindEntityByName("Alt Camera"s);
-		auto& main_mesh_comp = main_camera_entity.GetComponent<MeshRendererComponent>();
-		auto& alt_mesh_comp = alt_camera_entity.GetComponent<MeshRendererComponent>();
-		main_mesh_comp.SetEnableRender(true);
-		alt_mesh_comp.SetEnableRender(false);
+		//auto& main_camera_entity = m_scene->FindEntityByName("Main Camera"s);
+		//auto& alt_camera_entity = m_scene->FindEntityByName("Alt Camera"s);
+		//auto& main_mesh_comp = main_camera_entity.GetComponent<MeshRendererComponent>();
+		//auto& alt_mesh_comp = alt_camera_entity.GetComponent<MeshRendererComponent>();
+		//main_mesh_comp.SetEnableRender(true);
+		//alt_mesh_comp.SetEnableRender(false);
 
-		m_framebuffer_alt.Bind();
-		m_scene->BeginScene("Alt Camera"s, glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
-		m_scene->RenderScene();
-		m_scene->EndScene();
-		m_framebuffer_alt.Unbind();
+		//m_framebuffer_alt.Bind();
+		//m_scene->BeginScene("Alt Camera"s, glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
+		//m_scene->RenderScene();
+		//m_scene->EndScene();
+		//m_framebuffer_alt.Unbind();
 
-		main_mesh_comp.SetEnableRender(false);
-		alt_mesh_comp.SetEnableRender(true);
+		//main_mesh_comp.SetEnableRender(false);
+		//alt_mesh_comp.SetEnableRender(true);
 	}
 
 	

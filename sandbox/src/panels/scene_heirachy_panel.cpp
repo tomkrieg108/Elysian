@@ -13,6 +13,11 @@
 
 namespace ely {
 
+	//If a new entity is selected, use this to defer rendering components of the new selection until next frame.
+	//Prevents a 'quirk' in ImGui::InputText which causes the newly selected entity to take on the value of the tag from the previously
+	//selected entity if the text input control was still active when the new selection was made
+	static bool s_selected_entity_changed = false;
+
 	SceneHeirachyPanel::SceneHeirachyPanel(Ref<Scene>& scene) : 
 		m_scene {scene}
 	{
@@ -37,10 +42,13 @@ namespace ely {
 				Entity entity{ ent , &registry };
 				DrawEntityNode(entity);
 			}
-			if (ImGui::IsWindowHovered() && ImGui::IsMouseDown(0))
-				m_selected_entity = {};
-		
 
+			if (ImGui::IsWindowHovered() && ImGui::IsMouseDown(0))
+			{
+				m_selected_entity = {};
+				s_selected_entity_changed = false;
+			}
+				
 			//Right click on blank space in scene heirachy window
 			ImGuiPopupFlags flags = ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems;
 			if (ImGui::BeginPopupContextWindow(0, flags))
@@ -57,12 +65,13 @@ namespace ely {
 		//--------------------------------------------------
 
 		ImGui::Begin("Properties");
-		if (m_selected_entity)
+		
+		if (m_selected_entity && !s_selected_entity_changed)
 		{
 			DrawComponents(m_selected_entity);
 
 			//button to create new entity
-			//TODO - only add component if doesn't already have
+			//TODO - only add component if doesn't already have it
 
 			if (ImGui::Button("Add Component"))
 				ImGui::OpenPopup("AddComponent"); //AddComponent is the id for the popup
@@ -85,24 +94,25 @@ namespace ely {
 
 		}
 		ImGui::End();
+		s_selected_entity_changed = false;
 	}
 
 	void SceneHeirachyPanel::DrawEntityNode(Entity entity)
 	{
-		auto id = (int64_t)(UUID&)entity.GetComponent<IDComponent>();;
+		auto id = (uint64_t)(UUID&)entity.GetComponent<IDComponent>();;
 		std::string& tag = entity.GetComponent<TagComponent>();
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 		if (m_selected_entity == entity)
 			flags |= ImGuiTreeNodeFlags_Selected;
 		bool opened = ImGui::TreeNodeEx((void*)id, flags, tag.c_str());
-	
-		if (ImGui::IsItemClicked()) 
+
+		if (ImGui::IsItemClicked())
 		{
+			s_selected_entity_changed = (entity != m_selected_entity);
 			m_selected_entity = entity;
 		}
 
 		bool entity_deleted = false;
-		//ImGui::BeginPopupContextItem()
 		if (ImGui::BeginPopupContextItem())
 		{
 			if (ImGui::MenuItem("Delete Entity"))
@@ -110,12 +120,12 @@ namespace ely {
 
 			ImGui::EndPopup();
 		}
-			
+
 		if (opened)
 		{
 			//to create nested entities
-			bool opened = ImGui::TreeNodeEx((void *)(uint64_t)753737374347, flags, tag.c_str());
-			if(opened) 
+			bool opened = ImGui::TreeNodeEx((void*)(uint64_t)753737374347, flags, tag.c_str());
+			if (opened)
 				ImGui::TreePop();
 			ImGui::TreePop();
 		}
@@ -126,10 +136,10 @@ namespace ely {
 			if (m_selected_entity == entity)
 				m_selected_entity = {};
 		}
-			
+
 	}
 
-	//might wan't additional function 
+	//might wan't additional ui function(s)
 	template <typename T, typename UIFunction>
 	static void DrawComponent(const std::string& name, Entity entity, bool allow_remove, UIFunction ui_function)
 	{
@@ -145,11 +155,11 @@ namespace ely {
 			ImGui::Separator();
 			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treenode_flags, name.c_str());
 			ImGui::PopStyleVar();
-			
+
 			ImGui::SameLine(content_region_available.x - line_height * 0.5f);
 			if (ImGui::Button("+", ImVec2{ line_height, line_height }))
 				ImGui::OpenPopup("ComponentSettings");
-			
+
 			bool remove_component = false;
 			if (ImGui::BeginPopup("ComponentSettings"))
 			{
@@ -172,6 +182,7 @@ namespace ely {
 		}
 	}
 
+	
 	void SceneHeirachyPanel::DrawComponents(Entity entity)
 	{
 		// Tag ----------------------------------------------------------------
@@ -180,15 +191,25 @@ namespace ely {
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 			std::string& tag = entity.GetComponent<TagComponent>();
 
-			static char buffer[256];
+			static char buffer[256] = { "\0" };
 			memset(buffer, 0, sizeof(buffer));
 			strncpy_s(buffer, sizeof(buffer), tag.c_str(), sizeof(buffer));
-			if (ImGui::InputText("Tag", buffer, sizeof(buffer)))
+
+			//returns true only when the buffer changes
+			//If still active / has focus, then a different entity is selected from the entity list, the function changes buffer to current contents
+			//of text field (i.e the previously selected entity).  Hence the need for s_selected_entity_changed
+			if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
 			{
 				tag = std::string(buffer);
 			}
+
+			//if (ImGui::IsItemActive())
+			//	ImGui::Text("Active");
+			
 			ImGui::PopStyleVar();
 		}
+
+		ImGui::Spacing();
 
 		// Transform -----------------------------------------------------------
 
