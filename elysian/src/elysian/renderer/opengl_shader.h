@@ -102,18 +102,22 @@ namespace ely
 		bool BuildSuccess() const { return m_build_success; }
 		void OutputInfo();
 
+		const auto& GetUniformData() const { return m_uniforms; }
+		const auto& GetAttributeData() const { return m_attributes; }
+		
 		static Ref<Shader> Create(const std::string& filename, const std::string& name);			//For a single file
 		static Ref<Shader> Create(const ShaderSource& shader_source, const std::string& name);	//If split into multiple files
 
-	private:
+	public:
 
 		struct DataItem
 		{
 			std::string name;
 			int location;
-			uint32_t gl_type;
+			ShaderDataType type;
+			uint32_t size;
 		};
-
+		
 	private:
 		std::string m_name = "";
 		bool m_build_success = false;
@@ -123,6 +127,7 @@ namespace ely
 		std::vector<DataItem> m_uniforms;
 
 	private:
+		
 		int32_t GetUniformLocation(const std::string& name);
 		void ReadUniforms();
 		void ReadAttributes();
@@ -145,7 +150,6 @@ namespace ely
 		static auto end() { return std::end(m_shader_repo); }
 		
 	private:
-		static void LoadDefaultShaders();
 		static std::unordered_map<std::string, Ref<Shader>> m_shader_repo;
 		static const std::string s_shader_asset_path;
 

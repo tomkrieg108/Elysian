@@ -64,6 +64,11 @@ namespace ely {
 			mesh_comp.SetEnableRender(false); //TODO make this a parameter to ctr
 			auto& camera_comp = entity.AddComponent<PerspectiveCameraComponent>();
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white")));
+
+			entity.AddComponent<MeshComponent>(ShaderRepo::Get("basic_diffuse"));
+
+			auto& meshcomp = entity.GetComponent<MeshComponent>();
+
 			return entity;
 		}
 		 

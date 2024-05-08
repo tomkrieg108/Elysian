@@ -117,7 +117,6 @@ namespace ely
 
 	Ref<Shader> ShaderBuilder::Build(const std::string& name)
 	{
-		//auto shader = std::make_unique<Shader>();
 		auto shader = CreateRef<Shader>();
 		uint32_t program = glCreateProgram();
 
@@ -168,6 +167,10 @@ namespace ely
 			glDeleteShader(shader_info.id);
 
 		m_shader_list.clear();
+
+		shader->ReadAttributes();
+		shader->ReadUniforms();
+
 		return shader;
 	}
 
@@ -344,7 +347,8 @@ namespace ely
 			int size = 0;
 			GLenum type;
 			glGetActiveUniform(m_program_id, i, kMaxLength, &actual_length, &size, &type, name);
-			item.gl_type = type;
+			item.type = ShaderUtils::OpenGLTypeToShaderDataType(type);
+			item.size = size;
 			for (int32_t element = 0; element < size; element++)
 			{
 				if (size == 1)
@@ -377,7 +381,8 @@ namespace ely
 			int size = 0;
 			GLenum type;
 			glGetActiveAttrib(m_program_id, i, kMaxLength, &actual_length, &size, &type, name);
-			item.gl_type = type;
+			item.type = ShaderUtils::OpenGLTypeToShaderDataType(type);
+			item.size = size;
 			for (int32_t element = 0; element < size; element++)
 			{
 				if (size == 1)
@@ -409,9 +414,6 @@ namespace ely
 			return;
 		}
 		
-		ReadAttributes();
-		ReadUniforms();
-
 		int32_t params = -1;
 
 		CORE_INFO("SHADER CREATED -------------------------------------");
@@ -433,12 +435,12 @@ namespace ely
 		CORE_INFO("GL_ACTIVE_ATTRIBUTES {}", m_attributes.size());
 		for (auto& item : m_attributes)
 		{
-			CORE_TRACE("   {}: {}, loc = {}", item.name, ShaderUtils::OpenGLTypeTypeToString(item.gl_type), item.location);
+			CORE_TRACE("   {}: {}, size: {}, loc: {}", item.name, ShaderUtils::ShaderDataTypeToString(item.type), item.size, item.location);
 		}
 		CORE_INFO("GL_ACTIVE_UNIFORMS {}", m_uniforms.size());
 		for (auto& item : m_uniforms)
 		{
-			CORE_TRACE("   {}: {}, loc = {}", item.name, ShaderUtils::OpenGLTypeTypeToString(item.gl_type), item.location);
+			CORE_TRACE("   {}: {}, size: {}, loc: {}", item.name, ShaderUtils::ShaderDataTypeToString(item.type), item.size, item.location);
 		}
 	}
 
@@ -449,7 +451,27 @@ namespace ely
 
 	void ShaderRepo::Init()
 	{
-		ShaderRepo::LoadDefaultShaders();
+		ShaderSource shader_source =
+		{
+			{ShaderType::Vertex, "white.vs"},
+			{ShaderType::Fragment, "white.fs"}
+		};
+		ShaderRepo::Load(shader_source, "white");
+
+		shader_source.Reset();
+		shader_source =
+		{
+			{ShaderType::Vertex, "model_loading.vs"},
+			{ShaderType::Fragment, "model_loading.fs"}
+		};
+		ShaderRepo::Load(shader_source, "model_loading");
+
+		shader_source.Reset();
+		ShaderRepo::Load("basic_colored.glsl", "basic_colored");
+		ShaderRepo::Load("basic_lines_colored.glsl", "basic_lines_colored");
+		ShaderRepo::Load("basic_diffuse.glsl", "basic_diffuse");
+		ShaderRepo::Load("basic_specular.glsl", "basic_specular");
+		ShaderRepo::Load("gamma.glsl", "gamma");
 	}
 
 	Ref<Shader> ShaderRepo::Load(const ShaderSource& shader_source, const std::string& shader_name)
@@ -480,108 +502,5 @@ namespace ely
 		return m_shader_repo.find(name) != m_shader_repo.end();
 	}
 
-	void ShaderRepo::LoadDefaultShaders()
-	{
-		/*ShaderSource shader_source =
-		{
-			{ShaderType::Vertex, "light_map_diff_spec_ub.vs"},
-			{ShaderType::Fragment, "light_map_diff_spec.fs"}
-		};
-		ShaderRepo::Load(shader_source, "light_map_diff_spec_ub");
-
-		shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "light_map_diff_spec.vs"},
-			{ShaderType::Fragment, "light_map_diff_spec.fs"}
-		};
-		ShaderRepo::Load(shader_source, "light_map_diff_spec");*/
-
-		/*ShaderSource shader_source =
-		{
-			{ShaderType::Vertex, "white_ub.vs"},
-			{ShaderType::Fragment, "white.fs"}
-		};
-		ShaderRepo::Load(shader_source, "white_ub");*/
-
-		
-		ShaderSource shader_source =
-		{
-			{ShaderType::Vertex, "white.vs"},
-			{ShaderType::Fragment, "white.fs"}
-		};
-		ShaderRepo::Load(shader_source, "white");
-
-		/*shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "colored_basic_ub.vs"},
-			{ShaderType::Fragment, "colored_basic.fs"}
-		};
-		ShaderRepo::Load(shader_source, "colored_basic_ub");
-
-		shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "colored_basic.vs"},
-			{ShaderType::Fragment, "colored_basic.fs"}
-		};
-		ShaderRepo::Load(shader_source, "colored_basic");*/
-
-		/*shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "colored_diffuse_ub.vs"},
-			{ShaderType::Fragment, "colored_diffuse.fs"}
-		};
-		ShaderRepo::Load(shader_source, "colored_diffuse_ub");
-
-		shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "colored_diffuse.vs"},
-			{ShaderType::Fragment, "colored_diffuse.fs"}
-		};
-		ShaderRepo::Load(shader_source, "colored_diffuse");*/
-
-		shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "model_loading.vs"},
-			{ShaderType::Fragment, "model_loading.fs"}
-		};
-		ShaderRepo::Load(shader_source, "model_loading");
-
-		/*shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "coords_ub.vs"},
-			{ShaderType::Fragment, "coords.fs"}
-		};
-		ShaderRepo::Load(shader_source, "coords_ub");
-
-		shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "coords.vs"},
-			{ShaderType::Fragment, "coords.fs"}
-		};
-		ShaderRepo::Load(shader_source, "coords");
-
-	  shader_source.Reset();
-		shader_source =
-		{
-			{ShaderType::Vertex, "gamma.vs"},
-			{ShaderType::Fragment, "gamma.fs"}
-		};
-		ShaderRepo::Load(shader_source, "gamma_correction");*/
-
-		shader_source.Reset();
-		ShaderRepo::Load("basic_colored.glsl", "basic_colored");
-		ShaderRepo::Load("basic_lines_colored.glsl", "basic_lines_colored");
-		ShaderRepo::Load("basic_diffuse.glsl", "basic_diffuse");
-		ShaderRepo::Load("basic_specular.glsl", "basic_specular");
-		ShaderRepo::Load("gamma.glsl", "gamma");
-	}
 
 }

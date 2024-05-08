@@ -103,6 +103,17 @@ namespace ely
 	};
 
 	//---------------------------------------------------------------
+	struct MeshComponent
+	{
+		MeshComponent(const Ref<Shader>& shader) :
+			m_material(shader)
+		{
+		}
+		Mesh m_mesh;
+		material_v2::Material m_material;
+	};
+
+	//---------------------------------------------------------------
 
 	class MeshRendererComponent
 	{
@@ -207,6 +218,7 @@ namespace ely
 
 	//-----------------------------------------------------------------------------
 
+	//TODO - can this be done as a NativeScriptableComponent
 	using EventHandler = std::function<void(Event&)>;
 	class EventHandlerComponent
 	{
