@@ -43,9 +43,75 @@ namespace ely
 	ShaderBuilder& ShaderBuilder::Add(const ShaderType type, const std::string& filename)
 	{
 		const auto filepath = ShaderRepo::s_shader_asset_path + filename;
-		//auto info = Compile(static_cast<uint32_t>(type), filepath);
-		auto info = Compile(GetOpenGLShaderType(type), filepath);
+		auto source_code = ReadSource(filepath);
+		auto info = Compile(GetOpenGLShaderType(type), filepath, source_code);
 		m_shader_list.push_back(info);
+		return *this;
+	}
+
+	//Used when all shaders are in a single file
+	ShaderBuilder& ShaderBuilder::Add(const std::string& filename)
+	{
+		const auto filepath = ShaderRepo::s_shader_asset_path + filename;
+		std::ifstream stream(filepath);
+		if (stream.fail())
+			CORE_ERROR("Failed to open file: {}", filepath);
+
+		std::string line;
+		std::ostringstream ss; 
+		ShaderType type = ShaderType::Unknown;
+
+		while (getline(stream, line))
+		{
+			if (line.find("#shader") != std::string::npos)
+			{
+				if ((type != ShaderType::Unknown) && (ss.str().length() > 0))
+				{
+					auto info = Compile(GetOpenGLShaderType(type), filepath, ss.str());
+					m_shader_list.push_back(info);
+					ss.clear();
+					ss.str(std::string());
+					//ss.seekp(0);
+				}
+
+				if (line.find("vertex") != std::string::npos)
+					type = ShaderType::Vertex;
+
+				else if (line.find("fragment") != std::string::npos)
+					type = ShaderType::Fragment;
+
+				else if (line.find("geometry") != std::string::npos)
+					type = ShaderType::Geometry;
+
+				else if (line.find("tesselation_control") != std::string::npos)
+					type = ShaderType::TesselationControl;
+
+				else if (line.find("tesselation_evaluation") != std::string::npos)
+					type = ShaderType::TesselationEvaluation;
+
+				else if (line.find("compute") != std::string::npos)
+					type = ShaderType::Compute;
+
+				else
+				{
+					type = ShaderType::Unknown;
+					CORE_ERROR("Invalid shader type in file: {}",  filepath);
+				}
+			}
+
+			else
+			{
+				if (type != ShaderType::Unknown)
+					ss << line << "\n";
+			}
+		}
+
+		if (ss.str().length() > 0)
+		{
+			auto info = Compile(GetOpenGLShaderType(type), filepath, ss.str());
+			m_shader_list.push_back(info);
+		}
+
 		return *this;
 	}
 
@@ -93,6 +159,7 @@ namespace ely
 			CORE_ERROR("Validation error for shader: {}", name);
 			success = false;
 		}
+		OutputShaderInfoLog();
 #endif
 
 		shader->m_build_success = success;
@@ -120,7 +187,7 @@ namespace ely
 		return ss.str();
 	}
 
-	ShaderBuilder::ShaderInfo ShaderBuilder::Compile(uint32_t type, const std::string& filepath)
+	ShaderBuilder::ShaderInfo ShaderBuilder::Compile(uint32_t type, const std::string& filepath, const std::string& source_code)
 	{
 		//NOTE
 		/*
@@ -135,12 +202,11 @@ namespace ely
 			See Anton pg 80, 217
 		*/
 
-		std::string code = ReadSource(filepath);
 		ShaderInfo info;
 		info.id = glCreateShader(type);
 		info.filepath = filepath;
 		info.type = type;
-		const char* src = code.c_str();
+		const char* src = source_code.c_str();
 		glShaderSource(info.id, 1, &src, nullptr);
 		glCompileShader(info.id);
 		int32_t result;
@@ -180,12 +246,6 @@ namespace ely
 
 	// Shader --------------------------------------------------------------------------------------------
 
-	//TODO: - option to have all shaders in a single file (vs, fs etc)
-	/*Ref<Shader> Shader::Create(const std::string& filepath, const std::string& name)
-	{
-		
-	}*/
-
 	Ref<Shader> Shader::Create(const ShaderSource& shader_source, const std::string& name)
 	{
 		ShaderBuilder builder;
@@ -193,6 +253,13 @@ namespace ely
 		for (const auto& source_file : shader_source.src)
 			builder.Add(source_file.first, source_file.second);
 	
+		return builder.Build(name);
+	}
+
+	Ref<Shader>  Shader::Create(const std::string& filename, const std::string& name)
+	{
+		ShaderBuilder builder;
+		builder.Add(filename);
 		return builder.Build(name);
 	}
 
@@ -385,11 +452,20 @@ namespace ely
 		ShaderRepo::LoadDefaultShaders();
 	}
 
-	Ref<Shader> ShaderRepo::Load(const ShaderSource& shader_source, const std::string& name)
+	Ref<Shader> ShaderRepo::Load(const ShaderSource& shader_source, const std::string& shader_name)
 	{
 		//TODO: assert that shader doesn't already exist
-		Ref<Shader> shader = Shader::Create(shader_source, name);
-		m_shader_repo[name] = shader;
+		Ref<Shader> shader = Shader::Create(shader_source, shader_name);
+		m_shader_repo[shader_name] = shader;
+		shader->OutputInfo();
+		return shader;
+	}
+
+	Ref<Shader> ShaderRepo::Load(const std::string& filename, const std::string& shader_name)
+	{
+		Ref<Shader> shader = Shader::Create(filename, shader_name);
+		m_shader_repo[shader_name] = shader;
+		shader->OutputInfo();
 		return shader;
 	}
 
@@ -406,7 +482,7 @@ namespace ely
 
 	void ShaderRepo::LoadDefaultShaders()
 	{
-		ShaderSource shader_source =
+		/*ShaderSource shader_source =
 		{
 			{ShaderType::Vertex, "light_map_diff_spec_ub.vs"},
 			{ShaderType::Fragment, "light_map_diff_spec.fs"}
@@ -419,25 +495,24 @@ namespace ely
 			{ShaderType::Vertex, "light_map_diff_spec.vs"},
 			{ShaderType::Fragment, "light_map_diff_spec.fs"}
 		};
-		ShaderRepo::Load(shader_source, "light_map_diff_spec");
+		ShaderRepo::Load(shader_source, "light_map_diff_spec");*/
 
-		shader_source.Reset();
-		shader_source =
+		/*ShaderSource shader_source =
 		{
 			{ShaderType::Vertex, "white_ub.vs"},
 			{ShaderType::Fragment, "white.fs"}
 		};
-		ShaderRepo::Load(shader_source, "white_ub");
+		ShaderRepo::Load(shader_source, "white_ub");*/
 
-		shader_source.Reset();
-		shader_source =
+		
+		ShaderSource shader_source =
 		{
 			{ShaderType::Vertex, "white.vs"},
 			{ShaderType::Fragment, "white.fs"}
 		};
 		ShaderRepo::Load(shader_source, "white");
 
-		shader_source.Reset();
+		/*shader_source.Reset();
 		shader_source =
 		{
 			{ShaderType::Vertex, "colored_basic_ub.vs"},
@@ -451,9 +526,9 @@ namespace ely
 			{ShaderType::Vertex, "colored_basic.vs"},
 			{ShaderType::Fragment, "colored_basic.fs"}
 		};
-		ShaderRepo::Load(shader_source, "colored_basic");
+		ShaderRepo::Load(shader_source, "colored_basic");*/
 
-		shader_source.Reset();
+		/*shader_source.Reset();
 		shader_source =
 		{
 			{ShaderType::Vertex, "colored_diffuse_ub.vs"},
@@ -467,7 +542,7 @@ namespace ely
 			{ShaderType::Vertex, "colored_diffuse.vs"},
 			{ShaderType::Fragment, "colored_diffuse.fs"}
 		};
-		ShaderRepo::Load(shader_source, "colored_diffuse");
+		ShaderRepo::Load(shader_source, "colored_diffuse");*/
 
 		shader_source.Reset();
 		shader_source =
@@ -477,7 +552,7 @@ namespace ely
 		};
 		ShaderRepo::Load(shader_source, "model_loading");
 
-		shader_source.Reset();
+		/*shader_source.Reset();
 		shader_source =
 		{
 			{ShaderType::Vertex, "coords_ub.vs"},
@@ -493,13 +568,20 @@ namespace ely
 		};
 		ShaderRepo::Load(shader_source, "coords");
 
-		shader_source.Reset();
+	  shader_source.Reset();
 		shader_source =
 		{
 			{ShaderType::Vertex, "gamma.vs"},
 			{ShaderType::Fragment, "gamma.fs"}
 		};
-		ShaderRepo::Load(shader_source, "gamma_correction");
+		ShaderRepo::Load(shader_source, "gamma_correction");*/
+
+		shader_source.Reset();
+		ShaderRepo::Load("basic_colored.glsl", "basic_colored");
+		ShaderRepo::Load("basic_lines_colored.glsl", "basic_lines_colored");
+		ShaderRepo::Load("basic_diffuse.glsl", "basic_diffuse");
+		ShaderRepo::Load("basic_specular.glsl", "basic_specular");
+		ShaderRepo::Load("gamma.glsl", "gamma");
 	}
 
 }

@@ -45,7 +45,7 @@ namespace ely {
 		{
 			Entity entity = CreateEntity("Grid");
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetGridMesh(20.0f));
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("coords")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_lines_colored")));
 
 			//TODO - seems a bit dubious
 			m_camera_controller.SetGridEntity(entity);
@@ -74,7 +74,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("light_map_diff_spec")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular")));
 			return entity;
 		}
 
@@ -85,7 +85,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("light_map_diff_spec")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular")));
 			entity.AddComponent<NativeScriptableComponent>().Bind<NativeScriptRotateAndOrbit>();
 			return entity;
 		}
@@ -98,7 +98,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("colored_basic")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored")));
 			Entity camera_entity = FindEntityByName("Main Camera"s);
 
 			//NOTE  this is based on info book about mouse picking
@@ -155,7 +155,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("colored_basic")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored")));
 			//Entity camera_entity = m_controlled_camera_entity;
 
 			//NOTE  this is based on info book about mouse picking
@@ -259,7 +259,7 @@ namespace ely {
 			}
 
 			//TODO - should be using the component shader
-			auto cube_shader = ely::ShaderRepo::Get("light_map_diff_spec");
+			auto cube_shader = ely::ShaderRepo::Get("basic_specular");
 			cube_shader->Bind();
 			cube_shader->SetUniform3f("u_view_pos", camera.GetPosition(camera_transform));
 		}
@@ -268,12 +268,15 @@ namespace ely {
 		void Scene::UploadLightDataToShader()
 		{
 			//TODO - should be using the component shader
-			auto cube_shader = ely::ShaderRepo::Get("light_map_diff_spec");
+			auto cube_shader = ely::ShaderRepo::Get("basic_specular");
 			cube_shader->Bind();
-			auto view = m_registry.view<DirectionalLightComponent>();
+			auto view = m_registry.view<DirectionalLightComponent, TransformComponent>();
 			for (auto entity : view)
 			{ 
-				DirectionalLight& light = view.get<DirectionalLightComponent>(entity);
+				auto [light_comp, transform_comp] = view.get<DirectionalLightComponent, TransformComponent>(entity);
+				DirectionalLight& light = light_comp;
+				glm::mat4 transform_mat = transform_comp;
+				light.direction = glm::vec3(transform_mat[2]); //z direction
 				light.UploadDataToShader(cube_shader);
 			}
 		}
@@ -372,7 +375,6 @@ namespace ely {
 
 		void Scene::RenderScene()
 		{
-			//auto group = m_registry.group<TransformComponent, MeshRendererComponent, ShaderHandleComponent>(); // groups are apparently faster for multiple components, but this crashes
 			auto view = m_registry.view<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>();
 
 			for (auto entity : view)
@@ -394,7 +396,7 @@ namespace ely {
 				if (mesh_comp.GetShowCoords())
 				{
 					auto coords_mesh = MeshPrimitive::GetCoordSystemMesh(20.0f);
-					auto& coords_shader = *(ShaderRepo::Get("coords"));
+					auto& coords_shader = *(ShaderRepo::Get("basic_lines_colored"));
 
 					glm::mat4 transform = transform_comp;
 					if(tag_comp.m_tag != "Grid"s)

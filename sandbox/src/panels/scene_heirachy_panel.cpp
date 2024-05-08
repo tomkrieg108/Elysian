@@ -157,18 +157,21 @@ namespace ely {
 			ImGui::PopStyleVar();
 
 			ImGui::SameLine(content_region_available.x - line_height * 0.5f);
+			
+			
 			if (ImGui::Button("+", ImVec2{ line_height, line_height }))
 				ImGui::OpenPopup("ComponentSettings");
+			
 
 			bool remove_component = false;
-			if (ImGui::BeginPopup("ComponentSettings"))
+			if (allow_remove)
 			{
-				if (allow_remove)
+				if (ImGui::BeginPopup("ComponentSettings"))
 				{
 					if (ImGui::MenuItem("Remove Component"))
 						remove_component = true;
+					ImGui::EndPopup();
 				}
-				ImGui::EndPopup();
 			}
 
 			if (open)
@@ -179,10 +182,93 @@ namespace ely {
 
 			if (remove_component)
 				entity.RemoveComponent<T>();
+
+			//ImGui::Spacing(); ImGui::Spacing();
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY()+8.0f);
 		}
 	}
 
-	
+	static bool DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
+	{
+		//Thankyou Cherno!
+		bool updated = false;
+
+		ImGuiIO& io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
+		ImGui::PushID(label.c_str());
+
+		ImGui::Columns(2);
+		ImGui::SetColumnWidth(0, columnWidth);
+		ImGui::Text(label.c_str());
+		ImGui::NextColumn();
+
+		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("X", buttonSize))
+		{
+			values.x = resetValue;
+			updated = true;
+		}
+			
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		updated |= ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("Y", buttonSize))
+		{
+			values.y = resetValue;
+			updated = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		updated |= ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+		ImGui::SameLine();
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+		ImGui::PushFont(boldFont);
+		if (ImGui::Button("Z", buttonSize))
+		{
+			values.z = resetValue;
+			updated = true;
+		}
+		ImGui::PopFont();
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine();
+		updated |= ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+		ImGui::PopItemWidth();
+
+		ImGui::PopStyleVar();
+
+		ImGui::Columns(1);
+
+		ImGui::PopID();
+
+		return updated;
+	}
+
 	void SceneHeirachyPanel::DrawComponents(Entity entity)
 	{
 		// Tag ----------------------------------------------------------------
@@ -199,26 +285,42 @@ namespace ely {
 			//If still active / has focus, then a different entity is selected from the entity list, the function changes buffer to current contents
 			//of text field (i.e the previously selected entity).  Hence the need for s_selected_entity_changed
 			if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-			{
 				tag = std::string(buffer);
-			}
-
+			
 			//if (ImGui::IsItemActive())
 			//	ImGui::Text("Active");
 			
 			ImGui::PopStyleVar();
-		}
 
-		ImGui::Spacing();
+			//ImGui::Spacing(); ImGui::Spacing();
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f);
+		}
+		
 
 		// Transform -----------------------------------------------------------
 
 		DrawComponent<TransformComponent>("Transform", entity, false, [](auto& component) {
 			//TODO - static_assert for component type
-			glm::mat4& transform = (glm::mat4&)(component);
-			ImGui::DragFloat3("Position", glm::value_ptr(transform[3]), 0.1f, 0, 0);
+			//glm::mat4& transform = (glm::mat4&)(component);
+			//auto& pos_vec = (glm::vec3&)(*glm::value_ptr(transform[3])); //This works.  & seems to be optional!
+			bool transform_updated = false;
+			transform_updated |= DrawVec3Control("Translation", component.GetTranslation()); //extracted from transform matrix
+			//transform_updated |= DrawVec3Control("Rotation (Deg)", component.GetEulerAnglesInDegrees()); //extracted from transform matrix
+			transform_updated |= DrawVec3Control("Rotation (Deg)", component.m_rotation);
+			transform_updated |= DrawVec3Control("Scale", component.m_scale, 1.0f);
+
+			if (transform_updated)
+				component.MakeTransform();
 		});
 
+		DrawComponent<DirectionalLightComponent>("Directional Light", entity, true, [](auto& component) {
+
+			DirectionalLight& light = (DirectionalLight&)(component);
+			
+			ImGui::ColorEdit3("Ambient##2f", (float*)&light.ambient_color, ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit3("Diffuse##2f", (float*)&light.color, ImGuiColorEditFlags_Float);
+		
+		});
 
 		DrawComponent<PerspectiveCameraComponent>("Perspective Camera", entity, true, [](auto& component) {
 			ImGui::Text("Perspective Camera");

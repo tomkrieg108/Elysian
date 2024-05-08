@@ -45,9 +45,7 @@ GammaTestLayer::GammaTestLayer(ely::Window& window) :
 	m_texture_srgb = new ely::OpenGLTexture2D("grass2.png", tex_params);
 
 	//shader setup
-	ely::ShaderBuilder shader_builder;
-	m_gamma_test_shader = shader_builder.Add(ely::ShaderType::Vertex, "gamma.vs").Add(ely::ShaderType::Fragment, "gamma.fs").Build("Gamma Test Shader");
-	m_gamma_test_shader->OutputInfo();
+	m_gamma_test_shader = ely::ShaderRepo::Get("gamma");
 }
 
 void GammaTestLayer::OnAttach()
