@@ -23,7 +23,7 @@ buffer layouts, materials etc
 		}
 
 		std::string attribute_name{ "" };
-		ShaderDataType data_type{ ShaderDataType ::None};
+		ShaderDataType data_type{ ShaderDataType::None};
 		uint32_t size{ 0 };	//bytes
 		bool normalized{ false };
 		size_t offset{ 0 };

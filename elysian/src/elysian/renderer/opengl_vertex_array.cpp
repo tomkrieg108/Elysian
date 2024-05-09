@@ -71,4 +71,12 @@ namespace ely
 		glBindVertexArray(0);
 	}
 
+	void OpenGLVertexArray::SetIndexBuffer(const OpenGLIndexBuffer& index_buffer)
+	{
+		glBindVertexArray(m_id);
+		index_buffer.Bind();
+		m_index_buffer = index_buffer;
+		glBindVertexArray(0);
+	}
+
 }

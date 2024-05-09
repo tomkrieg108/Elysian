@@ -69,7 +69,7 @@ namespace ely
 		glDrawArrays(GetOpenGLDrawMode(mesh.GetDrawMode()), 0, vbo.GetVertexCount());
 	}
 
-	static void BeginScene(const PerspectiveCamera& camera, const OpenGLFramebuffer& frame_buffer)
+	void OpenGLRenderer::BeginScene(const PerspectiveCamera& camera, const OpenGLFramebuffer& frame_buffer)
 	{
 		//frame_buffer.Bind();
 		OpenGLRenderer::SetLineWidth(2.0);
@@ -78,7 +78,7 @@ namespace ely
 		ely::OpenGLRenderer::ClearBuffers();
 	}
 
-	static void EndScene()
+	void OpenGLRenderer::EndScene()
 	{
 
 	}

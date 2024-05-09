@@ -29,10 +29,10 @@ GammaTestLayer::GammaTestLayer(ely::Window& window) :
 	m_vbo_gray_scale = ely::MeshPrimitive::GetGrayScaleStripBuffer(false);
 	m_vbo_gray_scale_gc = ely::MeshPrimitive::GetGrayScaleStripBuffer(true); //gamma corrected
 
-	m_vao_grid.AddVertexBuffer(*m_vbo_grid);
-	m_vao_world_coords.AddVertexBuffer(*m_vbo_world_coords);
-	m_vao_gray_scale.AddVertexBuffer(*m_vbo_gray_scale);
-	m_vao_gray_scale_gc.AddVertexBuffer(*m_vbo_gray_scale_gc);
+	m_vao_grid.AddVertexBuffer(m_vbo_grid);
+	m_vao_world_coords.AddVertexBuffer(m_vbo_world_coords);
+	m_vao_gray_scale.AddVertexBuffer(m_vbo_gray_scale);
+	m_vao_gray_scale_gc.AddVertexBuffer(m_vbo_gray_scale_gc);
 
 	ely::OpenGLTexture2D::Params tex_params;
 	tex_params.enable_srgb = true;
@@ -99,7 +99,7 @@ void GammaTestLayer::OnUpdate(double time_step)
 	glm::mat4 gray_scale_model_mat = glm::mat4(1.0f);
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
 	m_gamma_test_shader->SetUniform1i("u_gamma", vs_gamma_enabled);
-	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale->GetVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale.GetVertexCount());
 
 	//gamma corrected using fragment shader (res: appears skewed to the bright side on screen, 
 	// but actual screen brightness is apparently linear 
@@ -107,7 +107,7 @@ void GammaTestLayer::OnUpdate(double time_step)
 	gray_scale_model_mat = glm::translate(gray_scale_model_mat, glm::vec3(0, 0, 2.0f));
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
 	m_gamma_test_shader->SetUniform1i("u_gamma", vs_gamma_enabled);
-	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale->GetVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale.GetVertexCount());
 
 	//gamma corrected by enabling GL_FRAMEBUFFER_SRGB (res: same as above)
 	vs_gamma_enabled = false;
@@ -115,14 +115,14 @@ void GammaTestLayer::OnUpdate(double time_step)
 	gray_scale_model_mat = glm::translate(gray_scale_model_mat, glm::vec3(0, 0, 2.0f));
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
 	m_gamma_test_shader->SetUniform1i("u_gamma", vs_gamma_enabled);
-	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale->GetVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale.GetVertexCount());
 
 	//gamma corrected in the mesh colours themselves (res: same as above)
 	glDisable(GL_FRAMEBUFFER_SRGB);
 	m_vao_gray_scale_gc.Bind();
 	gray_scale_model_mat = glm::translate(gray_scale_model_mat, glm::vec3(0, 0, 2.0f));
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
-	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale_gc->GetVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale_gc.GetVertexCount());
 
 	/////////////////////////////////////////////////////////////////////////////////
 
@@ -137,7 +137,7 @@ void GammaTestLayer::OnUpdate(double time_step)
 	gray_scale_model_mat = glm::mat4(1.0f);
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
 	m_gamma_test_shader->SetUniform1i("u_gamma", vs_gamma_enabled);
-	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale->GetVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale.GetVertexCount());
 
 	//gamma corrected using fragment shader (res: appears skewed to the bright side on screen, 
 	// but actual screen brightness is apparently linear 
@@ -145,7 +145,7 @@ void GammaTestLayer::OnUpdate(double time_step)
 	gray_scale_model_mat = glm::translate(gray_scale_model_mat, glm::vec3(0, 0, 2.0f));
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
 	m_gamma_test_shader->SetUniform1i("u_gamma", vs_gamma_enabled);
-	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale->GetVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale.GetVertexCount());
 
 	//gamma corrected by enabling GL_FRAMEBUFFER_SRGB (res: same as above)
 	vs_gamma_enabled = false;
@@ -153,14 +153,14 @@ void GammaTestLayer::OnUpdate(double time_step)
 	gray_scale_model_mat = glm::translate(gray_scale_model_mat, glm::vec3(0, 0, 2.0f));
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
 	m_gamma_test_shader->SetUniform1i("u_gamma", vs_gamma_enabled);
-	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale->GetVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale.GetVertexCount());
 
 	//gamma corrected in the mesh colours themselves (res: same as above)
 	glDisable(GL_FRAMEBUFFER_SRGB);
 	m_vao_gray_scale_gc.Bind();
 	gray_scale_model_mat = glm::translate(gray_scale_model_mat, glm::vec3(0, 0, 2.0f));
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
-	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale_gc->GetVertexCount());
+	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale_gc.GetVertexCount());
 
 	m_framebuffer->Unbind();
 }

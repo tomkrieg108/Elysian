@@ -44,7 +44,7 @@ namespace ely {
 		Entity Scene::CreateGridEntity()
 		{
 			Entity entity = CreateEntity("Grid");
-			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetGridMesh(20.0f));
+			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetGridMesh1(20.0f));
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_lines_colored")));
 
 			//TODO - seems a bit dubious
@@ -65,9 +65,8 @@ namespace ely {
 			auto& camera_comp = entity.AddComponent<PerspectiveCameraComponent>();
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white")));
 
-			entity.AddComponent<MeshComponent>(ShaderRepo::Get("basic_diffuse"));
-
-			auto& meshcomp = entity.GetComponent<MeshComponent>();
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_specular"));
+			auto& meshcomp = entity.GetComponent<MeshRendererComponent_V2>();
 
 			return entity;
 		}
@@ -318,6 +317,41 @@ namespace ely {
 			}
 		}
 
+		void Scene::RenderScene()
+		{
+			auto view = m_registry.view<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>();
+
+			for (auto entity : view)
+			{
+				auto [tag_comp, transform_comp, mesh_comp, shader_comp] = view.get<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>(entity);
+
+				if (!mesh_comp.GetEnableRender())
+					continue;
+
+				auto& shader = (Shader&)(shader_comp.GetShader());
+				//TODO do this in DrawMesh() / renderer
+				shader.Bind();
+				shader.SetUniformMat4f("u_model", (glm::mat4)(transform_comp));
+
+				auto& mesh = (Mesh&)(mesh_comp);
+				mesh.UploadMaterialToShader(shader); //TODO shoud be done in renderer
+				OpenGLRenderer::DrawMesh(mesh, shader);
+
+				if (mesh_comp.GetShowCoords())
+				{
+					auto coords_mesh = MeshPrimitive::GetCoordSystemMesh1(20.0f);
+					auto& coords_shader = *(ShaderRepo::Get("basic_lines_colored"));
+
+					glm::mat4 transform = transform_comp;
+					if (tag_comp.m_tag != "Grid"s)
+						transform = glm::scale(transform, glm::vec3(0.1f));
+					coords_shader.Bind();
+					coords_shader.SetUniformMat4f("u_model", transform);
+					OpenGLRenderer::DrawMesh(coords_mesh, coords_shader);
+				}
+			}
+		}
+
 		bool Scene::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
 		{
 			bool alt_pressed = Input::IsKeyPressed(GLFW_KEY_LEFT_ALT) || Input::IsKeyPressed(GLFW_KEY_RIGHT_ALT);
@@ -377,41 +411,6 @@ namespace ely {
 			}
 			return true;
 		}
-
-		void Scene::RenderScene()
-		{
-			auto view = m_registry.view<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>();
-
-			for (auto entity : view)
-			{
-				auto [tag_comp, transform_comp, mesh_comp, shader_comp] = view.get<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>(entity);
-
-				if (!mesh_comp.GetEnableRender())
-					continue;
-
-				auto& shader = (Shader&)(shader_comp.GetShader());
-				//TODO do this in DrawMesh() / renderer
-				shader.Bind();
-				shader.SetUniformMat4f("u_model", (glm::mat4)(transform_comp));
-
-				auto& mesh = (Mesh&)(mesh_comp);
-				mesh.UploadMaterialToShader(shader); //TODO shoud be done in renderer
-				OpenGLRenderer::DrawMesh(mesh, shader);
-
-				if (mesh_comp.GetShowCoords())
-				{
-					auto coords_mesh = MeshPrimitive::GetCoordSystemMesh(20.0f);
-					auto& coords_shader = *(ShaderRepo::Get("basic_lines_colored"));
-
-					glm::mat4 transform = transform_comp;
-					if(tag_comp.m_tag != "Grid"s)
-						transform =	glm::scale(transform, glm::vec3(0.1f));
-					coords_shader.Bind();
-					coords_shader.SetUniformMat4f("u_model", transform);
-					OpenGLRenderer::DrawMesh(coords_mesh, coords_shader);
-				}
-			}
-		} 
 
 		void Scene::SetControlledCameraEntity(Entity camera_entity)
 		{

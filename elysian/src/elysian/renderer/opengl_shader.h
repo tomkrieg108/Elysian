@@ -110,6 +110,7 @@ namespace ely
 
 	public:
 
+		//Attribute or uniform
 		struct DataItem
 		{
 			std::string name;
@@ -119,7 +120,7 @@ namespace ely
 		};
 		
 	private:
-		std::string m_name = "";
+		std::string m_name = "Unnamed Shader";
 		bool m_build_success = false;
 		uint32_t m_program_id = 0;
 		std::unordered_map<std::string, int> m_uniform_location_cache;  //TODO:  don't need this since querying and storing the uniforms on init

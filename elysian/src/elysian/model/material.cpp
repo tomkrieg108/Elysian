@@ -189,12 +189,19 @@ namespace ely
 
 	namespace material_v2 {
 
+		Material::Material() :
+			m_shader{ ShaderRepo::Get("basic_diffuse") }
+		{
+			InitData();
+			m_shader_id = m_shader->GetProgramID();
+		}
+
 		Material::Material(const Ref<Shader>& shader) :
 			m_shader(shader)
 		{
 			//TODO - assert shader not null and is valid
 			InitData();
-			m_program_id = m_shader->GetProgramID();
+			m_shader_id = m_shader->GetProgramID();
 		}
 
 		void Material::InitData()
@@ -205,29 +212,29 @@ namespace ely
 			{
 				if (item.name.find("u_material") != std::string::npos)
 				{
-					MaterialData::Item material_item;
-					material_item.shader_item = item;
+					MaterialUniform material_uniform;
+					material_uniform.item = item;
 
 					switch (item.type)
 					{
-						case ShaderDataType::Bool: material_item.value = false; break;
-						case ShaderDataType::Float: material_item.value = 0.0f; break;
-						case ShaderDataType::Int: material_item.value = 0; break;
-						case ShaderDataType::Float2: material_item.value = glm::vec2{ 0.0f }; break;
-						case ShaderDataType::Float3: material_item.value = glm::vec3{ 0.0f }; break;
-						case ShaderDataType::Float4: material_item.value = glm::vec4{ 0.0f }; break;
-						case ShaderDataType::Mat3: material_item.value = material_item.value = glm::mat3{ 1.0f };  break;
-						case ShaderDataType::Mat4: material_item.value = material_item.value = glm::mat4{ 1.0f };  break;
-						case ShaderDataType::Sampler2D: material_item.value = material_item.value = -1;  break;
-						case ShaderDataType::SamplerCube: material_item.value = material_item.value = -1;  break;
+						case ShaderDataType::Bool: material_uniform.value = false; break;
+						case ShaderDataType::Float: material_uniform.value = 0.0f; break;
+						case ShaderDataType::Int: material_uniform.value = 0; break;
+						case ShaderDataType::Float2: material_uniform.value = glm::vec2{ 0.0f }; break;
+						case ShaderDataType::Float3: material_uniform.value = glm::vec3{ 0.0f }; break;
+						case ShaderDataType::Float4: material_uniform.value = glm::vec4{ 0.0f }; break;
+						case ShaderDataType::Mat3: material_uniform.value = glm::mat3{ 1.0f };  break;
+						case ShaderDataType::Mat4: material_uniform.value = glm::mat4{ 1.0f };  break;
+						case ShaderDataType::Sampler2D: material_uniform.value = -1;  break;
+						case ShaderDataType::SamplerCube: material_uniform.value = -1;  break;
 						default:
 						{
 							CORE_ERROR(" Material::InitData(): unsupported shader data type {}: ", ShaderUtils::ShaderDataTypeToString(item.type));
-							material_item.value = -1;
+							material_uniform.value = -1;
 						}
 					}
 
-					m_data.AddItem(material_item);
+					AddItem(material_uniform);
 
 				}
 

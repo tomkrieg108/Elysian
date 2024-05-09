@@ -133,36 +133,41 @@ namespace ely
 
 	namespace material_v2 {
 
-		struct MaterialData
-		{
-			using MatValue = std::variant<int, float, bool, glm::vec2, glm::vec3, glm::vec4, glm::mat3, glm::mat4>;
-
-			struct Item
-			{
-				Shader::DataItem shader_item;
-				MatValue value;
-			};
-
-			std::vector<Item> material_data;
-
-			void AddItem(Item item) {
-				material_data.push_back(item);
-			}
-		};
-
 		class Material
 		{
 		public:
+
+			using UniformType = std::variant<bool, int32_t, float, glm::vec2, glm::vec3, glm::vec4, glm::mat3, glm::mat4>;
+
+			struct MaterialUniform
+			{
+				Shader::DataItem item;
+				UniformType value;
+			};
+
+		public:
+			Material();
 			Material(const Ref<Shader>& shader);
+
+			auto begin() { return std::begin(material_data); }
+			auto end() { return std::end(material_data); }
+
+			void AddItem(MaterialUniform material_uniform) {
+				material_data.push_back(material_uniform);
+			}
+
+			const auto& GetShader() const { return m_shader; }
+			uint32_t GetShaderId() const { return m_shader_id; }
 
 		private:
 
 			void InitData();
 
 			const Ref<Shader>& m_shader;
+			uint32_t m_shader_id = 0;
+
 			std::string m_material_name = "Unnamed Material";
-			int32_t m_program_id = -1;
-			MaterialData m_data;
+			std::vector<MaterialUniform> material_data;
 		};
 
 	}

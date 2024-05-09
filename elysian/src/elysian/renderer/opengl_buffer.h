@@ -7,16 +7,19 @@ namespace ely
 	class OpenGLVertexBuffer
 	{
 	public:
+		OpenGLVertexBuffer() = default;
 		OpenGLVertexBuffer(void* const data, uint32_t size, const BufferLayout& layout);
 		~OpenGLVertexBuffer();
+
 		void Bind() const;
 		void Unbind() const;
+
 		const BufferLayout& GetLayout() const { return m_layout; }
 		uint32_t GetVertexCount() const { return m_vertex_count;  }
 
 	private:
 		uint32_t m_id = 0;
-		BufferLayout m_layout;
+		BufferLayout m_layout; //TODO this won't be accessed in 'hot code' so can make as a unique pointer
 		uint32_t m_vertex_count = 0;
 	};
 
@@ -25,6 +28,7 @@ namespace ely
 	class OpenGLIndexBuffer
 	{
 	public:
+		OpenGLIndexBuffer() = default;
 		OpenGLIndexBuffer(uint32_t* indices, uint32_t count);
 		~OpenGLIndexBuffer();
 

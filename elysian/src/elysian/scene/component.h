@@ -103,13 +103,16 @@ namespace ely
 	};
 
 	//---------------------------------------------------------------
-	struct MeshComponent
+	struct MeshRendererComponent_V2
 	{
-		MeshComponent(const Ref<Shader>& shader) :
-			m_material(shader)
+		MeshRendererComponent_V2() = default;
+		MeshRendererComponent_V2(const MeshRendererComponent_V2& component) = default;
+		MeshRendererComponent_V2(const mesh_v2::Mesh& mesh) : m_mesh{ mesh } {}
+		MeshRendererComponent_V2(const mesh_v2::Mesh& mesh, const Ref<Shader>& shader) :
+			m_mesh{ mesh }, m_material{ shader }
 		{
 		}
-		Mesh m_mesh;
+		mesh_v2::Mesh m_mesh;
 		material_v2::Material m_material;
 	};
 
