@@ -1,5 +1,5 @@
 #pragma once
-#include "elysian/camera/perspective_camera.h"
+#include "elysian/camera/camera.h"
 #include "elysian/events/events.h"
 #include "elysian/scene/entity.h"
 #include <cmath>
@@ -9,7 +9,7 @@
 
 namespace ely
 {
-	class PerspectiveCameraController
+	class CameraController
 	{
 	public:
 		//TODO - this maybe in the scene class rather than cam controller
@@ -19,8 +19,8 @@ namespace ely
 		};
 
 	public:
-		PerspectiveCameraController() = default;
-		~PerspectiveCameraController() = default;
+		CameraController() = default;
+		~CameraController() = default;
 
 		void MoveForward(float amount);
 		void MoveRight(float amount);
@@ -36,7 +36,7 @@ namespace ely
 		void InvertPitch();
 
 		//InputMode GetInputMode() const { return m_input_mode; }
-		
+
 		void OnUpdate(double delta_time);
 		void OnMouseMoved(EventMouseMoved& e);
 		void OnMouseScrolled(EventMouseScrolled& e);

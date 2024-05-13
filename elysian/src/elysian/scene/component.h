@@ -3,6 +3,7 @@
 #include "elysian/kernal/uuid.h"
 #include "Elysian/events/events.h"
 #include "elysian/camera/perspective_camera.h"
+#include "elysian/camera/camera.h"
 #include "elysian/model/material.h"
 #include "elysian/model/mesh_primitives.h"
 #include "elysian/model/mesh.h"
@@ -107,13 +108,16 @@ namespace ely
 	{
 		MeshRendererComponent_V2() = default;
 		MeshRendererComponent_V2(const MeshRendererComponent_V2& component) = default;
-		MeshRendererComponent_V2(const mesh_v2::Mesh& mesh) : m_mesh{ mesh } {}
+		MeshRendererComponent_V2(const mesh_v2::Mesh& mesh) : mesh{ mesh } {}
 		MeshRendererComponent_V2(const mesh_v2::Mesh& mesh, const Ref<Shader>& shader) :
-			m_mesh{ mesh }, m_material{ shader }
+			mesh{ mesh }, material{ shader }
 		{
 		}
-		mesh_v2::Mesh m_mesh;
-		material_v2::Material m_material;
+
+		mesh_v2::Mesh mesh;
+		material_v2::Material material;
+		bool enable_render = true;
+		bool show_coords = true;
 	};
 
 	//---------------------------------------------------------------
@@ -153,6 +157,19 @@ namespace ely
 		operator const PerspectiveCamera& () const { return m_camera; }
 	public:
 		PerspectiveCamera m_camera;
+	};
+
+	//---------------------------------------------------------------
+
+	struct CameraComponent
+	{
+		Camera m_camera;
+
+		CameraComponent() = default;
+		CameraComponent(const CameraComponent& component) = default;
+		CameraComponent(const Camera& camera) : m_camera{ camera } {}
+		operator Camera& () { return m_camera; }
+		operator const Camera& () const { return m_camera; }
 	};
 
 	//---------------------------------------------------------------

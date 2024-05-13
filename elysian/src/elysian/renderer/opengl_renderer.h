@@ -2,15 +2,15 @@
 #include "elysian/kernal/base.h"
 #include "elysian/renderer/opengl_framebuffer.h"
 #include "elysian/camera/perspective_camera.h"
+#include "elysian/camera/camera.h"
+#include "elysian/light/directional_light.h"
 #include "elysian/model/mesh.h"
-#include "opengl_shader.h"
+#include "elysian/scene/scene.h"
 #include "opengl_shader.h"
 #include "opengl_draw_mode.h"
 
 namespace ely
 {
-	
-
 	class OpenGLRenderer
 	{
 	public:
@@ -26,6 +26,11 @@ namespace ely
 
 		static void BeginScene(const PerspectiveCamera& camera, const OpenGLFramebuffer& frame_buffer);
 		static void EndScene();
+
+		static void BeginScene(const Scene& scene, const Camera& camera, const DirectionalLight& directional_light, 
+			const OpenGLFramebuffer& render_target);
+		static void BeginScene(const Scene& scene, const Camera& camera, const DirectionalLight& directional_light);
+		static void Draw(const mesh_v2::Mesh& mesh, const material_v2::Material& material);
 		
 	private:
 		static uint32_t GetOpenGLDrawMode(DrawMode draw_mode);

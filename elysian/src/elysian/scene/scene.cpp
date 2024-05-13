@@ -44,10 +44,14 @@ namespace ely {
 		Entity Scene::CreateGridEntity()
 		{
 			Entity entity = CreateEntity("Grid");
-			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetGridMesh1(20.0f));
+			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetGridMesh1());
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_lines_colored")));
 
-			//TODO - seems a bit dubious
+			/*
+			TODO - sort out this thing
+			grid entity passed through only used PerspectiveCameraController::RotateWorld2(), which an attempt to setup the 
+			grid as a local object within world space.  PerspectiveCameraController::RotateWorld2() has been abandoned for now! not used
+			*/
 			m_camera_controller.SetGridEntity(entity);
 
 			return entity;
@@ -65,8 +69,8 @@ namespace ely {
 			auto& camera_comp = entity.AddComponent<PerspectiveCameraComponent>();
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white")));
 
-			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_specular"));
-			auto& meshcomp = entity.GetComponent<MeshRendererComponent_V2>();
+			//auto& mesh_renderer_comp = entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse"));
+			
 
 			return entity;
 		}
@@ -159,7 +163,8 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored")));
+			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular")));
 			//Entity camera_entity = m_controlled_camera_entity;
 
 			//NOTE  this is based on info book about mouse picking
@@ -223,6 +228,108 @@ namespace ely {
 			entity.AddComponent<DirectionalLightComponent>();
 			return entity;
 		}
+
+		//======================================================================================================================
+
+		Entity Scene::CreateGridEntity_V2()
+		{
+			Entity entity = CreateEntity("Grid");
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetGridMesh2(), ShaderRepo::Get("basic_lines_colored"));
+			return entity;
+		}
+
+		Entity Scene::CreateCameraEntity_V2(const glm::vec3& position, const std::string& name)
+		{
+			Entity entity = CreateEntity(name);
+			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
+			entity.GetComponent<TransformComponent>().SetTransform(transform);
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse"));
+			entity.AddComponent<CameraComponent>();
+			return entity;
+		}
+
+		Entity Scene::CreateBoxEntity_V2() {
+			Entity entity = CreateEntity("Box");
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse"));
+			return entity;
+		}
+
+		Entity Scene::CreateOrbitingCubeEntity_V2(const glm::vec3& position, const std::string& name)
+		{
+			Entity entity = CreateEntity(name);
+			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
+			entity.GetComponent<TransformComponent>().SetTransform(transform);
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_specular"));
+			entity.AddComponent<NativeScriptableComponent>().Bind<NativeScriptRotateAndOrbit>();
+			return entity;
+		}
+
+		Entity Scene::CreateQuadEntity_V2(const glm::vec3& position, const std::string& name)
+		{
+			Entity entity = CreateEntity(name);
+
+			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
+			entity.GetComponent<TransformComponent>().SetTransform(transform);
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_colored"));
+
+			decltype(auto) event_handler = [entity, this](Event& event) mutable
+				{
+					EventMouseButtonPressed* e = dynamic_cast<EventMouseButtonPressed*>(&event);
+					if (e == nullptr)
+						return;
+
+					//Entity camera_entity = m_controlled_camera_entity;
+
+					auto& transform = (glm::mat4&)entity.GetComponent<TransformComponent>();
+					//glm::mat4& tr = entity.GetComponent<TransformComponent>(); //using implicit cast fn
+
+					auto& window = Application::GetInstance().GetWindow();
+					float x = (2.0f * float(e->x)) / (float)window.BufferWidth() - 1.0f;
+					float y = 1.0f - (2.0f * float(e->y)) / (float)window.BufferHeight();
+					float z = 1.0f;
+
+					CORE_TRACE("Quad Entity click:");
+					CORE_TRACE("Ray NDC (z,y,x): ({},{},{})", x, y, z);
+
+					auto& camera = (PerspectiveCamera&)m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>();
+					auto& camera_transform = (glm::mat4&)m_controlled_camera_entity.GetComponent<TransformComponent>();
+
+					glm::vec3 ray_nds = glm::vec3(x, y, z);
+					glm::vec4 ray_clip = glm::vec4(x, y, -1, 1);
+					glm::vec4 ray_eye = camera.GetInverseProjMatrix() * ray_clip;
+
+					ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+					glm::vec4 ray_world_4d = camera_transform * ray_eye; //transform mat is the inverse of the view mat
+
+					glm::vec3 ray_world = glm::normalize(glm::vec3(ray_world_4d[0], ray_world_4d[1], ray_world_4d[2]));
+
+					glm::vec3 eye_world = glm::vec3(camera_transform[3][0], camera_transform[3][1], camera_transform[3][2]);
+					glm::vec3 grid_normal = glm::vec3(0, 1, 0);
+					float t = -glm::dot(grid_normal, eye_world) / glm::dot(grid_normal, ray_world);
+					glm::vec3 intersection = eye_world + t * ray_world;
+
+					transform[3][0] = floorf(intersection.x);
+					transform[3][1] = 0.0f;
+					transform[3][2] = floorf(intersection.z);
+				};
+			entity.AddComponent<EventHandlerComponent>(event_handler);
+
+			return entity;
+		}
+
+		Entity Scene::CreateDrirectionalLightEntity_V2(const glm::vec3& position, const std::string& name)
+		{
+			Entity entity = CreateEntity(name);
+
+			glm::mat4 transform = glm::mat4(1.0f);
+			transform = glm::translate(transform, position);
+			transform = glm::scale(transform, glm::vec3(0.4f));
+			entity.GetComponent<TransformComponent>().SetTransform(transform);
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse"));
+			return entity;
+		}
+		
+		//======================================================================================================================
 
 		Entity Scene::FindEntityByName(std::string_view name)
 		{
@@ -339,7 +446,8 @@ namespace ely {
 
 				if (mesh_comp.GetShowCoords())
 				{
-					auto coords_mesh = MeshPrimitive::GetCoordSystemMesh1(20.0f);
+					
+					auto& coords_mesh = MeshPrimitive::GetCoordSystemMesh1();  //TODO - this creates / destroys new VBO's, VAO's every frame
 					auto& coords_shader = *(ShaderRepo::Get("basic_lines_colored"));
 
 					glm::mat4 transform = transform_comp;

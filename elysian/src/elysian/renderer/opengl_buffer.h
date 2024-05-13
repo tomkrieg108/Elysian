@@ -13,13 +13,14 @@ namespace ely
 
 		void Bind() const;
 		void Unbind() const;
+		void Release();
 
 		const BufferLayout& GetLayout() const { return m_layout; }
 		uint32_t GetVertexCount() const { return m_vertex_count;  }
 
 	private:
 		uint32_t m_id = 0;
-		BufferLayout m_layout; //TODO this won't be accessed in 'hot code' so can make as a unique pointer
+		BufferLayout m_layout; //TODO this won't be accessed in 'hot code' so could make as a unique pointer
 		uint32_t m_vertex_count = 0;
 	};
 
@@ -34,6 +35,7 @@ namespace ely
 
 		void Bind() const;
 		void Unbind() const;
+		void Release();
 
 		uint32_t GetIndexCount() const { return m_index_count; }
 

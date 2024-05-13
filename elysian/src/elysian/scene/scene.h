@@ -17,7 +17,8 @@ namespace ely {
 			Scene();
 			~Scene();
 
-			Entity CreateEntity(const std::string& name = ""s);
+			Entity CreateEntity(const std::string& name);
+
 			Entity CreateGridEntity();
 			Entity CreateBoxEntity();
 			Entity CreateOrbitingCubeEntity(const glm::vec3& position, const std::string& name);
@@ -25,6 +26,15 @@ namespace ely {
 			Entity CreateQuadEntity2(const glm::vec3& position, const std::string& name); //for editor
 			Entity CreateDrirectionalLightEntity(const glm::vec3& position, const std::string& name);
 			Entity CreatePerspectiveCameraEntity(const glm::vec3& position, const std::string& name);
+
+			Entity CreateGridEntity_V2();
+			Entity CreateBoxEntity_V2();
+			Entity CreateOrbitingCubeEntity_V2(const glm::vec3& position, const std::string& name);
+			Entity CreateQuadEntity_V2(const glm::vec3& position, const std::string& name);
+			Entity CreateDrirectionalLightEntity_V2(const glm::vec3& position, const std::string& name);
+			Entity CreateCameraEntity_V2(const glm::vec3& position, const std::string& name);
+
+
 
 			Entity FindEntityByName(std::string_view name);
 			Entity GetEntityByUUID(UUID uuid);
@@ -40,6 +50,8 @@ namespace ely {
 			void DisplayCoords(Entity& entity, bool val);
 			 
 			auto& GetRegistry() { return m_registry; }
+			const auto& GetRegistry() const { return m_registry; }
+
 			void SetControlledCameraEntity(Entity camera_entity);
 			Entity GetControlledCameraEntity() { return m_controlled_camera_entity; }
 			PerspectiveCameraController& GetCameraController() { return m_camera_controller; }

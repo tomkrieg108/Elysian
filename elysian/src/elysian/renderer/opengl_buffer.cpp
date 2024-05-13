@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "elysian/kernal/base.h"
+#include "elysian/kernal/log.h"
 #include <glad/glad.h>
 #include "opengl_buffer_layout.h"
 #include "opengl_buffer.h"
@@ -17,12 +18,21 @@ namespace ely
 		//glGenBuffers(1, &m_id); //V2.0
 		glBindBuffer(GL_ARRAY_BUFFER, m_id);
 		glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		m_vertex_count = size / layout.GetStride();
 	}
 
 	OpenGLVertexBuffer::~OpenGLVertexBuffer()
 	{
+		CORE_ERROR("OpenGLVertexBuffer destructor called: ID={}", m_id);
+		//glDeleteBuffers(1, &m_id);
+	}
+
+	void OpenGLVertexBuffer::Release()
+	{
 		glDeleteBuffers(1, &m_id);
+		m_id = m_vertex_count = 0;
+		m_layout.Reset();
 	}
 
 	void OpenGLVertexBuffer::Bind() const
@@ -52,7 +62,14 @@ namespace ely
 
 	OpenGLIndexBuffer::~OpenGLIndexBuffer()
 	{
+		CORE_ERROR("OpenGLIndexBuffer destructor called: ID={}", m_id);
+		//glDeleteBuffers(1, &m_id);
+	}
+
+	void OpenGLIndexBuffer::Release()
+	{
 		glDeleteBuffers(1, &m_id);
+		m_id = m_index_count = 0;
 	}
 
 	void OpenGLIndexBuffer::Bind() const

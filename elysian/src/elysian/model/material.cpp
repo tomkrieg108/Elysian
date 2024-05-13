@@ -147,6 +147,24 @@ namespace ely
 
 		void MaterialRepo::LoadMaterials()
 		{
+			
+
+			//-------------------------------------------------
+			// For 'corrds' shader and 'white' shader
+			//-------------------------------------------------
+			s_material_repo["empty"] = CreateRef<Material>();
+
+			//-------------------------------------------------
+			// For 'colored_basic' shader
+			//-------------------------------------------------
+			MaterialSpecification colored_basic_spec =
+			{
+				{"u_object_color", ShaderDataType::Float3}
+			};
+			MaterialData colored_basic_yellow;
+			colored_basic_yellow.SetValue("u_object_color", glm::vec3(1.0f, 1.0f, 0.0f));
+			s_material_repo["colored_basic_yellow"] = CreateRef<Material>(colored_basic_spec, colored_basic_yellow);
+
 			//-------------------------------------------------
 			// For 'light_map_diff_spec' shader
 			//-------------------------------------------------
@@ -167,22 +185,6 @@ namespace ely
 
 
 			s_material_repo["container2_specular"] = CreateRef<Material>(material_spec, material_data);
-
-			//-------------------------------------------------
-			// For 'corrds' shader and 'white' shader
-			//-------------------------------------------------
-			s_material_repo["empty"] = CreateRef<Material>();
-
-			//-------------------------------------------------
-			// For 'colored_basic' shader
-			//-------------------------------------------------
-			MaterialSpecification colored_basic_spec =
-			{
-				{"u_object_color", ShaderDataType::Float3}
-			};
-			MaterialData colored_basic_yellow;
-			colored_basic_yellow.SetValue("u_object_color", glm::vec3(1.0f, 1.0f, 0.0f));
-			s_material_repo["colored_basic_yellow"] = CreateRef<Material>(colored_basic_spec, colored_basic_yellow);
 		}
 
 	}

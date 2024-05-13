@@ -11,6 +11,9 @@
 
 namespace ely
 {
+
+  std::unordered_map<std::string, mesh_v1::Mesh> MeshPrimitive::s_mesh_primitive_repo_v1{};
+  std::unordered_map<std::string, mesh_v2::Mesh> MeshPrimitive::s_mesh_primitive_repo_v2{};
  
   static float cube_vertices[] =
   {
@@ -89,6 +92,24 @@ namespace ely
      0.0f,  0.0f,  1.0f,
      0.0f,  0.0f,  0.0f,
   };
+
+  static float square_xz_tm[] =
+  {
+    // positions          // normals          // uv coords
+     0.0f,  0.0f,  0.0f,  0.0f, 1.0f, 0.0f,   0.0f, 0.0f, 
+     1.0f,  0.0f,  0.0f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+     1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+     1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+     0.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+     0.0f,  0.0f,  0.0f,  0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+  };
+
+  /*
+    TODO and NOTE!!! since these buffers are getting returned by value in these functions, as soon as the function
+    returns, the local buffer object returned goes out of scope and it's destructor is called.  If the constructor 
+    calls glDeleteBuffers() the returned buffer is immediately broken and will not render
+  */
+  
 
  //note that sizeof() operator returns size_t which is a 64 bit unsigned int
   OpenGLVertexBuffer MeshPrimitive::GetCubeVertexBuffer()
@@ -275,23 +296,123 @@ namespace ely
   }
 #endif
 
-  Mesh MeshPrimitive::GetCoordSystemMesh1(float size)
+  Mesh& MeshPrimitive::GetCoordSystemMesh1()
+  {
+    /*auto vbo = MeshPrimitive::GetCoordSystemVertexBuffer(size);
+    auto material = MaterialRepo::Get("empty");
+    Mesh mesh{ vbo, *material, DrawMode::Lines };
+    return mesh;*/
+    return s_mesh_primitive_repo_v1["coords"];
+  }
+
+  Mesh& MeshPrimitive::GetGridMesh1()
+  {
+    //auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, 1.0f); //TODO vbo destructor immediately called in GetGridVertexBuffer => glBufferDestroed() => vbo invalid
+    //auto material = MaterialRepo::Get("empty");
+    //Mesh mesh{ vbo, *material, DrawMode::Lines };
+    //return mesh; //vbo destructor called again, mesh destructor called (which calls vao destructor, but glDeleteVertexArrays() not called in destructor) 
+    return s_mesh_primitive_repo_v1["grid"];
+  }
+
+  Mesh& MeshPrimitive::GetCubeMesh1()
+  {
+    //BufferLayout layout =
+    //{
+    //  {"a_position", ShaderDataType::Float3},
+    //  {"a_normal", ShaderDataType::Float3},
+    //  {"a_uv_coords", ShaderDataType::Float2},
+    //};
+    //OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
+    //auto material = MaterialRepo::Get("container2_specular");
+    //auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
+    //return mesh; //vbo destructor called => doesn't see to break it - this still renders.   mesh destructor called (which calls vao destructor) 
+    return s_mesh_primitive_repo_v1["cube"];
+  }
+
+  Mesh& MeshPrimitive::GetQuadMesh1()
+  {
+    /*BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
+      {"a_normal", ShaderDataType::Float3},
+      {"a_uv_coords", ShaderDataType::Float2},
+    };
+    OpenGLVertexBuffer vbo{ (void*)square_xz_tm, (int32_t)sizeof(square_xz_tm), layout };
+    auto material = MaterialRepo::Get("container2_specular");
+    auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
+    return mesh;*/
+    return s_mesh_primitive_repo_v1["quad"];
+  }
+
+  //--------------------------------------------------------
+
+  mesh_v2::Mesh& MeshPrimitive::GetCoordSystemMesh2()
+  {
+    /*auto vbo = MeshPrimitive::GetCoordSystemVertexBuffer(size);
+    auto mesh = mesh_v2::Mesh{ vbo };
+    mesh.SetDrawMode(DrawMode::Lines);
+    return mesh;*/
+    return s_mesh_primitive_repo_v2["coords"];
+  }
+
+  mesh_v2::Mesh& MeshPrimitive::GetGridMesh2()
+  {
+    /*auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, 1.0f);
+    auto mesh = mesh_v2::Mesh{ vbo };
+    mesh.SetDrawMode(DrawMode::Lines);
+    return mesh;*/
+    return s_mesh_primitive_repo_v2["grid"];
+  }
+
+  mesh_v2::Mesh& MeshPrimitive::GetCubeMesh2()
+  {
+    //BufferLayout layout =
+    //{
+    //  {"a_position", ShaderDataType::Float3},
+    //  {"a_normal", ShaderDataType::Float3},
+    //  {"a_uv_coords", ShaderDataType::Float2},
+    //};
+    ////auto layout_ptr = CreateScope<BufferLayout>();
+    //OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
+    //auto mesh = mesh_v2::Mesh{ vbo };
+    //return mesh;
+    return s_mesh_primitive_repo_v2["cube"];
+  }
+
+  mesh_v2::Mesh& MeshPrimitive::GetQuadMesh2()
+  {
+    /*BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
+      {"a_normal", ShaderDataType::Float3},
+      {"a_uv_coords", ShaderDataType::Float2},
+    };
+    OpenGLVertexBuffer vbo{ (void*)square_xz_tm, (int32_t)sizeof(square_xz_tm), layout };
+    auto mesh = mesh_v2::Mesh{ vbo, DrawMode::Triangles };
+    return mesh;*/
+    return s_mesh_primitive_repo_v2["quad"];
+  }
+
+  
+  //=================================================================================
+
+  void MeshPrimitive::CreateCoordSystemMesh1(float size)
   {
     auto vbo = MeshPrimitive::GetCoordSystemVertexBuffer(size);
     auto material = MaterialRepo::Get("empty");
     Mesh mesh{ vbo, *material, DrawMode::Lines };
-    return mesh;
+    s_mesh_primitive_repo_v1["coords"] = mesh;
   }
 
-  Mesh MeshPrimitive::GetGridMesh1(float grid_size)
+  void MeshPrimitive::CreateGridMesh1(float grid_size)
   {
-    auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, 1.0f);
+    auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, 1.0f); //TODO vbo destructor immediately called in GetGridVertexBuffer => glBufferDestroed() => vbo invalid
     auto material = MaterialRepo::Get("empty");
     Mesh mesh{ vbo, *material, DrawMode::Lines };
-    return mesh;
+    s_mesh_primitive_repo_v1["grid"] = mesh;
   }
 
-  Mesh MeshPrimitive::GetCubeMesh1()
+  void MeshPrimitive::CreateCubeMesh1()
   {
     BufferLayout layout =
     {
@@ -302,21 +423,10 @@ namespace ely
     OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
     auto material = MaterialRepo::Get("container2_specular");
     auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
-    return mesh;
+    s_mesh_primitive_repo_v1["cube"] = mesh;
   }
 
-  Mesh MeshPrimitive::GetQuadMesh1()
-  {
-    auto vbo = MeshPrimitive::GetSquareXZVertexBuffer();
-    auto material = MaterialRepo::Get("colored_basic_yellow");
-    auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
-    return mesh;
-  }
-
-
-  //--------------------------------------------------------
-
-  mesh_v2::Mesh MeshPrimitive::GetCubeMesh2()
+  void MeshPrimitive::CreateQuadMesh1()
   {
     BufferLayout layout =
     {
@@ -324,35 +434,68 @@ namespace ely
       {"a_normal", ShaderDataType::Float3},
       {"a_uv_coords", ShaderDataType::Float2},
     };
-
-    auto layout_ptr = CreateScope<BufferLayout>();
-     
-
-    OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
-    auto mesh = mesh_v2::Mesh{ vbo };
-    return mesh;
+    OpenGLVertexBuffer vbo{ (void*)square_xz_tm, (int32_t)sizeof(square_xz_tm), layout };
+    auto material = MaterialRepo::Get("container2_specular");
+    auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
+    s_mesh_primitive_repo_v1["quad"] = mesh;
   }
+  
+//-----------------------------------------------------------------------------------------
 
-  mesh_v2::Mesh MeshPrimitive::GetQuadMesh2()
-  {
-    auto vbo = MeshPrimitive::GetSquareXZVertexBuffer();
-    auto mesh = mesh_v2::Mesh{ vbo };
-    return mesh;
-  }
-
-  mesh_v2::Mesh MeshPrimitive::GetGridMesh2(float grid_size)
-  {
-    auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, 1.0f);
-    auto mesh = mesh_v2::Mesh{ vbo };
-    mesh.SetDrawMode(DrawMode::Lines);
-    return mesh;
-  }
-
-  mesh_v2::Mesh MeshPrimitive::GetCoordSystemMesh2(float size)
+  void MeshPrimitive::CreateCoordSystemMesh2(float size)
   {
     auto vbo = MeshPrimitive::GetCoordSystemVertexBuffer(size);
     auto mesh = mesh_v2::Mesh{ vbo };
     mesh.SetDrawMode(DrawMode::Lines);
-    return mesh;
+    s_mesh_primitive_repo_v2["coords"] = mesh;
   }
+
+  void MeshPrimitive::CreateGridMesh2(float grid_size)
+  {
+    auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, 1.0f);
+    auto mesh = mesh_v2::Mesh{ vbo };
+    mesh.SetDrawMode(DrawMode::Lines);
+    s_mesh_primitive_repo_v2["grid"] = mesh;
+  }
+
+  void MeshPrimitive::CreateCubeMesh2()
+  {
+    BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
+      {"a_normal", ShaderDataType::Float3},
+      {"a_uv_coords", ShaderDataType::Float2},
+    };
+    //auto layout_ptr = CreateScope<BufferLayout>();
+    OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
+    auto mesh = mesh_v2::Mesh{ vbo };
+    s_mesh_primitive_repo_v2["cube"] = mesh;
+  }
+
+  void MeshPrimitive::CreateQuadMesh2()
+  {
+    BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
+      {"a_normal", ShaderDataType::Float3},
+      {"a_uv_coords", ShaderDataType::Float2},
+    };
+    OpenGLVertexBuffer vbo{ (void*)square_xz_tm, (int32_t)sizeof(square_xz_tm), layout };
+    auto mesh = mesh_v2::Mesh{ vbo };
+    s_mesh_primitive_repo_v2["quad"] = mesh;
+  }
+
+  void MeshPrimitive::Init()
+  {
+    CreateCoordSystemMesh1();
+    CreateGridMesh1();
+    CreateCubeMesh1();
+    CreateQuadMesh1();
+
+    CreateCoordSystemMesh2();
+    CreateGridMesh2();
+    CreateCubeMesh2();
+    CreateQuadMesh2();
+  }
+
 }

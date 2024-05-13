@@ -12,7 +12,7 @@ namespace ely
 
 		void Bind() const;
 		void Unbind() const;
-		void Release() const;
+		void Release();
 
 		void AddVertexBuffer(const OpenGLVertexBuffer& vertex_buffer);
 		void SetIndexBuffer(const OpenGLIndexBuffer& index_buffer);

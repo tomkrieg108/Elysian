@@ -40,7 +40,7 @@ namespace ely
 		}
 #endif
 
-		CORE_INFO("OpenGL Context Initialised (GLEW)");
+		CORE_INFO("OpenGL Context Initialised");
 		CORE_INFO("OpenGL Info:");
 		//TODO
 		//hazel just does this!  But gives me compile error.

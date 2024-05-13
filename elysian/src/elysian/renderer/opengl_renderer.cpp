@@ -100,6 +100,7 @@ namespace ely
 	}
 #endif
 
+	//TODO - remove this - draw mode should be 'mesh topology' - property of the mesh
 	uint32_t OpenGLRenderer::GetOpenGLDrawMode(DrawMode draw_mode)
 	{
 		switch (draw_mode)
@@ -110,6 +111,25 @@ namespace ely
 
 		//TODO assert unknown draw mode
 		return GL_TRIANGLES;
+	}
+
+	void OpenGLRenderer::BeginScene(const Scene& scene, const Camera& camera, const DirectionalLight& directional_light)
+	{
+		const auto& reg = scene.GetRegistry();
+		auto view = reg.view<DirectionalLightComponent, TransformComponent>();
+
+
+	}
+
+	void OpenGLRenderer::BeginScene(const Scene& scene, const Camera& camera, const DirectionalLight& directional_light, 
+		const OpenGLFramebuffer& render_target)
+	{
+
+	}
+
+	void Draw(const mesh_v2::Mesh& mesh, const material_v2::Material& material)
+	{
+
 	}
 
 }

@@ -4,6 +4,7 @@
 #include "elysian/renderer/opengl_renderer.h"
 #include "elysian/renderer/opengl_texture_2d.h"
 #include "elysian/renderer/opengl_shader.h"
+#include "elysian/model/mesh_primitives.h"
 #include "elysian/imgui/im_gui_layer.h"
 
 using namespace std::literals;  // For suffixes
@@ -25,6 +26,7 @@ namespace ely
 		Texture2DRepo::Init();
 		ShaderRepo::Init();
 		MaterialRepo::Init();
+		MeshPrimitive::Init();
 
 		//TODO Maybe makes more sense than to set the function in event dispatcher rather than window as in hazel
 		m_window->SetEventCallback(MakeCallback(&Application::OnEvent));
