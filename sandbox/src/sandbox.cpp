@@ -16,7 +16,6 @@ namespace ely {
 
 	Sandbox::~Sandbox()
 	{
-		//this->PopLayer(test_layer4);
 	}
 
 	void Sandbox::OnUpdate(double delta_time)

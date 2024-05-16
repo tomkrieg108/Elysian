@@ -3,9 +3,9 @@
 #include "elysian/kernal/base.h"
 #include "elysian/events/events.h"
 #include "elysian/renderer/opengl_framebuffer.h"
+#include "elysian/renderer/opengl_renderer.h"
 #include "elysian/scene/entity.h"
 #include "elysian/camera/perspective_camera_controller.h"
-
 
 
 namespace ely {
@@ -80,6 +80,8 @@ namespace ely {
 
 			//TEMP - for CreateQuadEntity2
 			glm::vec2 m_viewport_size{ 0,0 };
+
+			//OpenGLRenderer m_renderer;
 
 			//TODO needed?
 			//friend class Entity;

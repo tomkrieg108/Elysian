@@ -1,5 +1,6 @@
 #pragma once
 
+#include "elysian/renderer/opengl_uniform_buffer.h"
 #include <glm/glm.hpp>
 
 namespace ely 
@@ -53,6 +54,9 @@ namespace ely
 		ProjectionType m_projection_type = ProjectionType::Perspective;
 		PerspectiveParams m_perspective_params;
 		OrthoParams m_ortho_params;
+
+		//const glm::mat4& m_transform; from transform component
+	
 	};
 
 }

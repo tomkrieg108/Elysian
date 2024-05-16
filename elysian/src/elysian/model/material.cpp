@@ -212,12 +212,12 @@ namespace ely
 
 			for (const auto& item : uniform_data)
 			{
-				if (item.name.find("u_material") != std::string::npos)
+				if (item.second.name.find("u_material") != std::string::npos)
 				{
 					MaterialUniform material_uniform;
-					material_uniform.item = item;
+					material_uniform.item = item.second;
 
-					switch (item.type)
+					switch (item.second.type)
 					{
 						case ShaderDataType::Bool: material_uniform.value = false; break;
 						case ShaderDataType::Float: material_uniform.value = 0.0f; break;
@@ -231,7 +231,7 @@ namespace ely
 						case ShaderDataType::SamplerCube: material_uniform.value = -1;  break;
 						default:
 						{
-							CORE_ERROR(" Material::InitData(): unsupported shader data type {}: ", ShaderUtils::ShaderDataTypeToString(item.type));
+							CORE_ERROR(" Material::InitData(): unsupported shader data type {}: ", ShaderUtils::ShaderDataTypeToString(item.second.type));
 							material_uniform.value = -1;
 						}
 					}

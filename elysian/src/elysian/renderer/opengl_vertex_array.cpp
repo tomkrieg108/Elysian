@@ -20,7 +20,7 @@ namespace ely
 		//TODO
 		// NOTE this gets called when a Mesh local variable is returned from a function, which messing things up
 		// use Release() instead - see below
-		CORE_ERROR("vertex array destructor called: ID={}", m_id);
+		CORE_WARN("vertex array destructor called: ID={}", m_id);
 		//glDeleteVertexArrays(1, &m_id);
 	}
 

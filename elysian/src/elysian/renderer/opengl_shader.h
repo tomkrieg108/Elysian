@@ -18,6 +18,7 @@ buffer layouts, materials etc
 namespace ely
 {
 	class Shader;
+	class OpenGLUniformBuffer;
 
 	enum class ShaderType : uint32_t
 	{
@@ -80,6 +81,26 @@ namespace ely
 
 	public:
 
+		//Attribute or uniform
+		struct DataItem
+		{
+			std::string name = "";
+			int32_t location = -1;
+			ShaderDataType type = ShaderDataType::Float;
+			int32_t size = 0;
+		};
+
+		struct UniformBlock
+		{
+			std::string name = "";
+			int32_t index = -1;
+			int32_t binding = -1;
+			int32_t size = 0;
+			int32_t active_uniforms = 0;
+		};
+
+	public:
+
 		Shader() = default;
 		~Shader() = default;
 
@@ -103,34 +124,31 @@ namespace ely
 		void OutputInfo();
 
 		const auto& GetUniformData() const { return m_uniforms; }
+		const auto& GetUniformBlockData() const { return m_uniform_blocks; }
 		const auto& GetAttributeData() const { return m_attributes; }
-		
+
+		std::optional<std::reference_wrapper<const DataItem>> GetUniform(const std::string& name) const;
+		std::optional<std::reference_wrapper<const UniformBlock>> GetUniformBlock(const std::string& name) const;
+		std::optional<std::reference_wrapper<const DataItem>> GetAttribute(const std::string& name) const;
+
 		static Ref<Shader> Create(const std::string& filename, const std::string& name);			//For a single file
 		static Ref<Shader> Create(const ShaderSource& shader_source, const std::string& name);	//If split into multiple files
-
-	public:
-
-		//Attribute or uniform
-		struct DataItem
-		{
-			std::string name;
-			int location;
-			ShaderDataType type;
-			uint32_t size;
-		};
 		
 	private:
 		std::string m_name = "Unnamed Shader";
 		bool m_build_success = false;
 		uint32_t m_program_id = 0;
-		std::unordered_map<std::string, int> m_uniform_location_cache;  //TODO:  don't need this since querying and storing the uniforms on init
-		std::vector<DataItem> m_attributes;
-		std::vector<DataItem> m_uniforms;
+		std::unordered_map<std::string, int32_t> m_uniform_location_cache;  //TODO:  don't need this since querying and storing the uniforms in m_uniforms on initialisation
+		std::unordered_map<std::string, DataItem> m_attributes;
+		std::unordered_map<std::string, DataItem> m_uniforms;
+		std::unordered_map<std::string, UniformBlock> m_uniform_blocks;
+
 
 	private:
 		
 		int32_t GetUniformLocation(const std::string& name);
 		void ReadUniforms();
+		void ReadUniformBlocks();
 		void ReadAttributes();
 	};
 
@@ -145,13 +163,17 @@ namespace ely
 		static Ref<Shader> Load(const std::string& filename, const std::string& shader_name);
 		static Ref<Shader> Get(const std::string& name);
 		static bool Exists(const std::string& name);
-		static auto GetShaders() { return m_shader_repo; }
+		static auto& GetShaders() { return m_shader_repo; }
 
 		static auto begin() { return std::begin(m_shader_repo); }
 		static auto end() { return std::end(m_shader_repo); }
+
+		//static const OpenGLUniformBuffer& GetUniformBuffer(const std::string& name);
+		static std::optional <std::reference_wrapper<OpenGLUniformBuffer>> GetUniformBuffer(const std::string& name);
 		
 	private:
 		static std::unordered_map<std::string, Ref<Shader>> m_shader_repo;
+		static std::unordered_map<std::string, OpenGLUniformBuffer> m_uniform_buffers;
 		static const std::string s_shader_asset_path;
 
 		friend ShaderBuilder;

@@ -5,10 +5,8 @@
 #include "elysian/kernal/layer.h"
 #include "elysian/imgui/im_gui_layer.h"
 
-//declare entry point function here
-//int main(int argc, char** argv);
-int main();
 
+int main();
 
 namespace ely
 {

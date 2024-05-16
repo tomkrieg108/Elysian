@@ -7,7 +7,16 @@
 
 namespace ely
 {
-	
+	//OpenGLRenderer::OpenGLRenderer() :
+	//	// m_ub_camera{2*sizeof(glm::mat4), 0}
+	//{
+	//	Init();
+	//}
+
+	//OpenGLRenderer::~OpenGLRenderer()
+	//{
+	//}
+
 	void OpenGLRenderer::Init()
 	{
 		glEnable(GL_DEPTH_TEST);
@@ -113,24 +122,20 @@ namespace ely
 		return GL_TRIANGLES;
 	}
 
-	void OpenGLRenderer::BeginScene(const Scene& scene, const Camera& camera, const DirectionalLight& directional_light)
+	/*void OpenGLRenderer::BeginScene(const Scene& scene, const Camera& camera, const DirectionalLight& directional_light)
 	{
 		const auto& reg = scene.GetRegistry();
 		auto view = reg.view<DirectionalLightComponent, TransformComponent>();
+	}*/
 
-
-	}
-
-	void OpenGLRenderer::BeginScene(const Scene& scene, const Camera& camera, const DirectionalLight& directional_light, 
+	/*void OpenGLRenderer::BeginScene(const Scene& scene, const Camera& camera, const DirectionalLight& directional_light, 
 		const OpenGLFramebuffer& render_target)
 	{
+	}*/
 
-	}
-
-	void Draw(const mesh_v2::Mesh& mesh, const material_v2::Material& material)
+	/*void OpenGLRenderer::Draw(const mesh_v2::Mesh& mesh, const material_v2::Material& material)
 	{
-
-	}
+	}*/
 
 }
 

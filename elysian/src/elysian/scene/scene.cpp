@@ -363,16 +363,43 @@ namespace ely {
 			//upload camera data to all shaders!
 			for (auto& item : ShaderRepo::GetShaders())
 			{
+				const auto& shader_name = item.first;
+				if (shader_name == "basic_specular_ub")
+				{
+					auto& shader = item.second;
+					const auto camera_block_opt = shader->GetUniformBlock("ub_camera");
+					if (camera_block_opt)
+						const Shader::UniformBlock& camera_block = camera_block_opt.value();
+					
+					const auto light_block_opt = shader->GetUniformBlock("ub_directional_light");
+					if (light_block_opt)
+						const Shader::UniformBlock& light_block = light_block_opt.value();
+				
+					const auto invalid_block_opt = shader->GetUniformBlock("ub_invalid");
+					if (invalid_block_opt)
+						const Shader::UniformBlock& invalid_block = invalid_block_opt.value();
+						
+					continue;
+				}
+					
 				auto& shader = item.second;
 				shader->Bind();
 				shader->SetUniformMat4f("u_view", view_mat);
 				shader->SetUniformMat4f("u_proj", proj_mat);
+
+				const auto uniform_opt = shader->GetUniform("u_view_pos");
+				if(uniform_opt.has_value())
+					shader->SetUniform3f("u_view_pos", camera.GetPosition(camera_transform));
 			}
 
-			//TODO - should be using the component shader
-			auto cube_shader = ely::ShaderRepo::Get("basic_specular");
-			cube_shader->Bind();
-			cube_shader->SetUniform3f("u_view_pos", camera.GetPosition(camera_transform));
+			const auto& camera_ub_opt = ShaderRepo::GetUniformBuffer("ub_camera");
+			if (camera_ub_opt)
+				const OpenGLUniformBuffer& camera_ub = camera_ub_opt.value();
+			
+			const auto& light_ub_opt = ShaderRepo::GetUniformBuffer("ub_directional_light");
+			if (light_ub_opt)
+				const OpenGLUniformBuffer& light_ub = light_ub_opt.value();
+				
 		}
 
 		//TODO - should be in renderer module
@@ -397,6 +424,9 @@ namespace ely {
 			//Upload per scene data do shader(s)
 			UploadCameraDataToShaders(); //TODO should be part of renderer api
 			UploadLightDataToShader();
+			//m_renderer.SetClearColor(clear_color);
+			//m_renderer.ClearBuffers();
+
 			OpenGLRenderer::SetClearColor(clear_color);
 			OpenGLRenderer::ClearBuffers();
 		}
@@ -442,6 +472,7 @@ namespace ely {
 
 				auto& mesh = (Mesh&)(mesh_comp);
 				mesh.UploadMaterialToShader(shader); //TODO shoud be done in renderer
+				//m_renderer.DrawMesh(mesh, shader);
 				OpenGLRenderer::DrawMesh(mesh, shader);
 
 				if (mesh_comp.GetShowCoords())
@@ -455,6 +486,7 @@ namespace ely {
 						transform = glm::scale(transform, glm::vec3(0.1f));
 					coords_shader.Bind();
 					coords_shader.SetUniformMat4f("u_model", transform);
+					//m_renderer.DrawMesh(coords_mesh, coords_shader);
 					OpenGLRenderer::DrawMesh(coords_mesh, coords_shader);
 				}
 			}

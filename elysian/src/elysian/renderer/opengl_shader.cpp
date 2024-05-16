@@ -1,10 +1,13 @@
 #include "pch.h"
 #include "elysian/kernal/base.h"
-#include <glad/glad.h>
 #include "elysian/kernal/log.h"
 #include "opengl_shader_utils.h"
+#include "elysian/renderer/opengl_uniform_buffer.h"
 #include "elysian/renderer/opengl_shader.h"
 
+#include <glad/glad.h>
+ 
+using namespace std::string_literals;
 
 //NOTE
 /*
@@ -170,6 +173,7 @@ namespace ely
 
 		shader->ReadAttributes();
 		shader->ReadUniforms();
+		shader->ReadUniformBlocks();
 
 		return shader;
 	}
@@ -334,6 +338,40 @@ namespace ely
 		return location;
 	}
 
+	//TODO - following 3 functions can be made into a single template function
+	std::optional<std::reference_wrapper<const Shader::DataItem>> Shader::GetUniform(const std::string& name) const
+	{
+		if (m_uniforms.find(name) != m_uniforms.end())
+		{
+			const auto& val = m_uniforms.at(name);
+			return val;
+		}
+		else
+			return std::nullopt;
+	}
+
+	std::optional<std::reference_wrapper<const Shader::UniformBlock>> Shader::GetUniformBlock(const std::string& name) const
+	{
+		auto it = m_uniform_blocks.find(name);
+		if (it != m_uniform_blocks.end()) 
+			return it->second;
+		else 
+			return std::nullopt;
+	}
+
+	std::optional<std::reference_wrapper<const Shader::DataItem>> Shader::GetAttribute(const std::string& name) const
+	{
+		auto it = m_attributes.find(name);
+		if (it != m_attributes.end()) {
+			const auto& val = it->second;
+			return val;
+		}
+		else {
+			return std::nullopt;
+		}
+	}
+
+
 	void Shader::ReadUniforms()
 	{
 		int32_t params = -1;
@@ -342,7 +380,7 @@ namespace ely
 		for (int32_t i = 0; i < params; i++)
 		{
 			Shader::DataItem item;
-			char name[kMaxLength];
+			char name[kMaxLength] = { 0 };
 			int actual_length = 0;
 			int size = 0;
 			GLenum type;
@@ -363,8 +401,29 @@ namespace ely
 					item.location = glGetUniformLocation(m_program_id, item_name.c_str());
 					item.name = item_name;
 				}
-				m_uniforms.push_back(item);
+				m_uniforms[item.name] = item;
 			}
+		}
+	}
+
+	void Shader::ReadUniformBlocks()
+	{
+		int32_t params = -1;
+		const int kMaxLength = 100;
+		glGetProgramiv(m_program_id, GL_ACTIVE_UNIFORM_BLOCKS, &params);
+		for (int32_t i = 0; i < params; i++)
+		{
+			Shader::UniformBlock uniform_block;
+			char name[kMaxLength] = { 0 };
+			int actual_length = 0;
+			glGetActiveUniformBlockName(m_program_id, i, kMaxLength, &actual_length, name);
+			uniform_block.name = std::string{ name };
+			uniform_block.index = glGetUniformBlockIndex(m_program_id, name); //returns GL_INVALID_INDEX if can't find
+			glGetActiveUniformBlockiv(m_program_id, i, GL_UNIFORM_BLOCK_BINDING, &(uniform_block.binding));
+			glGetActiveUniformBlockiv(m_program_id, i, GL_UNIFORM_BLOCK_DATA_SIZE, &(uniform_block.size));
+			glGetActiveUniformBlockiv(m_program_id, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &(uniform_block.active_uniforms));
+
+			m_uniform_blocks[uniform_block.name] = uniform_block;
 		}
 	}
 
@@ -376,7 +435,7 @@ namespace ely
 		for (int32_t i = 0; i < params; i++)
 		{
 			Shader::DataItem item;
-			char name[kMaxLength];
+			char name[kMaxLength] = { 0 };
 			int actual_length = 0;
 			int size = 0;
 			GLenum type;
@@ -397,7 +456,7 @@ namespace ely
 					item.location = glGetAttribLocation(m_program_id, item_name.c_str());
 					item.name = item_name;
 				}
-				m_attributes.push_back(item);
+				m_attributes[item.name] = item;
 			}
 		}
 	}
@@ -435,18 +494,24 @@ namespace ely
 		CORE_INFO("GL_ACTIVE_ATTRIBUTES {}", m_attributes.size());
 		for (auto& item : m_attributes)
 		{
-			CORE_TRACE("   {}: {}, size: {}, loc: {}", item.name, ShaderUtils::ShaderDataTypeToString(item.type), item.size, item.location);
+			CORE_TRACE("   {}: {}, size: {}, loc: {}", item.second.name, ShaderUtils::ShaderDataTypeToString(item.second.type), item.second.size, item.second.location);
 		}
 		CORE_INFO("GL_ACTIVE_UNIFORMS {}", m_uniforms.size());
 		for (auto& item : m_uniforms)
 		{
-			CORE_TRACE("   {}: {}, size: {}, loc: {}", item.name, ShaderUtils::ShaderDataTypeToString(item.type), item.size, item.location);
+			CORE_TRACE("   {}: {}, size: {}, loc: {}", item.second.name, ShaderUtils::ShaderDataTypeToString(item.second.type), item.second.size, item.second.location);
+		}
+		CORE_INFO("GL_ACTIVE_UNIFORM_BLOCKS {}", m_uniform_blocks.size());
+		for (auto& item : m_uniform_blocks)
+		{
+			CORE_TRACE("   {}: index: {} binding: {}, data size: {}, active uniforms: {}", item.second.name, item.second.index, item.second.binding, item.second.size, item.second.active_uniforms);
 		}
 	}
 
 	// ShaderRepo --------------------------------------------------------------------------------------------
 
-	std::unordered_map<std::string, Ref<Shader>> ShaderRepo::m_shader_repo{};
+	std::unordered_map<std::string, Ref<Shader>> ShaderRepo::m_shader_repo;
+	std::unordered_map<std::string, OpenGLUniformBuffer> ShaderRepo::m_uniform_buffers;
 	std::string const ShaderRepo::s_shader_asset_path = std::string{ "assets/shaders/" };
 
 	void ShaderRepo::Init()
@@ -471,7 +536,10 @@ namespace ely
 		ShaderRepo::Load("basic_lines_colored.glsl", "basic_lines_colored");
 		ShaderRepo::Load("basic_diffuse.glsl", "basic_diffuse");
 		ShaderRepo::Load("basic_specular.glsl", "basic_specular");
+		ShaderRepo::Load("basic_specular_ub.glsl", "basic_specular_ub");
 		ShaderRepo::Load("gamma.glsl", "gamma");
+
+		CORE_INFO("UB size: {}", m_uniform_buffers.size());
 	}
 
 	Ref<Shader> ShaderRepo::Load(const ShaderSource& shader_source, const std::string& shader_name)
@@ -479,6 +547,15 @@ namespace ely
 		//TODO: assert that shader doesn't already exist
 		Ref<Shader> shader = Shader::Create(shader_source, shader_name);
 		m_shader_repo[shader_name] = shader;
+		const auto& uniform_blocks = shader->GetUniformBlockData();
+		for (const auto& item : uniform_blocks)
+		{
+			auto& block_name = item.first;
+			auto& block_data = item.second;
+			m_uniform_buffers[block_name] = OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) };
+			//m_uniform_buffers.insert(std::make_pair(block_name, OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) }));
+		}
+			
 		shader->OutputInfo();
 		return shader;
 	}
@@ -487,10 +564,30 @@ namespace ely
 	{
 		Ref<Shader> shader = Shader::Create(filename, shader_name);
 		m_shader_repo[shader_name] = shader;
+		const auto& uniform_blocks = shader->GetUniformBlockData();
+		for (const auto& item : uniform_blocks)
+		{
+			auto& block_name = item.first;
+			auto& block_data = item.second;
+			m_uniform_buffers[block_name] = OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) }; //OpenGLUniformBuffer destructor called once
+			//m_uniform_buffers.insert(std::make_pair(block_name, OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) })); //OpenGLUniformBuffer destructor called twice!
+		}
 		shader->OutputInfo();
 		return shader;
 	}
 
+	std::optional <std::reference_wrapper<OpenGLUniformBuffer>> ShaderRepo::GetUniformBuffer(const std::string& name)
+	{
+		auto it = m_uniform_buffers.find(name);
+		if (it != m_uniform_buffers.end()) {
+			auto& val = it->second;
+			return val;
+		}
+		else {
+			return std::nullopt;
+		}
+	}
+	
 	Ref<Shader> ShaderRepo::Get(const std::string& name)
 	{
 		//TODO: assert that shader exists

@@ -24,7 +24,7 @@ namespace ely
 
 	OpenGLVertexBuffer::~OpenGLVertexBuffer()
 	{
-		CORE_ERROR("OpenGLVertexBuffer destructor called: ID={}", m_id);
+		CORE_WARN("OpenGLVertexBuffer destructor called: ID={}", m_id);
 		//glDeleteBuffers(1, &m_id);
 	}
 
@@ -62,7 +62,7 @@ namespace ely
 
 	OpenGLIndexBuffer::~OpenGLIndexBuffer()
 	{
-		CORE_ERROR("OpenGLIndexBuffer destructor called: ID={}", m_id);
+		CORE_WARN("OpenGLIndexBuffer destructor called: ID={}", m_id);
 		//glDeleteBuffers(1, &m_id);
 	}
 

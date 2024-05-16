@@ -8,12 +8,10 @@
 
 namespace ely
 {
-
+	
 	Camera::Camera()
 	{
 		m_perspective_params.aspect_ratio = Application::GetInstance().GetWindow().AspectRatio();
-	
-
 	}
 	
 	glm::mat4 Camera::GetProjMatrix() const
