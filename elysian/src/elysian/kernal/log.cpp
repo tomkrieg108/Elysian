@@ -1,4 +1,4 @@
-//see cherno video on logging for settinh up git sub modules in your project
+//see cherno video on logging for setting up git sub modules in your project
 #include "pch.h"
 #include "elysian/kernal/log.h"
 #include <spdlog/sinks/stdout_color_sinks.h>

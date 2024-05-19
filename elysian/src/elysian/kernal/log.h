@@ -1,8 +1,13 @@
 #pragma once
 
-#include <memory>
+//#include <memory>
+
+
+#pragma warning(push)
+#pragma warning( disable : 4996)
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h> // allows custom << operators to be used
+#pragma warning(pop)
 
 namespace ely
 {

@@ -148,7 +148,6 @@ namespace ely
 		void MaterialRepo::LoadMaterials()
 		{
 			
-
 			//-------------------------------------------------
 			// For 'corrds' shader and 'white' shader
 			//-------------------------------------------------

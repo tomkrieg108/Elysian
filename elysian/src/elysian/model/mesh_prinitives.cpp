@@ -255,96 +255,34 @@ namespace ely
     return vertex_buffer;
   }
 
- 
-#if 0
-  Ref<Mesh> MeshPrimitive::GetCubeMesh()
-  {
-    BufferLayout layout =
-    {
-      {"a_position", ShaderDataType::Float3},
-      {"a_normal", ShaderDataType::Float3},
-      {"a_uv_coords", ShaderDataType::Float2},
-    };
-    OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
-    auto material = MaterialRepo::Get("container2_specular");
-    auto mesh = CreateRef<Mesh>(vbo, *material, DrawMode::Triangles);
-    return mesh;
-  }
-
-  Ref<Mesh> MeshPrimitive::GetQuadMesh()
-  {
-    auto vbo = MeshPrimitive::GetSquareXZVertexBuffer();
-    auto material = MaterialRepo::Get("colored_basic_yellow");
-    auto mesh = CreateRef<Mesh>(vbo, *material, DrawMode::Triangles);
-    return mesh;
-  }
-
-  Ref<Mesh> MeshPrimitive::GetGridMesh(float grid_size, float unit_size)
-  {
-    auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, unit_size);
-    auto material = MaterialRepo::Get("empty");
-    auto mesh = CreateRef<Mesh>(vbo, *material, DrawMode::Lines);
-    return mesh;
-  }
-
-  Ref<Mesh> MeshPrimitive::GetCoordSystemMesh(const glm::mat4& model_mat, float size)
-  {
-    auto vbo = MeshPrimitive::GetCoordSystemVertexBuffer(model_mat, size);
-    auto material = MaterialRepo::Get("empty");
-    auto mesh = CreateRef<Mesh>(vbo, *material, DrawMode::Lines);
-    return mesh;
-  }
-#endif
+  //=================================================================================
 
   Mesh& MeshPrimitive::GetCoordSystemMesh1()
   {
-    /*auto vbo = MeshPrimitive::GetCoordSystemVertexBuffer(size);
-    auto material = MaterialRepo::Get("empty");
-    Mesh mesh{ vbo, *material, DrawMode::Lines };
-    return mesh;*/
     return s_mesh_primitive_repo_v1["coords"];
   }
 
   Mesh& MeshPrimitive::GetGridMesh1()
   {
-    //auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, 1.0f); //TODO vbo destructor immediately called in GetGridVertexBuffer => glBufferDestroed() => vbo invalid
-    //auto material = MaterialRepo::Get("empty");
-    //Mesh mesh{ vbo, *material, DrawMode::Lines };
-    //return mesh; //vbo destructor called again, mesh destructor called (which calls vao destructor, but glDeleteVertexArrays() not called in destructor) 
     return s_mesh_primitive_repo_v1["grid"];
   }
 
   Mesh& MeshPrimitive::GetCubeMesh1()
   {
-    //BufferLayout layout =
-    //{
-    //  {"a_position", ShaderDataType::Float3},
-    //  {"a_normal", ShaderDataType::Float3},
-    //  {"a_uv_coords", ShaderDataType::Float2},
-    //};
-    //OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
-    //auto material = MaterialRepo::Get("container2_specular");
-    //auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
-    //return mesh; //vbo destructor called => doesn't see to break it - this still renders.   mesh destructor called (which calls vao destructor) 
     return s_mesh_primitive_repo_v1["cube"];
   }
 
   Mesh& MeshPrimitive::GetQuadMesh1()
   {
-    /*BufferLayout layout =
-    {
-      {"a_position", ShaderDataType::Float3},
-      {"a_normal", ShaderDataType::Float3},
-      {"a_uv_coords", ShaderDataType::Float2},
-    };
-    OpenGLVertexBuffer vbo{ (void*)square_xz_tm, (int32_t)sizeof(square_xz_tm), layout };
-    auto material = MaterialRepo::Get("container2_specular");
-    auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
-    return mesh;*/
     return s_mesh_primitive_repo_v1["quad"];
   }
 
-  //--------------------------------------------------------
+  Mesh& MeshPrimitive::GetQuadMeshTM1()
+  {
+    return s_mesh_primitive_repo_v1["quad_tm"];
+  }
+
+  //=================================================================================
 
   mesh_v2::Mesh& MeshPrimitive::GetCoordSystemMesh2()
   {
@@ -393,7 +331,6 @@ namespace ely
     return s_mesh_primitive_repo_v2["quad"];
   }
 
-  
   //=================================================================================
 
   void MeshPrimitive::CreateCoordSystemMesh1(float size)
@@ -431,16 +368,28 @@ namespace ely
     BufferLayout layout =
     {
       {"a_position", ShaderDataType::Float3},
+    };
+    OpenGLVertexBuffer vbo{ (void*)square_xz, (int32_t)sizeof(square_xz), layout };
+    auto material = MaterialRepo::Get("colored_basic_yellow");
+    auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
+    s_mesh_primitive_repo_v1["quad"] = mesh;
+  }
+
+  void MeshPrimitive::CreateQuadMeshTM1()
+  {
+    BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
       {"a_normal", ShaderDataType::Float3},
       {"a_uv_coords", ShaderDataType::Float2},
     };
     OpenGLVertexBuffer vbo{ (void*)square_xz_tm, (int32_t)sizeof(square_xz_tm), layout };
     auto material = MaterialRepo::Get("container2_specular");
     auto mesh = Mesh{ vbo, *material, DrawMode::Triangles };
-    s_mesh_primitive_repo_v1["quad"] = mesh;
+    s_mesh_primitive_repo_v1["quad_tm"] = mesh;
   }
   
-//-----------------------------------------------------------------------------------------
+  //=================================================================================
 
   void MeshPrimitive::CreateCoordSystemMesh2(float size)
   {
@@ -484,6 +433,8 @@ namespace ely
     auto mesh = mesh_v2::Mesh{ vbo };
     s_mesh_primitive_repo_v2["quad"] = mesh;
   }
+
+  //=================================================================================
 
   void MeshPrimitive::Init()
   {

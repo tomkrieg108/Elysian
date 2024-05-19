@@ -77,7 +77,6 @@ namespace ely {
 		//Render to framebuffer (main camera)
 		ely::OpenGLRenderer::SetLineWidth(1.0);
 		m_framebuffer.Bind();
-		//m_scene->BeginScene("Main Camera"s, glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
 		m_scene->BeginScene(glm::vec4{ 0.1f,0.1f,0.1f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
 		m_scene->UpdateScene(time_step);
 		m_scene->RenderScene();

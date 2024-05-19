@@ -13,7 +13,7 @@ namespace ely {
 	class Scene
 		{
 		public:
-		
+
 			Scene();
 			~Scene();
 

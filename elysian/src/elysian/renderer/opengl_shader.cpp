@@ -518,26 +518,25 @@ namespace ely
 	{
 		ShaderSource shader_source =
 		{
-			{ShaderType::Vertex, "white.vs"},
-			{ShaderType::Fragment, "white.fs"}
-		};
-		ShaderRepo::Load(shader_source, "white");
-
-		shader_source.Reset();
-		shader_source =
-		{
 			{ShaderType::Vertex, "model_loading.vs"},
 			{ShaderType::Fragment, "model_loading.fs"}
 		};
 		ShaderRepo::Load(shader_source, "model_loading");
-
 		shader_source.Reset();
+		
 		ShaderRepo::Load("basic_colored.glsl", "basic_colored");
 		ShaderRepo::Load("basic_lines_colored.glsl", "basic_lines_colored");
 		ShaderRepo::Load("basic_diffuse.glsl", "basic_diffuse");
 		ShaderRepo::Load("basic_specular.glsl", "basic_specular");
+	
+
+		ShaderRepo::Load("basic_colored_ub.glsl", "basic_colored_ub");
+		ShaderRepo::Load("basic_lines_colored_ub.glsl", "basic_lines_colored_ub");
 		ShaderRepo::Load("basic_specular_ub.glsl", "basic_specular_ub");
+		ShaderRepo::Load("basic_diffuse_ub.glsl", "basic_diffuse_ub");
+		ShaderRepo::Load("white_ub.glsl", "white_ub");
 		ShaderRepo::Load("gamma.glsl", "gamma");
+
 
 		CORE_INFO("UB size: {}", m_uniform_buffers.size());
 	}
@@ -552,8 +551,13 @@ namespace ely
 		{
 			auto& block_name = item.first;
 			auto& block_data = item.second;
-			m_uniform_buffers[block_name] = OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) };
-			//m_uniform_buffers.insert(std::make_pair(block_name, OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) }));
+			//TODO put m_uniform_buffers in opengl_uniform_buffer.h.  
+			//TODO define standard uniform blocks in opengl_uniform_buffer.h.  validate all ub's read against name / size defined in opengl_uniform_buffer.h
+
+			//m_uniform_buffers[block_name] = OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) };
+			auto it = m_uniform_buffers.find(block_name);
+			if (it == m_uniform_buffers.end()) 
+				m_uniform_buffers.insert({ block_name, OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) } });
 		}
 			
 		shader->OutputInfo();
@@ -569,8 +573,10 @@ namespace ely
 		{
 			auto& block_name = item.first;
 			auto& block_data = item.second;
-			m_uniform_buffers[block_name] = OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) }; //OpenGLUniformBuffer destructor called once
-			//m_uniform_buffers.insert(std::make_pair(block_name, OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) })); //OpenGLUniformBuffer destructor called twice!
+			//m_uniform_buffers[block_name] = OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) }; //OpenGLUniformBuffer destructor called once
+			auto it = m_uniform_buffers.find(block_name);
+			if (it == m_uniform_buffers.end()) 
+				auto val = m_uniform_buffers.insert({ block_name, OpenGLUniformBuffer{ static_cast<uint32_t>(block_data.size), static_cast<uint32_t>(block_data.binding) } }); //OpenGLUniformBuffer destructor called twice!
 		}
 		shader->OutputInfo();
 		return shader;

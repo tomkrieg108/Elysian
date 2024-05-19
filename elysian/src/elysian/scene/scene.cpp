@@ -45,15 +45,13 @@ namespace ely {
 		{
 			Entity entity = CreateEntity("Grid");
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetGridMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_lines_colored")));
-
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_lines_colored_ub")));
 			/*
 			TODO - sort out this thing
 			grid entity passed through only used PerspectiveCameraController::RotateWorld2(), which an attempt to setup the 
 			grid as a local object within world space.  PerspectiveCameraController::RotateWorld2() has been abandoned for now! not used
 			*/
 			m_camera_controller.SetGridEntity(entity);
-
 			return entity;
 		}
 
@@ -67,11 +65,7 @@ namespace ely {
 			auto& mesh_comp = entity.AddComponent<MeshRendererComponent>(mesh);
 			mesh_comp.SetEnableRender(false); //TODO make this a parameter to ctr
 			auto& camera_comp = entity.AddComponent<PerspectiveCameraComponent>();
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white")));
-
-			//auto& mesh_renderer_comp = entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse"));
-			
-
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white_ub")));
 			return entity;
 		}
 		 
@@ -82,7 +76,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular_ub")));
 			return entity;
 		}
 
@@ -93,8 +87,58 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular_ub")));
 			entity.AddComponent<NativeScriptableComponent>().Bind<NativeScriptRotateAndOrbit>();
+			return entity;
+		}
+
+		Entity Scene::CreateQuadEntity(const glm::vec3& position, const std::string& name)
+		{
+			Entity entity = CreateEntity(name);
+			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
+			auto& transform_comp = entity.GetComponent<TransformComponent>();
+			transform_comp.SetTransform(transform);
+			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored_ub")));
+			
+			//NOTE  this is based on info Anton's book about mouse picking
+			decltype(auto) event_handler = [entity, this](Event& event) mutable
+				{
+					EventMouseButtonPressed* e = dynamic_cast<EventMouseButtonPressed*>(&event);
+					if (e == nullptr)
+						return;
+
+					auto& transform = (glm::mat4&)entity.GetComponent<TransformComponent>();
+					auto& window = Application::GetInstance().GetWindow();
+					float x = (2.0f * float(e->x)) / (float)window.BufferWidth() - 1.0f;
+					float y = 1.0f - (2.0f * float(e->y)) / (float)window.BufferHeight();
+					float z = 1.0f;
+
+					CORE_TRACE("Quad Entity click:");
+					CORE_TRACE("Ray NDC (z,y,x): ({},{},{})", x, y, z);
+
+					auto& camera = (PerspectiveCamera&)m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>();
+					auto& camera_transform = (glm::mat4&)m_controlled_camera_entity.GetComponent<TransformComponent>();
+
+					glm::vec3 ray_nds = glm::vec3(x, y, z);
+					glm::vec4 ray_clip = glm::vec4(x, y, -1, 1);
+					glm::vec4 ray_eye = camera.GetInverseProjMatrix() * ray_clip;
+
+					ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+					glm::vec4 ray_world_4d = camera_transform * ray_eye; //transform mat is the inverse of the view mat
+
+					glm::vec3 ray_world = glm::normalize(glm::vec3(ray_world_4d[0], ray_world_4d[1], ray_world_4d[2]));
+
+					glm::vec3 eye_world = glm::vec3(camera_transform[3][0], camera_transform[3][1], camera_transform[3][2]);
+					glm::vec3 grid_normal = glm::vec3(0, 1, 0);
+					float t = -glm::dot(grid_normal, eye_world) / glm::dot(grid_normal, ray_world);
+					glm::vec3 intersection = eye_world + t * ray_world;
+
+					transform[3][0] = floorf(intersection.x);
+					transform[3][1] = 0.0f;
+					transform[3][2] = floorf(intersection.z);
+				};
+			entity.AddComponent<EventHandlerComponent>(event_handler);
 			return entity;
 		}
 
@@ -106,8 +150,8 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored")));
-			Entity camera_entity = FindEntityByName("Main Camera"s);
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored_ub")));
+			Entity camera_entity = FindEntityByName("Main Camera"s); //TODO - this will break if name is chaned in editor
 
 			//NOTE  this is based on info book about mouse picking
 			decltype(auto) event_handler = [entity, camera_entity, this](Event& event) mutable
@@ -150,70 +194,10 @@ namespace ely {
 					transform[3][1] = 0.0f;
 					transform[3][2] = floorf(intersection.z);
 				};
-
-			//entity.AddComponent<EventHandlerComponent>(event_handler, event_handler2);
 			entity.AddComponent<EventHandlerComponent>(event_handler);
 			return entity;
 		}
 
-		Entity Scene::CreateQuadEntity(const glm::vec3& position, const std::string& name)
-		{
-			Entity entity = CreateEntity(name);
-			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
-			auto& transform_comp = entity.GetComponent<TransformComponent>();
-			transform_comp.SetTransform(transform);
-			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
-			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored")));
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular")));
-			//Entity camera_entity = m_controlled_camera_entity;
-
-			//NOTE  this is based on info book about mouse picking
-			decltype(auto) event_handler = [entity, this](Event& event) mutable
-				{
-					EventMouseButtonPressed* e = dynamic_cast<EventMouseButtonPressed*>(&event);
-					if (e == nullptr)
-						return;
-
-					//Entity camera_entity = m_controlled_camera_entity;
-
-					auto& transform = (glm::mat4&)entity.GetComponent<TransformComponent>();
-					//glm::mat4& tr = entity.GetComponent<TransformComponent>(); //using implicit cast fn
-
-					auto& window = Application::GetInstance().GetWindow();
-					float x = (2.0f * float(e->x)) / (float)window.BufferWidth() - 1.0f;
-					float y = 1.0f - (2.0f * float(e->y)) / (float)window.BufferHeight();
-					float z = 1.0f;
-
-					CORE_TRACE("Quad Entity click:");
-					CORE_TRACE("Ray NDC (z,y,x): ({},{},{})", x, y, z);
-
-					auto& camera = (PerspectiveCamera&)m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>();
-					auto& camera_transform = (glm::mat4&)m_controlled_camera_entity.GetComponent<TransformComponent>();
-
-					glm::vec3 ray_nds = glm::vec3(x, y, z);
-					glm::vec4 ray_clip = glm::vec4(x, y, -1, 1);
-					glm::vec4 ray_eye = camera.GetInverseProjMatrix() * ray_clip;
-
-					ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
-					glm::vec4 ray_world_4d = camera_transform * ray_eye; //transform mat is the inverse of the view mat
-
-					glm::vec3 ray_world = glm::normalize(glm::vec3(ray_world_4d[0], ray_world_4d[1], ray_world_4d[2]));
-
-					glm::vec3 eye_world = glm::vec3(camera_transform[3][0], camera_transform[3][1], camera_transform[3][2]);
-					glm::vec3 grid_normal = glm::vec3(0, 1, 0);
-					float t = -glm::dot(grid_normal, eye_world) / glm::dot(grid_normal, ray_world);
-					glm::vec3 intersection = eye_world + t * ray_world;
-
-					transform[3][0] = floorf(intersection.x);
-					transform[3][1] = 0.0f;
-					transform[3][2] = floorf(intersection.z);
-				};
-
-			//entity.AddComponent<EventHandlerComponent>(event_handler, event_handler2);
-			entity.AddComponent<EventHandlerComponent>(event_handler);
-			return entity;
-		}
-		
 		Entity Scene::CreateDrirectionalLightEntity(const glm::vec3& position, const std::string& name)
 		{
 			Entity entity = CreateEntity(name);
@@ -224,7 +208,7 @@ namespace ely {
 			transform_comp.SetTransform(transform);
 			auto& mesh_comp = entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
 			mesh_comp.m_mesh.SetMaterial(*MaterialRepo::Get("empty"));
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white")));
+			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white_ub")));
 			entity.AddComponent<DirectionalLightComponent>();
 			return entity;
 		}
@@ -352,70 +336,61 @@ namespace ely {
 			return entity;
 		}
 
+		//TODO - define these in opengl_uniform_buffer.h or renderer.h
+		struct CameraBlock
+		{
+			alignas(16) glm::mat4 proj;
+			alignas(16) glm::mat4 view;
+			alignas(16) glm::vec3 eye_pos;
+		};
+
+		struct LightBlock
+		{
+			alignas(16) glm::vec3 dir;
+			alignas(16) glm::vec3 color;
+			alignas(16) glm::vec3 ambient_color;
+		};
+	
 		void Scene::UploadCameraDataToShaders()
 		{
-			//TODO  When to use find by ID?  Save the ID of commonly acessed components?
 			auto& camera = (PerspectiveCamera&)(m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>());
 			auto& camera_transform = (glm::mat4&)(m_controlled_camera_entity.GetComponent<TransformComponent>());
-			glm::mat4 view_mat = camera.GetViewMatrix(camera_transform);
-			glm::mat4 proj_mat = camera.GetProjMatrix();
-
-			//upload camera data to all shaders!
-			for (auto& item : ShaderRepo::GetShaders())
-			{
-				const auto& shader_name = item.first;
-				if (shader_name == "basic_specular_ub")
-				{
-					auto& shader = item.second;
-					const auto camera_block_opt = shader->GetUniformBlock("ub_camera");
-					if (camera_block_opt)
-						const Shader::UniformBlock& camera_block = camera_block_opt.value();
-					
-					const auto light_block_opt = shader->GetUniformBlock("ub_directional_light");
-					if (light_block_opt)
-						const Shader::UniformBlock& light_block = light_block_opt.value();
-				
-					const auto invalid_block_opt = shader->GetUniformBlock("ub_invalid");
-					if (invalid_block_opt)
-						const Shader::UniformBlock& invalid_block = invalid_block_opt.value();
-						
-					continue;
-				}
-					
-				auto& shader = item.second;
-				shader->Bind();
-				shader->SetUniformMat4f("u_view", view_mat);
-				shader->SetUniformMat4f("u_proj", proj_mat);
-
-				const auto uniform_opt = shader->GetUniform("u_view_pos");
-				if(uniform_opt.has_value())
-					shader->SetUniform3f("u_view_pos", camera.GetPosition(camera_transform));
-			}
+			
+			//auto constexpr cam_block_size = sizeof(CameraBlock);
+			//auto constexpr light_block_size = sizeof(LightBlock);
 
 			const auto& camera_ub_opt = ShaderRepo::GetUniformBuffer("ub_camera");
 			if (camera_ub_opt)
+			{
+				glm::mat4 view_mat = camera.GetViewMatrix(camera_transform);
+				glm::mat4 proj_mat = camera.GetProjMatrix();
+				glm::vec3 eye_pos = glm::vec3{ camera_transform[3] };
+				CameraBlock camera_block{ proj_mat, view_mat, eye_pos };
 				const OpenGLUniformBuffer& camera_ub = camera_ub_opt.value();
-			
-			const auto& light_ub_opt = ShaderRepo::GetUniformBuffer("ub_directional_light");
-			if (light_ub_opt)
-				const OpenGLUniformBuffer& light_ub = light_ub_opt.value();
-				
+				camera_ub.SetData(reinterpret_cast<const void*>(&camera_block), sizeof(CameraBlock));
+			}
 		}
 
 		//TODO - should be in renderer module
 		void Scene::UploadLightDataToShader()
 		{
-			//TODO - should be using the component shader
-			auto cube_shader = ely::ShaderRepo::Get("basic_specular");
-			cube_shader->Bind();
 			auto view = m_registry.view<DirectionalLightComponent, TransformComponent>();
-			for (auto entity : view)
-			{ 
+		
+			for (auto entity : view) 
+			{ //should be only 1 dir light a.t.m.
 				auto [light_comp, transform_comp] = view.get<DirectionalLightComponent, TransformComponent>(entity);
 				DirectionalLight& light = light_comp;
-				glm::mat4 transform_mat = transform_comp;
+				glm::mat4& transform_mat = transform_comp;
 				light.direction = glm::vec3(transform_mat[2]); //z direction
-				light.UploadDataToShader(cube_shader);
+				
+				const auto& light_ub_opt = ShaderRepo::GetUniformBuffer("ub_directional_light");
+				if (light_ub_opt)
+				{
+					LightBlock light_block{ light.direction, light.color, light.ambient_color };
+					const OpenGLUniformBuffer& light_ub = light_ub_opt.value();
+					light_ub.SetData(reinterpret_cast<const void*>(&light_block), sizeof(LightBlock));
+				}
+
 			}
 		}
 		
@@ -472,21 +447,19 @@ namespace ely {
 
 				auto& mesh = (Mesh&)(mesh_comp);
 				mesh.UploadMaterialToShader(shader); //TODO shoud be done in renderer
-				//m_renderer.DrawMesh(mesh, shader);
 				OpenGLRenderer::DrawMesh(mesh, shader);
 
 				if (mesh_comp.GetShowCoords())
 				{
 					
-					auto& coords_mesh = MeshPrimitive::GetCoordSystemMesh1();  //TODO - this creates / destroys new VBO's, VAO's every frame
-					auto& coords_shader = *(ShaderRepo::Get("basic_lines_colored"));
-
+					auto& coords_mesh = MeshPrimitive::GetCoordSystemMesh1();
+					auto& coords_shader = *(ShaderRepo::Get("basic_lines_colored_ub"));
+					
 					glm::mat4 transform = transform_comp;
-					if (tag_comp.m_tag != "Grid"s)
+					if (tag_comp.m_tag != "Grid"s) //TODO - breaks if tag changed in editor
 						transform = glm::scale(transform, glm::vec3(0.1f));
 					coords_shader.Bind();
 					coords_shader.SetUniformMat4f("u_model", transform);
-					//m_renderer.DrawMesh(coords_mesh, coords_shader);
 					OpenGLRenderer::DrawMesh(coords_mesh, coords_shader);
 				}
 			}
