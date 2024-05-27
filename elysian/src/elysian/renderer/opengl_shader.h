@@ -87,8 +87,11 @@ namespace ely
 			std::string name = "";
 			int32_t location = -1;
 			ShaderDataType type = ShaderDataType::Float;
-			int32_t size = 0;
+			int32_t size = 0; //array => > 1
 		};
+
+		using Uniform = DataItem;
+		using Attribute = DataItem;
 
 		struct UniformBlock
 		{
@@ -107,7 +110,6 @@ namespace ely
 		void Bind() const;
 		void Unbind() const;
 
-		//Set uniforms
 		void SetUniform1f(const std::string& name, float v0);
 		void SetUniform2f(const std::string& name, float v0, float v1);
 		void SetUniform3f(const std::string& name, float v0, float v1, float v2);

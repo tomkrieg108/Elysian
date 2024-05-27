@@ -80,7 +80,8 @@ namespace ely {
 			{
 				if (ImGui::MenuItem("Camera"))
 				{
-					m_selected_entity.AddComponent<PerspectiveCameraComponent>();
+					//m_selected_entity.AddComponent<PerspectiveCameraComponent>();
+					m_selected_entity.AddComponent<CameraComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 				if (ImGui::MenuItem("Mesh Renderer"))
@@ -158,11 +159,9 @@ namespace ely {
 
 			ImGui::SameLine(content_region_available.x - line_height * 0.5f);
 			
-			
 			if (ImGui::Button("+", ImVec2{ line_height, line_height }))
 				ImGui::OpenPopup("ComponentSettings");
 			
-
 			bool remove_component = false;
 			if (allow_remove)
 			{
@@ -271,7 +270,6 @@ namespace ely {
 
 	void SceneHeirachyPanel::DrawComponents(Entity entity)
 	{
-		// Tag ----------------------------------------------------------------
 		if (entity.HasComponent<TagComponent>())
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
@@ -287,18 +285,10 @@ namespace ely {
 			if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
 				tag = std::string(buffer);
 			
-			//if (ImGui::IsItemActive())
-			//	ImGui::Text("Active");
-			
 			ImGui::PopStyleVar();
-
-			//ImGui::Spacing(); ImGui::Spacing();
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 8.0f);
 		}
 		
-
-		// Transform -----------------------------------------------------------
-
 		DrawComponent<TransformComponent>("Transform", entity, false, [](auto& component) {
 			//TODO - static_assert for component type
 			//glm::mat4& transform = (glm::mat4&)(component);
@@ -311,6 +301,53 @@ namespace ely {
 
 			if (transform_updated)
 				component.MakeTransform();
+		});
+
+		DrawComponent<CameraComponent>("Camera", entity, true, [](auto& component) {
+
+			Camera& camera = (CameraComponent&)(component);
+
+			const char* proj_strings[] = {"Perspective", "Orthographic"};
+			const char* projection_string = (camera.GetProjectionType() == Camera::ProjectionType::Perspective) ? proj_strings[0] : proj_strings[1];
+			//const char* projection_string = proj_strings[(int)(camera.GetProjectionType()];
+
+			if (ImGui::BeginCombo("Projection", projection_string))
+			{
+				for (int i = 0; i < 2; i++)
+				{
+					bool selected = (projection_string = proj_strings[i]);
+					if (ImGui::Selectable(proj_strings[i], selected))
+					{
+						projection_string = proj_strings[i];
+						camera.SetProjectionType((Camera::ProjectionType)i);
+					};
+					
+					if (selected)
+						ImGui::SetItemDefaultFocus();
+				}
+
+				ImGui::EndCombo();
+			}
+
+			if (camera.GetProjectionType() == Camera::ProjectionType::Perspective)
+			{
+				auto& perspective_params = camera.PerspectiveParameters();
+				ImGui::DragFloat("Near", &(perspective_params.z_near), 0.2f, 0.01f, 1.0f, "%.2f");
+				ImGui::DragFloat("Far", &(perspective_params.z_far), 1.0f, 100.0f, 10000.0f, "%.1f");
+				ImGui::DragFloat("Vert FOV", &(perspective_params.fov), 0.2f, 15.0f, 75.0f, "%.1f");
+				ImGui::Text("Aspect Ratio: %.2f", perspective_params.aspect_ratio);
+			}
+			else
+			{
+				auto& ortho_params = camera.OrthoParameters();
+				ImGui::DragFloat("Left", &(ortho_params.left), 0.2f, -100.0f, 100.0f, "%.1f");
+				ImGui::DragFloat("Right", &(ortho_params.right), 0.2f, -100.0f, 100.0f, "%.1f");
+				ImGui::DragFloat("Top", &(ortho_params.top), 0.2f, -100.0f, 100.0f, "%.1f");
+				ImGui::DragFloat("Bottom", &(ortho_params.bottom), 0.2f, -100.0f, 100.0f, "%.1f");
+				ImGui::DragFloat("Near", &(ortho_params.z_near), 0.2f, 0.01f, 1.0f, "%.2f");
+				ImGui::DragFloat("Far", &(ortho_params.z_far), 1.0f, 100.0f, 10000.0f, "%.1f");
+			}
+		
 		});
 
 		DrawComponent<DirectionalLightComponent>("Directional Light", entity, true, [](auto& component) {

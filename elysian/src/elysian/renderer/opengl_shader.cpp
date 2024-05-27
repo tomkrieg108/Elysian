@@ -379,29 +379,29 @@ namespace ely
 		glGetProgramiv(m_program_id, GL_ACTIVE_UNIFORMS, &params);
 		for (int32_t i = 0; i < params; i++)
 		{
-			Shader::DataItem item;
+			Shader::Uniform uniform;
 			char name[kMaxLength] = { 0 };
 			int actual_length = 0;
 			int size = 0;
 			GLenum type;
 			glGetActiveUniform(m_program_id, i, kMaxLength, &actual_length, &size, &type, name);
-			item.type = ShaderUtils::OpenGLTypeToShaderDataType(type);
-			item.size = size;
+			uniform.type = ShaderUtils::OpenGLTypeToShaderDataType(type);
+			uniform.size = size;
 			for (int32_t element = 0; element < size; element++)
 			{
 				if (size == 1)
 				{
-					item.location = glGetUniformLocation(m_program_id, name);
-					item.name = std::string(name);
+					uniform.location = glGetUniformLocation(m_program_id, name);
+					uniform.name = std::string(name);
 				}
 				else
 				{
 					std::string item_name = std::string{ name };
 					item_name = item_name.substr(0, item_name.size() - 3) + std::string("[") + std::to_string(element) + "]";
-					item.location = glGetUniformLocation(m_program_id, item_name.c_str());
-					item.name = item_name;
+					uniform.location = glGetUniformLocation(m_program_id, item_name.c_str());
+					uniform.name = item_name;
 				}
-				m_uniforms[item.name] = item;
+				m_uniforms[uniform.name] = uniform;
 			}
 		}
 	}
@@ -434,29 +434,29 @@ namespace ely
 		glGetProgramiv(m_program_id, GL_ACTIVE_ATTRIBUTES, &params);
 		for (int32_t i = 0; i < params; i++)
 		{
-			Shader::DataItem item;
+			Shader::Attribute attribute;
 			char name[kMaxLength] = { 0 };
 			int actual_length = 0;
 			int size = 0;
 			GLenum type;
 			glGetActiveAttrib(m_program_id, i, kMaxLength, &actual_length, &size, &type, name);
-			item.type = ShaderUtils::OpenGLTypeToShaderDataType(type);
-			item.size = size;
+			attribute.type = ShaderUtils::OpenGLTypeToShaderDataType(type);
+			attribute.size = size;
 			for (int32_t element = 0; element < size; element++)
 			{
 				if (size == 1)
 				{
-					item.location = glGetAttribLocation(m_program_id, name);
-					item.name = std::string(name);
+					attribute.location = glGetAttribLocation(m_program_id, name);
+					attribute.name = std::string(name);
 				}
 				else
 				{
 					std::string item_name = std::string{ name };
 					item_name = item_name.substr(0, item_name.size() - 3) + std::string("[") + std::to_string(element) + "]";
-					item.location = glGetAttribLocation(m_program_id, item_name.c_str());
-					item.name = item_name;
+					attribute.location = glGetAttribLocation(m_program_id, item_name.c_str());
+					attribute.name = item_name;
 				}
-				m_attributes[item.name] = item;
+				m_attributes[attribute.name] = attribute;
 			}
 		}
 	}
@@ -524,10 +524,10 @@ namespace ely
 		ShaderRepo::Load(shader_source, "model_loading");
 		shader_source.Reset();
 		
-		ShaderRepo::Load("basic_colored.glsl", "basic_colored");
+		/*ShaderRepo::Load("basic_colored.glsl", "basic_colored");
 		ShaderRepo::Load("basic_lines_colored.glsl", "basic_lines_colored");
 		ShaderRepo::Load("basic_diffuse.glsl", "basic_diffuse");
-		ShaderRepo::Load("basic_specular.glsl", "basic_specular");
+		ShaderRepo::Load("basic_specular.glsl", "basic_specular");*/
 	
 
 		ShaderRepo::Load("basic_colored_ub.glsl", "basic_colored_ub");

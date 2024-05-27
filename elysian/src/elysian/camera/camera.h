@@ -10,10 +10,11 @@ namespace ely
 	{
 	public:
 
-		enum class ProjectionType { Ortho, Perspective };
+		enum class ProjectionType { Perspective = 0, Ortho = 1,  };
 
 		struct PerspectiveParams
 		{
+			PerspectiveParams() = default;
 			float z_near = 0.1f;
 			float z_far = 1000.0f;
 			float aspect_ratio = 1.0f;			// width / height
@@ -23,6 +24,7 @@ namespace ely
 
 		struct OrthoParams
 		{
+			OrthoParams() = default;
 			float z_near = 0.1f;
 			float z_far = 100.0f;
 			float left = -20.0f, right = 20.0f, top = 20.0f, bottom = -20.0f;
@@ -45,18 +47,16 @@ namespace ely
 		void SetParams(const PerspectiveParams& perspective_params);
 		void SetParams(const OrthoParams& ortho_params);
 		
-		const auto& PerspectiveParameters() const { return m_perspective_params; }
-		const auto& OrthoParameters() const { return m_ortho_params; }
-		auto& PerspectiveParamseters() { return m_perspective_params; }
+		//const auto& PerspectiveParameters() const { return m_perspective_params; }
+		//const auto& OrthoParameters() const { return m_ortho_params; }
+		auto& PerspectiveParameters() { return m_perspective_params; }
 		auto& OrthoParameters() { return m_ortho_params; }
 		
 	private:
 		ProjectionType m_projection_type = ProjectionType::Perspective;
 		PerspectiveParams m_perspective_params;
 		OrthoParams m_ortho_params;
-
 		//const glm::mat4& m_transform; from transform component
-	
 	};
 
 }

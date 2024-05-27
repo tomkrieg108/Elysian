@@ -59,10 +59,11 @@ namespace ely
 			Mesh(void* const data, uint32_t size, const BufferLayout& layout);
 			Mesh(void* const data, uint32_t size, const BufferLayout& layout, uint32_t* indices, uint32_t count);
 
+			const OpenGLVertexArray& GetVertexArray() const { return m_vao; }
+
 			void SetDrawMode(DrawMode draw_mode) { m_draw_mode = draw_mode; }
-
-			//TODO setters for vao, buffers etc /  method to add buffer
-
+			DrawMode GetDrawMode() const { return m_draw_mode; }
+			
 		private:
 			OpenGLVertexArray m_vao;
 			DrawMode m_draw_mode = DrawMode::Triangles;

@@ -72,7 +72,7 @@ namespace ely
 		m_context->Init();
 		
 		glfwGetFramebufferSize(m_window, &m_params.buffer_width, &m_params.buffer_height);
-		OpenGLRenderer::SetViewport(m_params.buffer_width, m_params.buffer_height);
+		OpenGLRenderer::SetViewport(0,0, m_params.buffer_width, m_params.buffer_height);
 
 		SetVSync(true);
 		glfwSetWindowUserPointer(m_window, this);  //Used for setup of event handlers
@@ -101,7 +101,7 @@ namespace ely
 			glfwGetFramebufferSize(win->GetWindowHandle(), &(win->m_params.buffer_width), &(win->m_params.buffer_height));
 
 			//TODO - should this be somewhere else?
-			OpenGLRenderer::SetViewport(win->m_params.buffer_width, win->m_params.buffer_height);
+			OpenGLRenderer::SetViewport(0,0, win->m_params.buffer_width, win->m_params.buffer_height);
 			EventWidowResize event{ (uint32_t)win->m_params.buffer_width, (uint32_t)win->m_params.buffer_height };
 			auto& callback_func = win->GetEventCallback();
 			callback_func(event); //event is std::placeholder::_1 in MakeCallback.  TODO. I like EventDispatcher::Dispatch(e); better!!

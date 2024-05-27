@@ -33,21 +33,23 @@ namespace ely
 
 		
 	public:
-		OpenGLTexture2D(uint32_t width, uint32_t height, const Params& params = Params());
-		OpenGLTexture2D(const std::string& filename, const Params& params = Params());
+		OpenGLTexture2D(uint32_t width, uint32_t height, const Params& params = Params{});
+		OpenGLTexture2D(const std::string& filename, const Params& params = Params{});
 		~OpenGLTexture2D();
 
-		void Bind(uint32_t slot);
+		void Bind(int32_t slot);
 		void Bind();  //sets m_slot
 		void Unbind();  //sets m_slot
 		void SetData(void* data, uint32_t size);
 		uint32_t GetWidth() const { return m_width; }
 		uint32_t GetHeight() const { return m_height; }
-		uint32_t IsLoaded() const { return m_is_loaded; }
+		bool IsLoaded() const { return m_is_loaded; }
 		bool IsBound() const { return m_slot != -1; }
 		uint32_t GetId() const { return m_id; }
-		uint32_t GetSlot() const { return m_slot; }
+		int32_t GetSlot() const { return m_slot; }
 		const Params& GetParams() const { return m_params; }
+
+		static void Bind(uint32_t texture_id, int32_t slot);
 
 	private:
 		Params m_params;
@@ -61,7 +63,7 @@ namespace ely
 	private:
 		static const std::string s_texture_path;
 		enum {MAX_SLOTS = 32};
-		static std::array<uint32_t, MAX_SLOTS> m_slots; //assume 32 slots for now
+		static std::array<uint32_t, MAX_SLOTS> s_slots; //assume 32 slots for now
 		
 	};
 

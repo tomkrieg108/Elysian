@@ -147,7 +147,7 @@ namespace ely
 
 		void MaterialRepo::LoadMaterials()
 		{
-			
+
 			//-------------------------------------------------
 			// For 'corrds' shader and 'white' shader
 			//-------------------------------------------------
@@ -193,20 +193,25 @@ namespace ely
 		Material::Material() :
 			m_shader{ ShaderRepo::Get("basic_diffuse") }
 		{
+			ASSERT(m_shader != nullptr);
+			ASSERT(m_shader->BuildSuccess());
 			InitData();
 			m_shader_id = m_shader->GetProgramID();
 		}
 
-		Material::Material(const Ref<Shader>& shader) :
+		Material::Material(const Ref<Shader> shader) :
 			m_shader(shader)
 		{
-			//TODO - assert shader not null and is valid
+			ASSERT(m_shader != nullptr);
+			ASSERT(m_shader->BuildSuccess());
 			InitData();
 			m_shader_id = m_shader->GetProgramID();
 		}
 
 		void Material::InitData()
 		{
+			//CORE_WARN("Size of UniformType: {}", sizeof(DataType));
+
 			const auto& uniform_data = m_shader->GetUniformData();
 
 			for (const auto& item : uniform_data)
@@ -214,33 +219,60 @@ namespace ely
 				if (item.second.name.find("u_material") != std::string::npos)
 				{
 					MaterialUniform material_uniform;
-					material_uniform.item = item.second;
+					material_uniform.uniform = item.second;
 
-					switch (item.second.type)
+					//Set default material values
+					if (item.second.name.find("diffuse") != std::string::npos)
 					{
-						case ShaderDataType::Bool: material_uniform.value = false; break;
-						case ShaderDataType::Float: material_uniform.value = 0.0f; break;
-						case ShaderDataType::Int: material_uniform.value = 0; break;
-						case ShaderDataType::Float2: material_uniform.value = glm::vec2{ 0.0f }; break;
-						case ShaderDataType::Float3: material_uniform.value = glm::vec3{ 0.0f }; break;
-						case ShaderDataType::Float4: material_uniform.value = glm::vec4{ 0.0f }; break;
-						case ShaderDataType::Mat3: material_uniform.value = glm::mat3{ 1.0f };  break;
-						case ShaderDataType::Mat4: material_uniform.value = glm::mat4{ 1.0f };  break;
-						case ShaderDataType::Sampler2D: material_uniform.value = -1;  break;
-						case ShaderDataType::SamplerCube: material_uniform.value = -1;  break;
-						default:
-						{
-							CORE_ERROR(" Material::InitData(): unsupported shader data type {}: ", ShaderUtils::ShaderDataTypeToString(item.second.type));
-							material_uniform.value = -1;
-						}
+						ASSERT(item.second.type == ShaderDataType::Sampler2D);
+						auto default_diffuse_tex_map = ely::Texture2DRepo::Get("container2.png").get();
+						ASSERT(default_diffuse_tex_map != nullptr);
+						material_uniform.value = default_diffuse_tex_map;
 					}
-
+					if (item.second.name.find("specular") != std::string::npos)
+					{
+						ASSERT(item.second.type == ShaderDataType::Sampler2D);
+						auto default_specular_tex_map = ely::Texture2DRepo::Get("container2_specular.png").get();
+						ASSERT(default_specular_tex_map != nullptr);
+						material_uniform.value = default_specular_tex_map;
+					}
+					if (item.second.name.find("shininess") != std::string::npos)
+					{
+						ASSERT(item.second.type == ShaderDataType::Float);
+						material_uniform.value = 32.0f;
+					}
+					if (item.second.name.find("color") != std::string::npos)
+					{
+						ASSERT(item.second.type == ShaderDataType::Float3);
+						material_uniform.value = glm::vec3{ 1.0f, 1.0f, 0.0f };
+					}
 					AddItem(material_uniform);
+				}
+			}
+		}
 
+		
+		void Material::UploadDataToShader() const
+		{
+			for (const auto& item : material_data)
+			{
+				const std::string& uniform_name = item.uniform.name;
+				const auto value = item.value;
+
+				if (std::holds_alternative<OpenGLTexture2D*>(value))
+				{
+					auto texture = std::get<OpenGLTexture2D*>(value);
+					texture->Bind();
+					m_shader->SetUniform1i(uniform_name, texture->GetSlot());
 				}
 
-			}
+				else if (std::holds_alternative<float>(value))
+					m_shader->SetUniform1f(uniform_name, std::get<float>(value));
 
+				else if (std::holds_alternative<glm::vec3>(value))
+					m_shader->SetUniform3f(uniform_name, std::get<glm::vec3>(value));
+			}
 		}
+
 	}
 }

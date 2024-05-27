@@ -137,17 +137,17 @@ namespace ely
 		{
 		public:
 
-			using UniformType = std::variant<bool, int32_t, float, glm::vec2, glm::vec3, glm::vec4, glm::mat3, glm::mat4>;
+			using DataType = std::variant<float, glm::vec3, OpenGLTexture2D*>;
 
 			struct MaterialUniform
 			{
-				Shader::DataItem item;
-				UniformType value;
+				Shader::Uniform uniform;
+				DataType value;
 			};
 
 		public:
 			Material();
-			Material(const Ref<Shader>& shader);
+			Material(const Ref<Shader> shader);
 
 			auto begin() { return std::begin(material_data); }
 			auto end() { return std::end(material_data); }
@@ -156,14 +156,19 @@ namespace ely
 				material_data.push_back(material_uniform);
 			}
 
-			const auto& GetShader() const { return m_shader; }
+			void UploadDataToShader() const;
+
+			const Ref<Shader> GetShader() const 
+			{ 
+				return m_shader; 
+			}
 			uint32_t GetShaderId() const { return m_shader_id; }
 
 		private:
 
 			void InitData();
 
-			const Ref<Shader>& m_shader;
+			const Ref<Shader> m_shader;
 			uint32_t m_shader_id = 0;
 
 			std::string m_material_name = "Unnamed Material";

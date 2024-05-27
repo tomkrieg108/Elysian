@@ -6,7 +6,7 @@
 #include "elysian/renderer/opengl_renderer.h"
 #include "elysian/scene/entity.h"
 #include "elysian/camera/perspective_camera_controller.h"
-
+#include "elysian/camera/camera_controller.h"
 
 namespace ely {
 
@@ -34,8 +34,6 @@ namespace ely {
 			Entity CreateDrirectionalLightEntity_V2(const glm::vec3& position, const std::string& name);
 			Entity CreateCameraEntity_V2(const glm::vec3& position, const std::string& name);
 
-
-
 			Entity FindEntityByName(std::string_view name);
 			Entity GetEntityByUUID(UUID uuid);
 			void DestroyEntity(Entity entity);
@@ -48,19 +46,17 @@ namespace ely {
 
 			void SetRenderable(Entity& entity, bool val);
 			void DisplayCoords(Entity& entity, bool val);
+
+			void SetRenderable_V2(Entity& entity, bool val);
+			void DisplayCoords_V2(Entity& entity, bool val);
 			 
 			auto& GetRegistry() { return m_registry; }
 			const auto& GetRegistry() const { return m_registry; }
 
 			void SetControlledCameraEntity(Entity camera_entity);
 			Entity GetControlledCameraEntity() { return m_controlled_camera_entity; }
-			PerspectiveCameraController& GetCameraController() { return m_camera_controller; }
+			auto& GetCameraController() { return m_camera_controller; }
 
-			void UploadCameraDataToShaders();
-			void UploadLightDataToShader();
-
-			bool OnMouseMoved(ely::EventMouseMoved& e);
-			bool OnMouseScrolled(ely::EventMouseScrolled& e);
 			bool OnMouseButtonPressed(ely::EventMouseButtonPressed& e);
 			bool OnWindowResize(ely::EventWidowResize& e);
 			bool OnViewportResize(ely::EventViewportResize& e);
@@ -74,14 +70,11 @@ namespace ely {
 
 		private:
 			entt::registry m_registry;
-			std::unordered_map<UUID, entt::entity> m_entity_map; //TODO - what's this used for!? - might be better to use the entity name as the key
-			PerspectiveCameraController m_camera_controller; //TODO - make as an component attached to camera entity?
+			std::unordered_map<UUID, entt::entity> m_entity_map; 
+			CameraController m_camera_controller; 
 			Entity m_controlled_camera_entity;
-
 			//TEMP - for CreateQuadEntity2
 			glm::vec2 m_viewport_size{ 0,0 };
-
-			//OpenGLRenderer m_renderer;
 
 			//TODO needed?
 			//friend class Entity;

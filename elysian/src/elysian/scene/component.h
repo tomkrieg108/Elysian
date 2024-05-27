@@ -163,13 +163,13 @@ namespace ely
 
 	struct CameraComponent
 	{
-		Camera m_camera;
+		Camera camera;
 
 		CameraComponent() = default;
 		CameraComponent(const CameraComponent& component) = default;
-		CameraComponent(const Camera& camera) : m_camera{ camera } {}
-		operator Camera& () { return m_camera; }
-		operator const Camera& () const { return m_camera; }
+		CameraComponent(const Camera& camera) : camera{ camera } {}
+		operator Camera& () { return camera; }
+		operator const Camera& () const { return camera; }
 	};
 
 	//---------------------------------------------------------------

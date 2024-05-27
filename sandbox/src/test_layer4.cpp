@@ -34,10 +34,11 @@ namespace ely {
 
 	void TestLayer4::OnAttach()
 	{
-		m_scene = ely::CreateRef<ely::Scene>();
 
+		m_scene = ely::CreateRef<ely::Scene>();
 		m_scene_heirachy_panel.SetScene(m_scene);
 
+#if 0
 		m_scene->CreateGridEntity();
 		m_scene->CreateDrirectionalLightEntity(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light"s);
 		m_scene->CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube"s);
@@ -50,8 +51,21 @@ namespace ely {
 		m_scene->SetRenderable(m_alt_camera_entity, true);
 
 		m_scene->CreateQuadEntity(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad"s); //NOTE: relies on main camera=> need to create main cam first
+#endif
+		//============================================================================================
 
-		m_scene_heirachy_panel.SetScene(m_scene);
+#if 1
+		m_scene->CreateGridEntity_V2();
+		m_scene->CreateDrirectionalLightEntity_V2( glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light 2"s );
+		m_scene->CreateOrbitingCubeEntity_V2(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube 2"s);
+		m_main_camera_entity = m_scene->CreateCameraEntity_V2(glm::vec3(0.0f, 3.0f, 15.0f), "Main Camera 2"s);
+		m_alt_camera_entity = m_scene->CreateCameraEntity_V2(glm::vec3(4.0, 1.0, 7.0), "Alt Camera 2"s);
+		m_scene->CreateQuadEntity_V2(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad 2"s);
+		
+		m_scene->SetRenderable_V2(m_main_camera_entity, false); 
+		m_scene->SetRenderable_V2(m_alt_camera_entity, true);
+		m_scene->SetControlledCameraEntity(m_main_camera_entity);
+#endif
 	}
 
 	void TestLayer4::OnDetach()
@@ -64,7 +78,8 @@ namespace ely {
 
 		//render to screen
 		OpenGLRenderer::SetLineWidth(1.0);
-		m_scene->BeginScene(glm::vec4{ 0.13f,0.13f,0.13f,1.0f }); //this is going to reset the same view and proj mat in all the shaders!
+		glm::vec4 clear_color{ 0.13f,0.13f,0.13f,1.0f };
+		m_scene->BeginScene(clear_color); 
 		m_scene->UpdateScene(time_step); //TODO call this when the play betton is pressed
 		m_scene->RenderScene(); 
 		m_scene->EndScene();
@@ -126,14 +141,14 @@ namespace ely {
 			if (m_scene->GetControlledCameraEntity() == m_main_camera_entity)
 			{
 				m_scene->SetControlledCameraEntity(m_alt_camera_entity);
-				m_scene->SetRenderable(m_alt_camera_entity, false);
-				m_scene->SetRenderable(m_main_camera_entity, true);
+				m_scene->SetRenderable_V2(m_alt_camera_entity, false);
+				m_scene->SetRenderable_V2(m_main_camera_entity, true);
 			}
 			else
 			{
 				m_scene->SetControlledCameraEntity(m_main_camera_entity);
-				m_scene->SetRenderable(m_alt_camera_entity, true);
-				m_scene->SetRenderable(m_main_camera_entity, false);
+				m_scene->SetRenderable_V2(m_alt_camera_entity, true);
+				m_scene->SetRenderable_V2(m_main_camera_entity, false);
 			}
 		}
 

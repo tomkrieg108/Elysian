@@ -7,7 +7,7 @@
 namespace ely
 {
 	std::string const OpenGLTexture2D::s_texture_path = std::string{ "assets/textures/" };
-	std::array<uint32_t, 32> OpenGLTexture2D::m_slots = { 0 };
+	std::array<uint32_t, 32> OpenGLTexture2D::s_slots = { 0 };
 
 	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, const Params& params) :
 		m_width{width}, m_height{height}, m_params {params}
@@ -94,10 +94,16 @@ namespace ely
 		glTextureSubImage2D(m_id, 0, 0, 0, m_width, m_height, m_data_format, GL_UNSIGNED_BYTE, data); //V4.5
 	}
 
-	void OpenGLTexture2D::Bind(uint32_t slot)
+	void OpenGLTexture2D::Bind(int32_t slot)
 	{
 		glBindTextureUnit(slot, m_id); //V4.5
 		m_slot = slot;
+	}
+
+	//static 
+	void OpenGLTexture2D::Bind(uint32_t texture_id, int32_t slot)
+	{
+		glBindTextureUnit(slot, texture_id); //V4.5
 	}
 
 	void OpenGLTexture2D::Bind()
@@ -107,11 +113,11 @@ namespace ely
 		bool ok = false;
 		for(auto slot=0;slot<MAX_SLOTS; ++slot)
 		{
-			if (m_slots[slot] == 0)
+			if (s_slots[slot] == 0)
 			{
 				glActiveTexture(GL_TEXTURE0 + slot); //V2.0
 				glBindTexture(GL_TEXTURE_2D, m_id);  //V2.0
-				m_slots[slot] = m_id;
+				s_slots[slot] = m_id;
 				m_slot = slot;
 				ok = true;
 				break;
@@ -127,11 +133,11 @@ namespace ely
 			return;
 		for (auto slot = 0; slot < MAX_SLOTS; ++slot)
 		{
-			if (m_slots[slot] == m_id)
+			if (s_slots[slot] == m_id)
 			{
 				glActiveTexture(GL_TEXTURE0 + slot);
 				glBindTexture(GL_TEXTURE_2D, 0);
-				m_slots[slot] = 0;
+				s_slots[slot] = 0;
 				m_slot = -1;
 				break;
 			}

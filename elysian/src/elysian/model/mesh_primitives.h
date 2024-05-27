@@ -40,6 +40,7 @@ namespace ely
 		static mesh_v2::Mesh& GetGridMesh2();
 		static mesh_v2::Mesh& GetCubeMesh2();
 		static mesh_v2::Mesh& GetQuadMesh2();
+		static mesh_v2::Mesh& GetQuadMeshTM2();
 		
 		static void Init();
 
@@ -55,6 +56,7 @@ namespace ely
 		static void CreateGridMesh2(float grid_size = 20.0f);
 		static void CreateCubeMesh2();
 		static void CreateQuadMesh2();
+		static void CreateQuadMeshTM2();
 		
 		static std::unordered_map<std::string, mesh_v1::Mesh> s_mesh_primitive_repo_v1;
 		static std::unordered_map<std::string, mesh_v2::Mesh> s_mesh_primitive_repo_v2;

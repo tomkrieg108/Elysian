@@ -97,7 +97,7 @@ namespace ely {
 		//Not really working just yet!
 
 		auto& transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
-		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
+		auto& camera = (Camera&)(m_camera_entity.GetComponent<CameraComponent>());
 
 		//get current local front & right
 		glm::vec3 front = glm::normalize(glm::vec3(transform[2][0], transform[2][1], transform[2][2])); //3rd col (local z / front axis)
@@ -144,8 +144,10 @@ namespace ely {
 	void CameraController::Turn(float delta_yaw, float delta_pitch)
 	{
 		auto& camera_transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
-		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
-		glm::vec3 camera_front = camera.GetFront(camera_transform);
+		auto& camera = (Camera&)(m_camera_entity.GetComponent<CameraComponent>());
+		
+		//glm::vec3 camera_front = camera.GetFront(camera_transform);
+		glm::vec3 camera_front = glm::vec3{ camera_transform[2] };
 		glm::vec3 world_up = glm::vec3(0, 1, 0);
 
 		float pitch_angle = glm::orientedAngle(camera_front, world_up, glm::cross(camera_front, world_up));
@@ -168,9 +170,10 @@ namespace ely {
 	void CameraController::RotateLocal(float delta_yaw, float delta_pitch)
 	{
 		auto& camera_transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
-		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
+		auto& camera = (Camera&)(m_camera_entity.GetComponent<CameraComponent>());
 
-		glm::vec3 camera_front = camera.GetFront(camera_transform);
+		//glm::vec3 camera_front = camera.GetFront(camera_transform);
+		glm::vec3 camera_front = glm::vec3{ camera_transform[2] };
 		glm::vec3 world_up = glm::vec3{ 0, 1, 0 };
 		glm::vec4 world_up_4 = glm::vec4{ 0, 1, 0, 0 };
 
@@ -192,8 +195,9 @@ namespace ely {
 	{
 		//only rotates allows for orbiting about world y axis
 		auto& camera_transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
-		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
-		glm::vec3 camera_front = camera.GetFront(camera_transform);
+		auto& camera = (Camera&)(m_camera_entity.GetComponent<CameraComponent>());
+		//glm::vec3 camera_front = camera.GetFront(camera_transform);
+		glm::vec3 camera_front = glm::vec3{ camera_transform[2] };
 		glm::vec3 world_up = glm::vec3(0, 1, 0);
 
 		float angle = glm::orientedAngle(camera_front, world_up, glm::cross(camera_front, world_up));
@@ -263,7 +267,7 @@ namespace ely {
 
 	void CameraController::OnMouseScrolled(EventMouseScrolled& e)
 	{
-		auto& camera = (PerspectiveCamera&)(m_camera_entity.GetComponent<PerspectiveCameraComponent>());
+		auto& camera = (Camera&)(m_camera_entity.GetComponent<CameraComponent>());
 		camera.Zoom(e.y_offset);
 	}
 

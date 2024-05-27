@@ -286,49 +286,27 @@ namespace ely
 
   mesh_v2::Mesh& MeshPrimitive::GetCoordSystemMesh2()
   {
-    /*auto vbo = MeshPrimitive::GetCoordSystemVertexBuffer(size);
-    auto mesh = mesh_v2::Mesh{ vbo };
-    mesh.SetDrawMode(DrawMode::Lines);
-    return mesh;*/
     return s_mesh_primitive_repo_v2["coords"];
   }
 
   mesh_v2::Mesh& MeshPrimitive::GetGridMesh2()
   {
-    /*auto vbo = MeshPrimitive::GetGridVertexBuffer(grid_size, 1.0f);
-    auto mesh = mesh_v2::Mesh{ vbo };
-    mesh.SetDrawMode(DrawMode::Lines);
-    return mesh;*/
     return s_mesh_primitive_repo_v2["grid"];
   }
 
   mesh_v2::Mesh& MeshPrimitive::GetCubeMesh2()
   {
-    //BufferLayout layout =
-    //{
-    //  {"a_position", ShaderDataType::Float3},
-    //  {"a_normal", ShaderDataType::Float3},
-    //  {"a_uv_coords", ShaderDataType::Float2},
-    //};
-    ////auto layout_ptr = CreateScope<BufferLayout>();
-    //OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
-    //auto mesh = mesh_v2::Mesh{ vbo };
-    //return mesh;
     return s_mesh_primitive_repo_v2["cube"];
   }
 
   mesh_v2::Mesh& MeshPrimitive::GetQuadMesh2()
   {
-    /*BufferLayout layout =
-    {
-      {"a_position", ShaderDataType::Float3},
-      {"a_normal", ShaderDataType::Float3},
-      {"a_uv_coords", ShaderDataType::Float2},
-    };
-    OpenGLVertexBuffer vbo{ (void*)square_xz_tm, (int32_t)sizeof(square_xz_tm), layout };
-    auto mesh = mesh_v2::Mesh{ vbo, DrawMode::Triangles };
-    return mesh;*/
     return s_mesh_primitive_repo_v2["quad"];
+  }
+
+  mesh_v2::Mesh& MeshPrimitive::GetQuadMeshTM2()
+  {
+    return s_mesh_primitive_repo_v2["quad_tm"];
   }
 
   //=================================================================================
@@ -415,7 +393,6 @@ namespace ely
       {"a_normal", ShaderDataType::Float3},
       {"a_uv_coords", ShaderDataType::Float2},
     };
-    //auto layout_ptr = CreateScope<BufferLayout>();
     OpenGLVertexBuffer vbo{ (void*)cube_vertices, (int32_t)sizeof(cube_vertices), layout };
     auto mesh = mesh_v2::Mesh{ vbo };
     s_mesh_primitive_repo_v2["cube"] = mesh;
@@ -426,12 +403,23 @@ namespace ely
     BufferLayout layout =
     {
       {"a_position", ShaderDataType::Float3},
+    };
+    OpenGLVertexBuffer vbo{ (void*)square_xz, (int32_t)sizeof(square_xz), layout };
+    auto mesh = mesh_v2::Mesh{ vbo };
+    s_mesh_primitive_repo_v2["quad"] = mesh;
+  }
+
+  void MeshPrimitive::CreateQuadMeshTM2()
+  {
+    BufferLayout layout =
+    {
+      {"a_position", ShaderDataType::Float3},
       {"a_normal", ShaderDataType::Float3},
       {"a_uv_coords", ShaderDataType::Float2},
     };
     OpenGLVertexBuffer vbo{ (void*)square_xz_tm, (int32_t)sizeof(square_xz_tm), layout };
     auto mesh = mesh_v2::Mesh{ vbo };
-    s_mesh_primitive_repo_v2["quad"] = mesh;
+    s_mesh_primitive_repo_v2["quad_tm"] = mesh;
   }
 
   //=================================================================================

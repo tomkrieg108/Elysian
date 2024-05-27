@@ -7,10 +7,10 @@
 #include "elysian/camera/perspective_camera_controller.h"
 #include "elysian/light/directional_light.h"
 #include "elysian/model/mesh_primitives.h"
-//#include "scriptable_entity.h"
 #include "elysian/scene/native_scripts/rotate_and_orbit.h"
 #include "scene.h"
 
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace ely {
@@ -64,7 +64,11 @@ namespace ely {
 			mesh.SetMaterial(*MaterialRepo::Get("empty")); //TODO make this a parameter to ctr
 			auto& mesh_comp = entity.AddComponent<MeshRendererComponent>(mesh);
 			mesh_comp.SetEnableRender(false); //TODO make this a parameter to ctr
-			auto& camera_comp = entity.AddComponent<PerspectiveCameraComponent>();
+
+			//auto& camera_comp = entity.AddComponent<PerspectiveCameraComponent>();
+			auto& camera_comp = entity.AddComponent<CameraComponent>();
+
+
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white_ub")));
 			return entity;
 		}
@@ -117,7 +121,8 @@ namespace ely {
 					CORE_TRACE("Quad Entity click:");
 					CORE_TRACE("Ray NDC (z,y,x): ({},{},{})", x, y, z);
 
-					auto& camera = (PerspectiveCamera&)m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>();
+					//auto& camera = (PerspectiveCamera&)m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>();
+					auto& camera = (Camera&)m_controlled_camera_entity.GetComponent<CameraComponent>();
 					auto& camera_transform = (glm::mat4&)m_controlled_camera_entity.GetComponent<TransformComponent>();
 
 					glm::vec3 ray_nds = glm::vec3(x, y, z);
@@ -153,7 +158,7 @@ namespace ely {
 			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored_ub")));
 			Entity camera_entity = FindEntityByName("Main Camera"s); //TODO - this will break if name is chaned in editor
 
-			//NOTE  this is based on info book about mouse picking
+			//NOTE  this is based on info in Anton's book about mouse picking
 			decltype(auto) event_handler = [entity, camera_entity, this](Event& event) mutable
 				{
 					EventMouseButtonPressed* e = dynamic_cast<EventMouseButtonPressed*>(&event);
@@ -173,7 +178,8 @@ namespace ely {
 
 					CORE_WARN("Scene::CreateQuadEntity2 - Ray NDC (z,y,z): ({},{},{})", x, y, z);
 
-					auto& camera = (PerspectiveCamera&)camera_entity.GetComponent<PerspectiveCameraComponent>();
+					//auto& camera = (PerspectiveCamera&)camera_entity.GetComponent<PerspectiveCameraComponent>();
+					auto& camera = (Camera&)camera_entity.GetComponent<CameraComponent>();
 					auto& camera_transform = (glm::mat4&)camera_entity.GetComponent<TransformComponent>();
 
 					glm::vec3 ray_nds = glm::vec3(x, y, z);
@@ -218,7 +224,7 @@ namespace ely {
 		Entity Scene::CreateGridEntity_V2()
 		{
 			Entity entity = CreateEntity("Grid");
-			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetGridMesh2(), ShaderRepo::Get("basic_lines_colored"));
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetGridMesh2(), ShaderRepo::Get("basic_lines_colored_ub"));
 			return entity;
 		}
 
@@ -227,14 +233,14 @@ namespace ely {
 			Entity entity = CreateEntity(name);
 			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
 			entity.GetComponent<TransformComponent>().SetTransform(transform);
-			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse"));
 			entity.AddComponent<CameraComponent>();
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse_ub"));
 			return entity;
 		}
 
 		Entity Scene::CreateBoxEntity_V2() {
 			Entity entity = CreateEntity("Box");
-			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse"));
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse_ub"));
 			return entity;
 		}
 
@@ -243,7 +249,7 @@ namespace ely {
 			Entity entity = CreateEntity(name);
 			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
 			entity.GetComponent<TransformComponent>().SetTransform(transform);
-			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_specular"));
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_specular_ub"));
 			entity.AddComponent<NativeScriptableComponent>().Bind<NativeScriptRotateAndOrbit>();
 			return entity;
 		}
@@ -254,7 +260,7 @@ namespace ely {
 
 			glm::mat4 transform = glm::translate(glm::mat4{ 1.0f }, position);
 			entity.GetComponent<TransformComponent>().SetTransform(transform);
-			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_colored"));
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetQuadMesh2(), ShaderRepo::Get("basic_colored_ub"));
 
 			decltype(auto) event_handler = [entity, this](Event& event) mutable
 				{
@@ -275,7 +281,8 @@ namespace ely {
 					CORE_TRACE("Quad Entity click:");
 					CORE_TRACE("Ray NDC (z,y,x): ({},{},{})", x, y, z);
 
-					auto& camera = (PerspectiveCamera&)m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>();
+					//auto& camera = (PerspectiveCamera&)m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>();
+					auto& camera = (Camera&)m_controlled_camera_entity.GetComponent<CameraComponent>();
 					auto& camera_transform = (glm::mat4&)m_controlled_camera_entity.GetComponent<TransformComponent>();
 
 					glm::vec3 ray_nds = glm::vec3(x, y, z);
@@ -309,7 +316,8 @@ namespace ely {
 			transform = glm::translate(transform, position);
 			transform = glm::scale(transform, glm::vec3(0.4f));
 			entity.GetComponent<TransformComponent>().SetTransform(transform);
-			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("basic_diffuse"));
+			entity.AddComponent<MeshRendererComponent_V2>(MeshPrimitive::GetCubeMesh2(), ShaderRepo::Get("white_ub"));
+			entity.AddComponent<DirectionalLightComponent>();
 			return entity;
 		}
 		
@@ -336,74 +344,23 @@ namespace ely {
 			return entity;
 		}
 
-		//TODO - define these in opengl_uniform_buffer.h or renderer.h
-		struct CameraBlock
-		{
-			alignas(16) glm::mat4 proj;
-			alignas(16) glm::mat4 view;
-			alignas(16) glm::vec3 eye_pos;
-		};
-
-		struct LightBlock
-		{
-			alignas(16) glm::vec3 dir;
-			alignas(16) glm::vec3 color;
-			alignas(16) glm::vec3 ambient_color;
-		};
-	
-		void Scene::UploadCameraDataToShaders()
-		{
-			auto& camera = (PerspectiveCamera&)(m_controlled_camera_entity.GetComponent<PerspectiveCameraComponent>());
-			auto& camera_transform = (glm::mat4&)(m_controlled_camera_entity.GetComponent<TransformComponent>());
-			
-			//auto constexpr cam_block_size = sizeof(CameraBlock);
-			//auto constexpr light_block_size = sizeof(LightBlock);
-
-			const auto& camera_ub_opt = ShaderRepo::GetUniformBuffer("ub_camera");
-			if (camera_ub_opt)
-			{
-				glm::mat4 view_mat = camera.GetViewMatrix(camera_transform);
-				glm::mat4 proj_mat = camera.GetProjMatrix();
-				glm::vec3 eye_pos = glm::vec3{ camera_transform[3] };
-				CameraBlock camera_block{ proj_mat, view_mat, eye_pos };
-				const OpenGLUniformBuffer& camera_ub = camera_ub_opt.value();
-				camera_ub.SetData(reinterpret_cast<const void*>(&camera_block), sizeof(CameraBlock));
-			}
-		}
-
-		//TODO - should be in renderer module
-		void Scene::UploadLightDataToShader()
-		{
-			auto view = m_registry.view<DirectionalLightComponent, TransformComponent>();
-		
-			for (auto entity : view) 
-			{ //should be only 1 dir light a.t.m.
-				auto [light_comp, transform_comp] = view.get<DirectionalLightComponent, TransformComponent>(entity);
-				DirectionalLight& light = light_comp;
-				glm::mat4& transform_mat = transform_comp;
-				light.direction = glm::vec3(transform_mat[2]); //z direction
-				
-				const auto& light_ub_opt = ShaderRepo::GetUniformBuffer("ub_directional_light");
-				if (light_ub_opt)
-				{
-					LightBlock light_block{ light.direction, light.color, light.ambient_color };
-					const OpenGLUniformBuffer& light_ub = light_ub_opt.value();
-					light_ub.SetData(reinterpret_cast<const void*>(&light_block), sizeof(LightBlock));
-				}
-
-			}
-		}
-		
 		void Scene::BeginScene(const glm::vec4& clear_color)
 		{
-			//Upload per scene data do shader(s)
-			UploadCameraDataToShaders(); //TODO should be part of renderer api
-			UploadLightDataToShader();
-			//m_renderer.SetClearColor(clear_color);
-			//m_renderer.ClearBuffers();
-
+			OpenGLRenderer::SetLineWidth(2.0);
 			OpenGLRenderer::SetClearColor(clear_color);
 			OpenGLRenderer::ClearBuffers();
+
+			auto& camera = (Camera&)(m_controlled_camera_entity.GetComponent<CameraComponent>());
+			auto& camera_transform = (glm::mat4&)(m_controlled_camera_entity.GetComponent<TransformComponent>());
+
+			auto view = m_registry.view<DirectionalLightComponent>();
+			ASSERT(view.size() == 1); //only 1 dir light currently supported
+
+			const auto& entity = view.front();
+			DirectionalLight& light = m_registry.get<DirectionalLightComponent>(entity);
+			glm::mat4& light_transform = m_registry.get<TransformComponent>(entity);
+			light.direction = glm::normalize(glm::vec3(light_transform[2])); //i.e. pos z-dir of light (in world space)
+			OpenGLRenderer::Begin(camera, light, camera_transform, light_transform);
 		}
 
 		void Scene::EndScene()
@@ -429,6 +386,7 @@ namespace ely {
 			}
 		}
 
+#if 0
 		void Scene::RenderScene()
 		{
 			auto view = m_registry.view<TagComponent, TransformComponent, MeshRendererComponent, ShaderHandleComponent>();
@@ -441,29 +399,57 @@ namespace ely {
 					continue;
 
 				auto& shader = (Shader&)(shader_comp.GetShader());
-				//TODO do this in DrawMesh() / renderer
-				shader.Bind();
-				shader.SetUniformMat4f("u_model", (glm::mat4)(transform_comp));
-
 				auto& mesh = (Mesh&)(mesh_comp);
-				mesh.UploadMaterialToShader(shader); //TODO shoud be done in renderer
-				OpenGLRenderer::DrawMesh(mesh, shader);
+				OpenGLRenderer::Draw(mesh, (glm::mat4&)(transform_comp),  shader);
 
 				if (mesh_comp.GetShowCoords())
 				{
-					
 					auto& coords_mesh = MeshPrimitive::GetCoordSystemMesh1();
 					auto& coords_shader = *(ShaderRepo::Get("basic_lines_colored_ub"));
 					
 					glm::mat4 transform = transform_comp;
 					if (tag_comp.m_tag != "Grid"s) //TODO - breaks if tag changed in editor
 						transform = glm::scale(transform, glm::vec3(0.1f));
-					coords_shader.Bind();
-					coords_shader.SetUniformMat4f("u_model", transform);
-					OpenGLRenderer::DrawMesh(coords_mesh, coords_shader);
+
+					OpenGLRenderer::Draw(coords_mesh, transform, coords_shader);
 				}
 			}
 		}
+#endif
+
+#if 1
+		void Scene::RenderScene()
+		{
+			auto view = m_registry.view<TagComponent, TransformComponent, MeshRendererComponent_V2>();
+
+			for (auto entity : view)
+			{
+				auto [tag_comp, transform_comp, mesh_renderer_comp] = view.get<TagComponent, TransformComponent, MeshRendererComponent_V2>(entity);
+
+				if (!mesh_renderer_comp.enable_render)
+					continue;
+
+				const material_v2::Material material = mesh_renderer_comp.material;
+				const auto shader_ref = material.GetShader();
+				const mesh_v2::Mesh mesh = mesh_renderer_comp.mesh;
+
+				OpenGLRenderer::Draw_V2(mesh, material, (glm::mat4&)(transform_comp), *shader_ref);
+
+				if (mesh_renderer_comp.show_coords)
+				{
+					auto& coords_mesh = MeshPrimitive::GetCoordSystemMesh2();
+					auto coords_shader_ref = ShaderRepo::Get("basic_lines_colored_ub");
+					material_v2::Material coords_mat = material_v2::Material{ coords_shader_ref };
+
+					glm::mat4 transform = transform_comp;
+					if (tag_comp.m_tag != "Grid"s) //TODO - breaks if tag changed in editor
+						transform = glm::scale(transform, glm::vec3(0.1f));
+
+					OpenGLRenderer::Draw_V2(coords_mesh, coords_mat,transform, *coords_shader_ref);
+				}
+			}
+		}
+#endif
 
 		bool Scene::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
 		{
@@ -480,46 +466,29 @@ namespace ely {
 			return true;
 		}
 
-		//Only applies to the controlled camera
-		//TODO - don't think this us used anywhere
-		bool Scene::OnMouseMoved(ely::EventMouseMoved& e) 
-		{
-			m_camera_controller.OnMouseMoved(e);
-			return true;
-		}
-
-		//Only applies to the controlled camera
-		bool Scene::OnMouseScrolled(ely::EventMouseScrolled& e)
-		{
-			m_camera_controller.OnMouseScrolled(e);
-			return true;
-		}
-
-		//Apply to all cameras in the scene for sandbox app
 		bool Scene::OnWindowResize(ely::EventWidowResize& e)
 		{
 			if ((e.buffer_width == 0) || (e.buffer_height == 0))
 				return true; //minimized
 
-			auto view = m_registry.view<PerspectiveCameraComponent>();
+			auto view = m_registry.view<CameraComponent>();
 			for (auto camera_entity : view)
 			{
-				PerspectiveCamera& camera = view.get<PerspectiveCameraComponent>(camera_entity);
+				Camera& camera = view.get<CameraComponent>(camera_entity);
 				camera.SetAspectRatio((float)e.buffer_width, (float)e.buffer_height);
 			}
 			return true;
 		}
 
-		//Apply to all cameras in the scene for editor app
 		bool Scene::OnViewportResize(ely::EventViewportResize& e)
 		{
 			if ((e.width == 0) || (e.height == 0))
 				return true; //minimized
 
-			auto view = m_registry.view<PerspectiveCameraComponent>();
+			auto view = m_registry.view<CameraComponent>();
 			for (auto camera_entity : view)
 			{
-				PerspectiveCamera& camera = view.get<PerspectiveCameraComponent>(camera_entity);
+				Camera& camera = view.get<CameraComponent>(camera_entity);
 				camera.SetAspectRatio((float)e.width, (float)e.height);
 			}
 			return true;
@@ -546,6 +515,24 @@ namespace ely {
 			{
 				auto& mesh_comp = entity.GetComponent<MeshRendererComponent>();
 				mesh_comp.SetShowCoords(val);
+			}
+		}
+
+		void Scene::SetRenderable_V2(Entity& entity, bool val)
+		{
+			if (entity.HasComponent<MeshRendererComponent_V2>())
+			{
+				auto& mesh_comp = entity.GetComponent<MeshRendererComponent_V2>();
+				mesh_comp.enable_render = val;
+			}
+		}
+
+		void Scene::DisplayCoords_V2(Entity& entity, bool val)
+		{
+			if (entity.HasComponent<MeshRendererComponent>())
+			{
+				auto& mesh_comp = entity.GetComponent<MeshRendererComponent>();
+				mesh_comp.m_show_coords = val;
 			}
 		}
 
