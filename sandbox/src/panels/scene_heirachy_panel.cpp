@@ -29,6 +29,7 @@ namespace ely {
 		//TODO assert scene not null
 		m_scene = scene;
 	}
+
 	void SceneHeirachyPanel::OnImGuiRender()
 	{
 		auto& registry = m_scene->GetRegistry();
@@ -86,7 +87,7 @@ namespace ely {
 				}
 				if (ImGui::MenuItem("Mesh Renderer"))
 				{
-					m_selected_entity.AddComponent<MeshRendererComponent>();
+					m_selected_entity.AddComponent<MeshRendererComponent_V2>();
 					ImGui::CloseCurrentPopup();
 				}
 
@@ -359,11 +360,11 @@ namespace ely {
 		
 		});
 
-		DrawComponent<PerspectiveCameraComponent>("Perspective Camera", entity, true, [](auto& component) {
+		/*DrawComponent<CameraComponent>("Perspective Camera", entity, true, [](auto& component) {
 			ImGui::Text("Perspective Camera");
-		});
+		});*/
 
-		DrawComponent<MeshRendererComponent>("Mesh Renderer", entity, true, [](auto& component) {
+		DrawComponent<MeshRendererComponent_V2>("Mesh Renderer", entity, true, [](auto& component) {
 			ImGui::Text("Mesh");
 		});
 

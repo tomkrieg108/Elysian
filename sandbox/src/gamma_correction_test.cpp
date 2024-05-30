@@ -6,15 +6,19 @@
 #include "elysian/model/mesh_primitives.h"
 #include "elysian/kernal/log.h"
 #include "elysian/renderer/opengl_renderer.h"
+#include "elysian/camera/camera.h"
+#include "elysian/scene/entity.h"
+#include "elysian/scene/component.h"
 #include "gamma_correction_test.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <imgui_docking/imgui.h>
 
 GammaTestLayer::GammaTestLayer(ely::Window& window) :
 	m_window(window),
-	m_camera_controller(glm::vec4(-25.0f, 25.0f, 25.0f, -25.0f), glm::vec3(0.0, 3.0, 0.0))
+	m_scene{ ely::CreateRef<ely::Scene>() }
 {
 	glLineWidth(1.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -22,6 +26,10 @@ GammaTestLayer::GammaTestLayer(ely::Window& window) :
 	glEnable(GL_LINE_SMOOTH);
 
 	m_window.SetClearColour(glm::vec4(0.6f, 0.6, 0.0f, 1.0f));
+
+	m_camera_entity = m_scene->CreateCameraEntity_V2(glm::vec3(4.0, 1.0, 7.0), "Camera"s);
+	m_scene->SetRenderable_V2(m_camera_entity, false);
+	m_scene->SetControlledCameraEntity(m_camera_entity);
 
 	//buffer setup
 	m_vbo_grid = ely::MeshPrimitive::GetGridVertexBuffer(20.0f, 1.0f);
@@ -70,18 +78,22 @@ void GammaTestLayer::OnEvent(ely::Event& e)
 
 void GammaTestLayer::OnUpdate(double time_step)
 {
-	m_camera_controller.OnUpdate(time_step);
-
+	m_scene->GetCameraController().OnUpdate(time_step);
+	
 	//-----------------------------------------------------------------------------------
 	//Render to screen (main camera)
 	//-----------------------------------------------------------------------------------
 	ely::OpenGLRenderer::SetLineWidth(1.0f);
 
 	//grid
+
+	auto& camera = (ely::Camera&)(m_camera_entity.GetComponent<ely::CameraComponent>());
+	auto& camera_transform = (glm::mat4)(m_camera_entity.GetComponent<ely::TransformComponent>());
+
 	m_gamma_test_shader->Bind();
 	m_gamma_test_shader->SetUniformMat4f("u_model", glm::mat4(1.0f));
-	m_gamma_test_shader->SetUniformMat4f("u_view", m_camera_controller.GetCamera().GetViewMatrix());
-	m_gamma_test_shader->SetUniformMat4f("u_proj", m_camera_controller.GetCamera().GetProjMatrix());
+	m_gamma_test_shader->SetUniformMat4f("u_view", camera.GetViewMatrix(camera_transform));
+	m_gamma_test_shader->SetUniformMat4f("u_proj", camera.GetProjMatrix());
 
 	m_vao_grid.Bind();
 	//glDrawArrays(GL_LINES, 0, m_vbo_grid->GetVertexCount());
@@ -173,14 +185,17 @@ void GammaTestLayer::OnImGuiRender()
 		ImGui::Text(" Buf Width, Buf Height %d %d : ", m_window.BufferWidth(), m_window.BufferHeight());
 		ImGui::Text(" %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	}
+
 	if (ImGui::CollapsingHeader("Ortho Cam"))
 	{
-		const ely::OrthoCamera& camera = m_camera_controller.GetCamera();
+		auto& camera = (ely::Camera&)(m_camera_entity.GetComponent<ely::CameraComponent>());
+		auto& camera_transform = (glm::mat4)(m_camera_entity.GetComponent<ely::TransformComponent>());
+		
 		ImGui::Text("Otho Camera parameters");
-		ImGui::SliderFloat3("Position ", &(camera.GetPosition()[0]), -20.0f, 20.0f);
-		ImGui::SliderFloat3("Front ", &(camera.GetFront()[0]), -1.01f, 1.01f);
-		ImGui::SliderFloat3("Up    ", &(camera.GetUp()[0]), -1.01f, 1.01f);
-		ImGui::SliderFloat3("Right ", &(camera.GetRight()[0]), -1.01f, 1.01f);
+		ImGui::SliderFloat3("Position ", &(camera_transform[3][0]), -20.0f, 20.0f);
+		ImGui::SliderFloat3("Front ", &(camera_transform[2][0]), -20.0f, 20.0f);
+		ImGui::SliderFloat3("Up ", &(camera_transform[1][0]), -20.0f, 20.0f);
+		ImGui::SliderFloat3("Right ", &(camera_transform[0][0]), -20.0f, 20.0f);
 	}
 	if (ImGui::CollapsingHeader("Texture (SRGB disabled)"))
 	{
@@ -216,14 +231,13 @@ bool GammaTestLayer::OnKeyPressed(ely::EventKeyPressed& e)
 
 bool GammaTestLayer::OnMouseMoved(ely::EventMouseMoved& e)
 {
-	m_camera_controller.OnMouseMoved(e);
+	m_scene->GetCameraController().OnMouseMoved(e);
 	return true;
 }
 
 bool GammaTestLayer::OnMouseScrolled(ely::EventMouseScrolled& e)
 {
-	m_camera_controller.OnMouseScrolled(e);
-
+	m_scene->GetCameraController().OnMouseScrolled(e);
 	return true;
 }
 
@@ -234,7 +248,6 @@ bool GammaTestLayer::OnMouseButtonPressed(ely::EventMouseButtonPressed& e)
 
 bool GammaTestLayer::OnWindowResize(ely::EventWidowResize& e)
 {
-	m_camera_controller.OnWindowResize(e);
-
+	m_scene->OnWindowResize(e);
 	return true;
 }

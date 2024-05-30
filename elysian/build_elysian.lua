@@ -24,8 +24,14 @@ project "elysian"
         "%{vendor_dir}/glm/**.hpp",
 	    "%{vendor_dir}/glm/**.inl",
 
-        "%{include_dir.entt}/**.hpp"
+        "%{include_dir.entt}/**.hpp",
     }
+
+    removefiles
+	{
+		"src/**/exclude/**.cpp", 
+		"src/**/exclude/**.h"
+	}
 
    includedirs
    {
@@ -52,7 +58,7 @@ project "elysian"
     defines
 	{
 		"_CRT_SECURE_NO_WARNINGS",
-        "GLFW_INCLUDE_NONE"
+        "GLFW_INCLUDE_NONE",
 	}
 
    filter "system:windows"

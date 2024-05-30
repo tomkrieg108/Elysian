@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "elysian/kernal/application.h"
-#include "elysian/camera/perspective_camera.h"
+#include "perspective_camera.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

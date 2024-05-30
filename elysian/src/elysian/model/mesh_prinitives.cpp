@@ -256,7 +256,7 @@ namespace ely
   }
 
   //=================================================================================
-
+#if 0
   Mesh& MeshPrimitive::GetCoordSystemMesh1()
   {
     return s_mesh_primitive_repo_v1["coords"];
@@ -282,6 +282,7 @@ namespace ely
     return s_mesh_primitive_repo_v1["quad_tm"];
   }
 
+#endif
   //=================================================================================
 
   mesh_v2::Mesh& MeshPrimitive::GetCoordSystemMesh2()
@@ -310,6 +311,7 @@ namespace ely
   }
 
   //=================================================================================
+#if 0
 
   void MeshPrimitive::CreateCoordSystemMesh1(float size)
   {
@@ -367,6 +369,7 @@ namespace ely
     s_mesh_primitive_repo_v1["quad_tm"] = mesh;
   }
   
+#endif
   //=================================================================================
 
   void MeshPrimitive::CreateCoordSystemMesh2(float size)
@@ -426,10 +429,12 @@ namespace ely
 
   void MeshPrimitive::Init()
   {
+#if 0
     CreateCoordSystemMesh1();
     CreateGridMesh1();
     CreateCubeMesh1();
     CreateQuadMesh1();
+#endif
 
     CreateCoordSystemMesh2();
     CreateGridMesh2();

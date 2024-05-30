@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "elysian/camera/ortho_camera.h"
+#include "ortho_camera.h"
 #include "elysian/kernal/log.h"
 #include <glm/gtc/matrix_transform.hpp>
 

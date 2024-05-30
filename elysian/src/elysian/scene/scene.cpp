@@ -3,8 +3,8 @@
 #include "elysian/kernal/log.h"
 #include "elysian/kernal/application.h"
 #include "elysian/renderer/opengl_renderer.h"
-#include "elysian/camera/perspective_camera.h"
-#include "elysian/camera/perspective_camera_controller.h"
+//#include "elysian/camera/perspective_camera.h"
+//#include "elysian/camera/perspective_camera_controller.h"
 #include "elysian/light/directional_light.h"
 #include "elysian/model/mesh_primitives.h"
 #include "elysian/scene/native_scripts/rotate_and_orbit.h"
@@ -41,11 +41,12 @@ namespace ely {
 			m_registry.destroy(entity); //implicit conversion to entt::entity - see entity.h
 		}
 
+#if 0
 		Entity Scene::CreateGridEntity()
 		{
 			Entity entity = CreateEntity("Grid");
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetGridMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_lines_colored_ub")));
+			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_lines_colored_ub")));
 			/*
 			TODO - sort out this thing
 			grid entity passed through only used PerspectiveCameraController::RotateWorld2(), which an attempt to setup the 
@@ -69,7 +70,7 @@ namespace ely {
 			auto& camera_comp = entity.AddComponent<CameraComponent>();
 
 
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white_ub")));
+			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white_ub")));
 			return entity;
 		}
 		 
@@ -80,7 +81,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular_ub")));
+			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular_ub")));
 			return entity;
 		}
 
@@ -91,7 +92,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular_ub")));
+			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_specular_ub")));
 			entity.AddComponent<NativeScriptableComponent>().Bind<NativeScriptRotateAndOrbit>();
 			return entity;
 		}
@@ -103,7 +104,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored_ub")));
+			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored_ub")));
 			
 			//NOTE  this is based on info Anton's book about mouse picking
 			decltype(auto) event_handler = [entity, this](Event& event) mutable
@@ -155,7 +156,7 @@ namespace ely {
 			auto& transform_comp = entity.GetComponent<TransformComponent>();
 			transform_comp.SetTransform(transform);
 			entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetQuadMesh1());
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored_ub")));
+			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("basic_colored_ub")));
 			Entity camera_entity = FindEntityByName("Main Camera"s); //TODO - this will break if name is chaned in editor
 
 			//NOTE  this is based on info in Anton's book about mouse picking
@@ -214,11 +215,11 @@ namespace ely {
 			transform_comp.SetTransform(transform);
 			auto& mesh_comp = entity.AddComponent<MeshRendererComponent>(MeshPrimitive::GetCubeMesh1());
 			mesh_comp.m_mesh.SetMaterial(*MaterialRepo::Get("empty"));
-			entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white_ub")));
+			//entity.AddComponent<ShaderHandleComponent>(*(ShaderRepo::Get("white_ub")));
 			entity.AddComponent<DirectionalLightComponent>();
 			return entity;
 		}
-
+#endif
 		//======================================================================================================================
 
 		Entity Scene::CreateGridEntity_V2()
@@ -500,6 +501,7 @@ namespace ely {
 			m_controlled_camera_entity = camera_entity;
 		}
 
+#if 0
 		void Scene::SetRenderable(Entity& entity, bool val)
 		{
 			if(entity.HasComponent<MeshRendererComponent>())
@@ -517,6 +519,7 @@ namespace ely {
 				mesh_comp.SetShowCoords(val);
 			}
 		}
+#endif
 
 		void Scene::SetRenderable_V2(Entity& entity, bool val)
 		{
@@ -529,10 +532,10 @@ namespace ely {
 
 		void Scene::DisplayCoords_V2(Entity& entity, bool val)
 		{
-			if (entity.HasComponent<MeshRendererComponent>())
+			if (entity.HasComponent<MeshRendererComponent_V2>())
 			{
-				auto& mesh_comp = entity.GetComponent<MeshRendererComponent>();
-				mesh_comp.m_show_coords = val;
+				auto& mesh_comp = entity.GetComponent<MeshRendererComponent_V2>();
+				mesh_comp.show_coords = val;
 			}
 		}
 

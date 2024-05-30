@@ -1,5 +1,5 @@
 #pragma once
-#include "elysian/camera/ortho_camera.h"
+#include "ortho_camera.h"
 #include "elysian/events/events.h"
 #include <cmath>
 #include <glm/glm.hpp>

@@ -1,15 +1,17 @@
 #pragma once
 
 #include "elysian/kernal/window.h"
+#include "elysian/kernal/base.h"
 #include "elysian/kernal/layer.h"
 #include "elysian/events/events.h"
-#include "elysian/camera/ortho_camera_controller.h"
+#include "elysian/camera/camera_controller.h"
 #include "elysian/renderer/opengl_shader.h"
 #include "elysian/renderer/opengl_shader_utils.h"
 #include "elysian/renderer/opengl_texture_2d.h"
 #include "elysian/renderer/opengl_vertex_array.h"
 #include "elysian/renderer/opengl_buffer.h"
 #include "elysian/renderer/opengl_framebuffer.h"
+#include "elysian/scene/scene.h"
 
 
 class GammaTestLayer : public ely::Layer
@@ -36,7 +38,8 @@ private:
 
 private:
 	ely::Window& m_window;
-	ely::OrthoCameraController m_camera_controller;
+	ely::Entity m_camera_entity;
+	ely::Ref<ely::Scene> m_scene;
 
 	ely::OpenGLVertexBuffer m_vbo_grid, m_vbo_world_coords, m_vbo_gray_scale, m_vbo_gray_scale_gc;
 	ely::OpenGLVertexArray m_vao_grid, m_vao_world_coords, m_vao_gray_scale, m_vao_gray_scale_gc;

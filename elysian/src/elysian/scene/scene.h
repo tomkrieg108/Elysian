@@ -5,7 +5,7 @@
 #include "elysian/renderer/opengl_framebuffer.h"
 #include "elysian/renderer/opengl_renderer.h"
 #include "elysian/scene/entity.h"
-#include "elysian/camera/perspective_camera_controller.h"
+//#include "elysian/camera/perspective_camera_controller.h"
 #include "elysian/camera/camera_controller.h"
 
 namespace ely {
@@ -19,6 +19,7 @@ namespace ely {
 
 			Entity CreateEntity(const std::string& name);
 
+#if 0
 			Entity CreateGridEntity();
 			Entity CreateBoxEntity();
 			Entity CreateOrbitingCubeEntity(const glm::vec3& position, const std::string& name);
@@ -26,6 +27,7 @@ namespace ely {
 			Entity CreateQuadEntity2(const glm::vec3& position, const std::string& name); //for editor
 			Entity CreateDrirectionalLightEntity(const glm::vec3& position, const std::string& name);
 			Entity CreatePerspectiveCameraEntity(const glm::vec3& position, const std::string& name);
+#endif
 
 			Entity CreateGridEntity_V2();
 			Entity CreateBoxEntity_V2();
@@ -44,11 +46,14 @@ namespace ely {
 			void RenderScene();
 			void UpdateScene(double time_step);
 
+#if 0
 			void SetRenderable(Entity& entity, bool val);
 			void DisplayCoords(Entity& entity, bool val);
+#endif
 
 			void SetRenderable_V2(Entity& entity, bool val);
 			void DisplayCoords_V2(Entity& entity, bool val);
+
 			 
 			auto& GetRegistry() { return m_registry; }
 			const auto& GetRegistry() const { return m_registry; }

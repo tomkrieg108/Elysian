@@ -53,7 +53,8 @@ namespace ely
 		glm::mat4 GetRotationMatZ(float angle) const;
 
 	private:
-		Entity m_camera_entity, m_grid_entity; //both set by scene.cpp rather than in ctr - bit dodgy?
+
+		Entity m_camera_entity, m_grid_entity; //TODO both set by scene.cpp rather than in ctr - bit dodgy?
 		InputMode m_input_mode = InputMode::Select;
 	};
 }

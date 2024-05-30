@@ -2,7 +2,7 @@
 #include "elysian/kernal/base.h"
 #include "elysian/renderer/opengl_framebuffer.h"
 #include "elysian/renderer/opengl_uniform_buffer.h"
-#include "elysian/camera/perspective_camera.h"
+//#include "elysian/camera/perspective_camera.h"
 #include "elysian/camera/camera.h"
 #include "elysian/light/directional_light.h"
 #include "elysian/model/mesh.h"

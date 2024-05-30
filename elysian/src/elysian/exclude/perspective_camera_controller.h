@@ -1,5 +1,5 @@
 #pragma once
-#include "elysian/camera/perspective_camera.h"
+#include "perspective_camera.h"
 #include "elysian/events/events.h"
 #include "elysian/scene/entity.h"
 #include <cmath>

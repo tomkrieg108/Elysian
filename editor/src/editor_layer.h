@@ -9,7 +9,7 @@
 #include "elysian/imgui/im_gui_viewport_data.h"
 #include "elysian/model/mesh.h"
 #include "elysian/scene/scene.h"
-#include "elysian/camera/perspective_camera_controller.h"
+#include "elysian/camera/camera_controller.h"
 
 namespace ely {
 

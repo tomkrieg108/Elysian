@@ -29,11 +29,11 @@ namespace ely
 		static Ref<Mesh> GetCoordSystemMesh(const glm::mat4& model_mat, float size);
 #endif
 
-		static Mesh& GetCoordSystemMesh1();
+		/*static Mesh& GetCoordSystemMesh1();
 		static Mesh& GetGridMesh1();
 		static Mesh& GetCubeMesh1();
 		static Mesh& GetQuadMesh1();
-		static Mesh& GetQuadMeshTM1();
+		static Mesh& GetQuadMeshTM1();*/
 		
 		
 		static mesh_v2::Mesh& GetCoordSystemMesh2();
@@ -46,11 +46,11 @@ namespace ely
 
 	private:
 
-		static void CreateCoordSystemMesh1(float size = 20.0f);
+		/*static void CreateCoordSystemMesh1(float size = 20.0f);
 		static void CreateGridMesh1(float grid_size = 20.0f);
 		static void CreateCubeMesh1();
 		static void CreateQuadMesh1();
-		static void CreateQuadMeshTM1();
+		static void CreateQuadMeshTM1();*/
 		
 		static void CreateCoordSystemMesh2(float size = 20.0f);
 		static void CreateGridMesh2(float grid_size = 20.0f);

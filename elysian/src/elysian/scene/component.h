@@ -2,7 +2,7 @@
 #include "elysian/kernal/base.h"
 #include "elysian/kernal/uuid.h"
 #include "Elysian/events/events.h"
-#include "elysian/camera/perspective_camera.h"
+//#include "elysian/camera/perspective_camera.h"
 #include "elysian/camera/camera.h"
 #include "elysian/model/material.h"
 #include "elysian/model/mesh_primitives.h"
@@ -121,7 +121,7 @@ namespace ely
 	};
 
 	//---------------------------------------------------------------
-
+#if 0
 	class MeshRendererComponent
 	{
 		//TODO should perhaps make sure move constructors are availabe too
@@ -144,9 +144,10 @@ namespace ely
 		bool m_enable_render = true;
 		bool m_show_coords = true;
 	};
+#endif
 
 	//---------------------------------------------------------------
-
+#if 0
 	class PerspectiveCameraComponent
 	{
 	public:
@@ -158,6 +159,7 @@ namespace ely
 	public:
 		PerspectiveCamera m_camera;
 	};
+#endif
 
 	//---------------------------------------------------------------
 
@@ -186,7 +188,7 @@ namespace ely
 	};
 
 	//---------------------------------------------------------------
-
+#if 0
 	class ShaderHandleComponent
 	{
 	public:
@@ -198,9 +200,10 @@ namespace ely
 	public:
 		ShaderHandle m_shader_handle;
 	};
-
+#endif
 	//---------------------------------------------------------------
 	//TODO - obsolete!
+#if 0
 	using UpdateFunc = std::function<void(double)>;
 	class UpdatableComponent
 	{
@@ -214,7 +217,7 @@ namespace ely
 	public:
 		UpdateFunc m_update_func; //NOTE can used operator bool to check if contains no callable target
 	};
-
+#endif
 	//---------------------------------------------------------------
 	class ScriptableEntity;
 	class NativeScriptableComponent

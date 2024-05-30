@@ -2,8 +2,8 @@
 #include "elysian/kernal/application.h"
 #include "elysian/imgui/im_gui_layer.h"
 #include "elysian/kernal/input.h"
-#include "elysian/camera/perspective_camera.h"
-#include "elysian/camera/perspective_camera_controller.h"
+#include "perspective_camera.h"
+#include "perspective_camera_controller.h"
 #include "elysian/kernal/log.h"
 #include "elysian/events/event_dispatcher.h"
 #include <glm/gtc/matrix_transform.hpp>

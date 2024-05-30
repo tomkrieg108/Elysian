@@ -8,7 +8,7 @@
 #include "elysian/events/events.h"
 #include "elysian/model/mesh.h"
 #include "elysian/scene/scene.h"
-#include "elysian/camera/perspective_camera_controller.h"
+//#include "elysian/camera/perspective_camera_controller.h"
 
 #include "elysian/renderer/opengl_shader.h"
 #include "elysian/renderer/opengl_shader_utils.h"

@@ -25,7 +25,7 @@ namespace ely
 		OpenGLRenderer::Init();
 		Texture2DRepo::Init();
 		ShaderRepo::Init();
-		MaterialRepo::Init();
+		//MaterialRepo::Init();
 		MeshPrimitive::Init();
 
 		//TODO Maybe makes more sense than to set the function in event dispatcher rather than window as in hazel
