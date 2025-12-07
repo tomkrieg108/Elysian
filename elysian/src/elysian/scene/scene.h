@@ -19,22 +19,16 @@ namespace ely {
 
 			Entity CreateEntity(const std::string& name);
 
-#if 0
+#if 1
+			Entity CreateQuadEntity2(const glm::vec3& position, const std::string& name); //for editor
+#endif
+
 			Entity CreateGridEntity();
 			Entity CreateBoxEntity();
 			Entity CreateOrbitingCubeEntity(const glm::vec3& position, const std::string& name);
 			Entity CreateQuadEntity(const glm::vec3& position, const std::string& name);
-			Entity CreateQuadEntity2(const glm::vec3& position, const std::string& name); //for editor
 			Entity CreateDrirectionalLightEntity(const glm::vec3& position, const std::string& name);
-			Entity CreatePerspectiveCameraEntity(const glm::vec3& position, const std::string& name);
-#endif
-
-			Entity CreateGridEntity_V2();
-			Entity CreateBoxEntity_V2();
-			Entity CreateOrbitingCubeEntity_V2(const glm::vec3& position, const std::string& name);
-			Entity CreateQuadEntity_V2(const glm::vec3& position, const std::string& name);
-			Entity CreateDrirectionalLightEntity_V2(const glm::vec3& position, const std::string& name);
-			Entity CreateCameraEntity_V2(const glm::vec3& position, const std::string& name);
+			Entity CreateCameraEntity(const glm::vec3& position, const std::string& name);
 
 			Entity FindEntityByName(std::string_view name);
 			Entity GetEntityByUUID(UUID uuid);
@@ -46,13 +40,8 @@ namespace ely {
 			void RenderScene();
 			void UpdateScene(double time_step);
 
-#if 0
 			void SetRenderable(Entity& entity, bool val);
 			void DisplayCoords(Entity& entity, bool val);
-#endif
-
-			void SetRenderable_V2(Entity& entity, bool val);
-			void DisplayCoords_V2(Entity& entity, bool val);
 
 			 
 			auto& GetRegistry() { return m_registry; }

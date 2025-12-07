@@ -12,7 +12,8 @@ namespace ely
 {
 	OpenGLVertexArray::OpenGLVertexArray()
 	{
-		glGenVertexArrays(1, &m_id);
+		//glGenVertexArrays(1, &m_id); //V3.0+
+		glCreateVertexArrays(1, &m_id); //V4.5+
 	}
 
 	OpenGLVertexArray::~OpenGLVertexArray()
@@ -20,7 +21,8 @@ namespace ely
 		//TODO
 		// NOTE this gets called when a Mesh local variable is returned from a function, which messing things up
 		// use Release() instead - see below
-		CORE_WARN("vertex array destructor called: ID={}", m_id);
+
+		//CORE_WARN("OpenGLVertexArray destructor called : ID = {}", m_id);
 		//glDeleteVertexArrays(1, &m_id);
 	}
 

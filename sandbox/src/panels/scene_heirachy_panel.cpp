@@ -87,7 +87,7 @@ namespace ely {
 				}
 				if (ImGui::MenuItem("Mesh Renderer"))
 				{
-					m_selected_entity.AddComponent<MeshRendererComponent_V2>();
+					m_selected_entity.AddComponent<MeshRendererComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 
@@ -360,11 +360,7 @@ namespace ely {
 		
 		});
 
-		/*DrawComponent<CameraComponent>("Perspective Camera", entity, true, [](auto& component) {
-			ImGui::Text("Perspective Camera");
-		});*/
-
-		DrawComponent<MeshRendererComponent_V2>("Mesh Renderer", entity, true, [](auto& component) {
+		DrawComponent<MeshRendererComponent>("Mesh Renderer", entity, true, [](auto& component) {
 			ImGui::Text("Mesh");
 		});
 

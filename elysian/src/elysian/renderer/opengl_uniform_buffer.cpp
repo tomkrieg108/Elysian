@@ -15,7 +15,7 @@ namespace ely
 
 	OpenGLUniformBuffer::~OpenGLUniformBuffer()
 	{
-		CORE_ERROR("OpenGLUniformBuffer destructor called: ID={}", m_id);
+		//CORE_ERROR("OpenGLUniformBuffer destructor called: ID={}", m_id);
 		//glDeleteBuffers(1, &m_id);
 	}
 

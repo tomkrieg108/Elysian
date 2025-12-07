@@ -20,7 +20,7 @@ namespace ely
 
 	private:
 		uint32_t m_id = 0;
-		BufferLayout m_layout; //TODO this won't be accessed in 'hot code' so could make as a unique pointer
+		BufferLayout m_layout;
 		uint32_t m_vertex_count = 0;
 	};
 

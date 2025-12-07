@@ -25,7 +25,6 @@ namespace ely
 		OpenGLRenderer::Init();
 		Texture2DRepo::Init();
 		ShaderRepo::Init();
-		//MaterialRepo::Init();
 		MeshPrimitive::Init();
 
 		//TODO Maybe makes more sense than to set the function in event dispatcher rather than window as in hazel
@@ -39,6 +38,63 @@ namespace ely
 	{
 		Application::PopOverlay(m_imgui_layer);
 		delete m_imgui_layer;
+	}
+
+	void Application::Run()
+	{
+		APP_INFO("Main loop Running.");
+		auto delta_time = 0.0;
+		auto last_time = glfwGetTime();
+		while (m_running)
+		{
+			auto now = glfwGetTime(); //in seconds
+			delta_time = now - last_time;
+			last_time = now;
+
+			if (m_window->IsMinimised())
+			{
+				m_window->OnUpdate(); //without this iconified window doesn't re-opened
+				continue;
+			}
+
+			m_window->Clear();
+
+			this->OnUpdate(delta_time);
+
+			for (Layer* layer : m_layer_stack)
+				layer->OnUpdate(delta_time);
+
+			m_imgui_layer->Begin();
+			for (Layer* layer : m_layer_stack)
+				layer->OnImGuiRender();
+			m_imgui_layer->End();
+
+			m_window->OnUpdate();
+		}
+	}
+
+	void Application::OnEvent(Event& e)
+	{
+		/*
+		Cherno
+		This is going to get called from window.cpp via m_event_callback
+		*/
+		EventDispatcher dispatcher(e);
+
+		//NOTE: & is compulsory for member functions, optional for free functions
+		dispatcher.Dispatch<EventWidowClose>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventWindowFocusChange>(std::bind(&Application::OnWindowFocusChange, this, std::placeholders::_1));
+		dispatcher.Dispatch<EventWindowIconifyChange>(std::bind(&Application::OnWindowIconifyChange, this, std::placeholders::_1));
+
+		//std::function<bool(Event&)> callback = std::bind(&Application::OnWindowResize, this, std::placeholders::_1); //compile error!
+		//auto callback = std::bind(&Application::OnWindowResize, this, std::placeholders::_1); //ok!
+
+		for (auto it = m_layer_stack.rbegin(); it != m_layer_stack.rend(); ++it)
+		{
+			if (e.handled)
+				break;
+			(*it)->OnEvent(e);
+		}
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -94,61 +150,5 @@ namespace ely
 		return true;
 	}
 
-	void Application::OnEvent(Event& e)
-	{
-		/*
-		Cherno
-		This is going to get called from window.cpp via m_event_callback
-		*/
-		EventDispatcher dispatcher(e);
-
-		//NOTE: & is compulsory for member functions, optional for free functions
-		dispatcher.Dispatch<EventWidowClose>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1 ));
-		dispatcher.Dispatch<EventWindowFocusChange>(std::bind(&Application::OnWindowFocusChange, this, std::placeholders::_1));
-		dispatcher.Dispatch<EventWindowIconifyChange>(std::bind(&Application::OnWindowIconifyChange, this, std::placeholders::_1));
-
-		//std::function<bool(Event&)> callback = std::bind(&Application::OnWindowResize, this, std::placeholders::_1); //compile error!
-		//auto callback = std::bind(&Application::OnWindowResize, this, std::placeholders::_1); //ok!
-		
-		for (auto it = m_layer_stack.rbegin(); it != m_layer_stack.rend(); ++it)
-		{
-			if (e.handled)
-				break;
-			(*it)->OnEvent(e);
-		}
-	}
-
-
-	void Application::Run()
-	{
-		APP_INFO("Main loop Running.");
-		auto delta_time = 0.0;
-		auto last_time = glfwGetTime();
-		while (m_running)
-		{
-			auto now = glfwGetTime(); //in seconds
-			delta_time = now - last_time;
-			last_time = now;
-
-			if (m_window->IsMinimised())
-			{
-				m_window->OnUpdate(); //without this iconified window doesn't re-opened
-				continue;
-			}
-				
-			m_window->Clear();
-
-			this->OnUpdate(delta_time);
-
-			for (Layer* layer : m_layer_stack)
-				layer->OnUpdate(delta_time);
-
-			m_imgui_layer->Begin();
-				for (Layer* layer : m_layer_stack)
-					layer->OnImGuiRender();
-			m_imgui_layer->End();
-
-			m_window->OnUpdate();
-		}
-	}
+	
 }

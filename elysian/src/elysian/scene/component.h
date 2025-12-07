@@ -104,62 +104,20 @@ namespace ely
 	};
 
 	//---------------------------------------------------------------
-	struct MeshRendererComponent_V2
+	struct MeshRendererComponent
 	{
-		MeshRendererComponent_V2() = default;
-		MeshRendererComponent_V2(const MeshRendererComponent_V2& component) = default;
-		MeshRendererComponent_V2(const mesh_v2::Mesh& mesh) : mesh{ mesh } {}
-		MeshRendererComponent_V2(const mesh_v2::Mesh& mesh, const Ref<Shader>& shader) :
+		MeshRendererComponent() = default;
+		MeshRendererComponent(const MeshRendererComponent& component) = default;
+		MeshRendererComponent(const Mesh& mesh) : mesh{ mesh } {}
+		MeshRendererComponent(const Mesh& mesh, const Ref<Shader>& shader) :
 			mesh{ mesh }, material{ shader }
 		{
 		}
-
-		mesh_v2::Mesh mesh;
-		material_v2::Material material;
+		Mesh mesh;
+		Material material;
 		bool enable_render = true;
 		bool show_coords = true;
 	};
-
-	//---------------------------------------------------------------
-#if 0
-	class MeshRendererComponent
-	{
-		//TODO should perhaps make sure move constructors are availabe too
-	public:
-		MeshRendererComponent() = default;
-		MeshRendererComponent(const MeshRendererComponent& component) = default;
-		MeshRendererComponent(const Mesh& mesh) : m_mesh{ mesh } {}
-
-		void SetEnableRender(bool val) { m_enable_render = val; }
-		bool GetEnableRender() const { return m_enable_render; }
-
-		void SetShowCoords(bool val) { m_show_coords = val; }
-		bool GetShowCoords() const { return m_show_coords; }
-
-		operator Mesh& () { return m_mesh; }
-		operator const Mesh& () const { return m_mesh; }
-
-	public:
-		Mesh m_mesh;
-		bool m_enable_render = true;
-		bool m_show_coords = true;
-	};
-#endif
-
-	//---------------------------------------------------------------
-#if 0
-	class PerspectiveCameraComponent
-	{
-	public:
-		PerspectiveCameraComponent() = default;
-		PerspectiveCameraComponent(const PerspectiveCameraComponent& component) = default;
-		PerspectiveCameraComponent(const PerspectiveCamera& camera) : m_camera{ camera } {}
-		operator PerspectiveCamera& () { return m_camera; }
-		operator const PerspectiveCamera& () const { return m_camera; }
-	public:
-		PerspectiveCamera m_camera;
-	};
-#endif
 
 	//---------------------------------------------------------------
 
@@ -187,37 +145,7 @@ namespace ely
 		DirectionalLight m_light;
 	};
 
-	//---------------------------------------------------------------
-#if 0
-	class ShaderHandleComponent
-	{
-	public:
-		ShaderHandleComponent() = delete;
-		ShaderHandleComponent(const ShaderHandleComponent& component) = default;
-		ShaderHandleComponent(Shader& shader) : m_shader_handle{shader} {}
-		const Shader& GetShader() const { return m_shader_handle.GetShader(); }
-		operator ShaderHandle () const { return m_shader_handle;}
-	public:
-		ShaderHandle m_shader_handle;
-	};
-#endif
-	//---------------------------------------------------------------
-	//TODO - obsolete!
-#if 0
-	using UpdateFunc = std::function<void(double)>;
-	class UpdatableComponent
-	{
-	public:
-		UpdatableComponent() = default; 
-		UpdatableComponent(UpdateFunc func) :
-			m_update_func{ func }
-		{}
-			
-		void OnUpdate(double time_step) const { m_update_func(time_step); }
-	public:
-		UpdateFunc m_update_func; //NOTE can used operator bool to check if contains no callable target
-	};
-#endif
+	
 	//---------------------------------------------------------------
 	class ScriptableEntity;
 	class NativeScriptableComponent

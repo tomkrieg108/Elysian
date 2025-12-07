@@ -3,7 +3,7 @@
 #include "elysian/kernal/log.h"
 #include "elysian/kernal/application.h"
 
-extern ely::Application* ely::CreateApplication();
+//extern ely::Application* ely::CreateApplication(); //This isn't needed - declared in application.h
 
 int main()
 {

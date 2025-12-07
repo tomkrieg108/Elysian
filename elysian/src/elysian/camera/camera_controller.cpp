@@ -80,7 +80,7 @@ namespace ely {
 	void CameraController::MoveVertically(float amount)
 	{
 		auto& camera_transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
-		glm::vec3 up = glm::vec3{ glm::inverse(camera_transform) * glm::vec4{0,1,0,0} }; //global up in camera space
+		glm::vec3 up = glm::vec3{ glm::inverse(camera_transform) * glm::vec4{0,1,0,0} }; //global up w.r.t. camera space
 		camera_transform = glm::translate(camera_transform, amount * up);
 	}
 
@@ -89,7 +89,7 @@ namespace ely {
 		//TODO
 	}
 
-	//NOTE - not used
+	//todo - not used
 	void CameraController::UpdateTransform(float delta_yaw, float delta_pitch, glm::mat4& transform_)
 	{
 		//TODO - attempt to extract pitch and yaw from transform, then using the Update() code from previous projects
@@ -141,6 +141,7 @@ namespace ely {
 		transform[0][0] = right.x, transform[0][1] = right.y, transform[0][2] = right.z;			//1st col (local x/right axis)
 	}
 
+	//todo - not used
 	void CameraController::Turn(float delta_yaw, float delta_pitch)
 	{
 		auto& camera_transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
@@ -217,7 +218,7 @@ namespace ely {
 		//camera_transform = camera_transform * rot_x;  //rotate about X local axis
 	}
 
-	//NOTE: NOT USED
+	//todo: NOT USED
 	void CameraController::RotateWorld2(float amount_x, float amount_y)
 	{
 		//Make grid a local object in the world and rotate it
@@ -264,6 +265,26 @@ namespace ely {
 			MoveForward((e.delta_x + e.delta_y) * 0.03f); break;
 		};
 	}
+
+	void CameraController::SetPosition(glm::vec3& position)
+	{
+		auto& camera_transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
+		camera_transform[3] = glm::vec4{ position, 1.0f };
+	}
+
+	void CameraController::LookAt(glm::vec3& look_pos)
+	{
+		auto& camera_transform = (glm::mat4&)(m_camera_entity.GetComponent<TransformComponent>());
+		glm::vec3 pos = (glm::vec3)camera_transform[3];
+		glm::vec3 z = -glm::normalize(look_pos - pos);
+		glm::vec3 x = glm::normalize(glm::cross(glm::vec3(0, 1, 0), z));
+		glm::vec3 y = glm::normalize(glm::cross(z, x));
+
+		camera_transform[0] = glm::vec4{ x,0.0f };
+		camera_transform[1] = glm::vec4{ y,0.0f };
+		camera_transform[2] = glm::vec4{ z,0.0f };
+	}
+
 
 	void CameraController::OnMouseScrolled(EventMouseScrolled& e)
 	{

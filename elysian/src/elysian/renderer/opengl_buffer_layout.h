@@ -6,14 +6,8 @@
 namespace ely
 {
 	/*
-	TODO - better to call these AttributeElement, AttributeLayout?
+	TODO - Call these AttributeElement, AttributeLayout?
 	*/
-
-	/*
-TODO use consistent naming for GLSL shader names (attributes, uniforms, the name of the shader itself) and
-buffer layouts, materials etc
-*/
-	
 	struct BufferElement
 	{
 		BufferElement(const std::string& attribute_name, ShaderDataType data_type, bool normalized = false) :
@@ -31,11 +25,7 @@ buffer layouts, materials etc
 
 	class BufferLayout
 	{
-		
 	public:
-
-		//constexpr uint32_t MaxElements = 32;
-
 		BufferLayout() = default;
 		~BufferLayout() = default;
 
@@ -60,7 +50,6 @@ buffer layouts, materials etc
 		void Reset() { m_element_list.clear(); }
 
 	private:
-		//TODO - this could probably be std::array
 		std::vector<BufferElement> m_element_list;
 		uint32_t m_stride = 0;
 

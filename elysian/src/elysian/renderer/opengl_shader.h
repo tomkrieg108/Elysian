@@ -170,7 +170,6 @@ namespace ely
 		static auto begin() { return std::begin(m_shader_repo); }
 		static auto end() { return std::end(m_shader_repo); }
 
-		//static const OpenGLUniformBuffer& GetUniformBuffer(const std::string& name);
 		static std::optional <std::reference_wrapper<OpenGLUniformBuffer>> GetUniformBuffer(const std::string& name);
 		
 	private:

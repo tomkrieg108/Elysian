@@ -44,24 +44,8 @@ namespace ely
 		glLineWidth(width);
 	}
 
-	void OpenGLRenderer::Draw(const Mesh& mesh, const glm::mat4& transform, Shader& shader)
-	{
-		auto& vao = mesh.GetVertexArray();
-		shader.Bind();
-		vao.Bind();
 
-		mesh.UploadMaterialToShader(shader); //TODO shoud be done in renderer
-
-		shader.SetUniformMat4f("u_model",transform);
-		//TODO - handle multiple vbo's ?
-		auto& vbo = vao.GetVertexBuffers()[0];
-		glDrawArrays(GetOpenGLDrawMode(mesh.GetDrawMode()), 0, vbo.GetVertexCount());
-		vao.Unbind();
-		shader.Unbind();
-	} 
-
-#if 1
-	void OpenGLRenderer::Draw_V2(const mesh_v2::Mesh& mesh, const material_v2::Material& material, 
+	void OpenGLRenderer::Draw(const Mesh& mesh, const Material& material, 
 		const glm::mat4& transform, Shader& shader)
 	{
 		auto& vao = mesh.GetVertexArray();
@@ -75,7 +59,6 @@ namespace ely
 		vao.Unbind();
 		shader.Unbind();
 	}
-#endif
 
 	void OpenGLRenderer::Begin(const Camera& camera, const DirectionalLight& light,
 		const glm::mat4& camera_transform, const glm::mat4& light_transform)

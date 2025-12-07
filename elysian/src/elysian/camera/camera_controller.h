@@ -29,6 +29,8 @@ namespace ely
 		void RotateLocal(float delta_yaw, float delta_pitch);
 		void RotateWorld(float amount_x, float amount_y);
 		void RotateWorld2(float amount_x, float amount_y);
+		void SetPosition(glm::vec3& position);
+		void LookAt(glm::vec3& look_pos);
 
 		//TODO - in the transform component?
 		void UpdateTransform(float delta_yaw, float delta_pitch, glm::mat4& transform);
@@ -54,6 +56,7 @@ namespace ely
 
 	private:
 
+		//TODO - m_camera_entity should be a member of the Camera class??
 		Entity m_camera_entity, m_grid_entity; //TODO both set by scene.cpp rather than in ctr - bit dodgy?
 		InputMode m_input_mode = InputMode::Select;
 	};

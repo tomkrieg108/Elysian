@@ -19,7 +19,7 @@ namespace ely
 			uint32_t height = 800;
 			int32_t buffer_height = 1200; //set in Init()
 			int32_t buffer_width = 800; //set in Init()
-			bool vsync_enabled = true;
+			bool vsync_enabled = false;
 			bool cursor_enabled = true;
 			float monitor_aspect_ratio;
 			glm::vec4 clear_colour = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f); //TODO - should be a renderer parameter

@@ -74,14 +74,12 @@ namespace ely
 		glfwGetFramebufferSize(m_window, &m_params.buffer_width, &m_params.buffer_height);
 		OpenGLRenderer::SetViewport(0,0, m_params.buffer_width, m_params.buffer_height);
 
-		SetVSync(true);
+		SetVSync(m_params.vsync_enabled);
 		glfwSetWindowUserPointer(m_window, this);  //Used for setup of event handlers
 		SetCursorEnabled(true);
 		CORE_INFO("WINDOW CREATED:");
 		CORE_TRACE("   Width: {}, Height: {}, Buff Width: {}, Buff Height: {}", m_params.width, m_params.height,
 			m_params.buffer_width, m_params.buffer_height);
-
-		//set callbacks---------------
 
 		//Windows Events
 		//---------------------------------------------
@@ -108,7 +106,7 @@ namespace ely
 			});
 
 		glfwSetFramebufferSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
-			//CORE_INFO("Frame buffer resized");
+				//CORE_INFO("Frame buffer resized");
 			});
 
 

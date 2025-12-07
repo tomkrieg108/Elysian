@@ -39,9 +39,7 @@ namespace ely
 			static void ClearBuffers();
 			static void SetLineWidth(float width);
 
-			static void Draw(const Mesh& mesh, const glm::mat4& transform,  Shader& shader);
-
-			static void Draw_V2(const mesh_v2::Mesh& mesh, const material_v2::Material& material, 
+			static void Draw(const Mesh& mesh, const Material& material, 
 				const glm::mat4& transform, Shader& shader);
 			 
 			static void Begin(const Camera& camera, const DirectionalLight& dir_light,

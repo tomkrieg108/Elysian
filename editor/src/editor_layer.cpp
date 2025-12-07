@@ -65,15 +65,15 @@ namespace ely {
 		m_scene->CreateQuadEntity2(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad"s); //NOTE: relies on main camera=> need to create main cam first
 #endif
 
-		m_scene->CreateGridEntity_V2();
-		m_scene->CreateDrirectionalLightEntity_V2(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light 2"s);
-		m_scene->CreateOrbitingCubeEntity_V2(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube 2"s);
-		auto& main_camera_entity = m_scene->CreateCameraEntity_V2(glm::vec3(0.0f, 3.0f, 15.0f), "Main Camera 2"s);
-		auto& alt_camera_entity = m_scene->CreateCameraEntity_V2(glm::vec3(4.0, 1.0, 7.0), "Alt Camera 2"s);
-		m_scene->CreateQuadEntity_V2(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad 2"s);
+		m_scene->CreateGridEntity();
+		m_scene->CreateDrirectionalLightEntity(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light 2"s);
+		m_scene->CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube 2"s);
+		auto& main_camera_entity = m_scene->CreateCameraEntity(glm::vec3(0.0f, 3.0f, 15.0f), "Main Camera 2"s);
+		auto& alt_camera_entity = m_scene->CreateCameraEntity(glm::vec3(4.0, 1.0, 7.0), "Alt Camera 2"s);
+		m_scene->CreateQuadEntity(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad 2"s);
 
-		m_scene->SetRenderable_V2(main_camera_entity, false);
-		m_scene->SetRenderable_V2(alt_camera_entity, true);
+		m_scene->SetRenderable(main_camera_entity, false);
+		m_scene->SetRenderable(alt_camera_entity, true);
 		m_scene->SetControlledCameraEntity(main_camera_entity);
 	}
 

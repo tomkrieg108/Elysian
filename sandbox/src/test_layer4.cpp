@@ -28,44 +28,26 @@ namespace ely {
 		m_window{ Application::GetInstance().GetWindow() },
 		m_framebuffer(m_window.BufferWidth(), m_window.BufferHeight()),
 		m_framebuffer_alt(m_window.BufferWidth(), m_window.BufferHeight())
-		
 	{
 	}
 
 	void TestLayer4::OnAttach()
 	{
-
 		m_scene = ely::CreateRef<ely::Scene>();
 		m_scene_heirachy_panel.SetScene(m_scene);
 
-#if 0
 		m_scene->CreateGridEntity();
-		m_scene->CreateDrirectionalLightEntity(glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light"s);
-		m_scene->CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube"s);
-
-		m_main_camera_entity = m_scene->CreatePerspectiveCameraEntity(glm::vec3(0.0f, 3.0f, 15.0f), "Main Camera"s);
-		m_scene->SetRenderable(m_main_camera_entity, false);
-		m_scene->SetControlledCameraEntity(m_main_camera_entity);
-
-		m_alt_camera_entity = m_scene->CreatePerspectiveCameraEntity(glm::vec3(4.0, 1.0, 7.0), "Alt Camera"s);
-		m_scene->SetRenderable(m_alt_camera_entity, true);
-
-		m_scene->CreateQuadEntity(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad"s); //NOTE: relies on main camera=> need to create main cam first
-#endif
-		//============================================================================================
-
-#if 1
-		m_scene->CreateGridEntity_V2();
-		m_scene->CreateDrirectionalLightEntity_V2( glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light 2"s );
-		m_scene->CreateOrbitingCubeEntity_V2(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube 2"s);
-		m_main_camera_entity = m_scene->CreateCameraEntity_V2(glm::vec3(0.0f, 3.0f, 15.0f), "Main Camera 2"s);
-		m_alt_camera_entity = m_scene->CreateCameraEntity_V2(glm::vec3(4.0, 1.0, 7.0), "Alt Camera 2"s);
-		m_scene->CreateQuadEntity_V2(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad 2"s);
+		m_scene->CreateDrirectionalLightEntity( glm::vec3(1.2f, 1.0f, 2.0f), "Directional Light 2"s );
+		m_scene->CreateOrbitingCubeEntity(glm::vec3(-2.0f, 2.0f, 3.0f), "Orbiting Cube 2"s);
+		m_main_camera_entity = m_scene->CreateCameraEntity(glm::vec3(-5.0f, 5.0f, 15.0f), "Main Camera 2"s);
+		m_alt_camera_entity = m_scene->CreateCameraEntity(glm::vec3(4.0, 2.0, 7.0), "Alt Camera 2"s);
+		m_scene->CreateQuadEntity(glm::vec3(2.0f, 0.0, 4.0f), "Yellow Quad 2"s);
 		
-		m_scene->SetRenderable_V2(m_main_camera_entity, false); 
-		m_scene->SetRenderable_V2(m_alt_camera_entity, true);
+		m_scene->SetRenderable(m_main_camera_entity, false); 
+		m_scene->SetRenderable(m_alt_camera_entity, true);
 		m_scene->SetControlledCameraEntity(m_main_camera_entity);
-#endif
+
+		m_scene->GetCameraController().LookAt(glm::vec3{ 0,0,0 });
 	}
 
 	void TestLayer4::OnDetach()
@@ -87,38 +69,39 @@ namespace ely {
 		//-----------------------------------------------------------------------------------
 		//Render to framebuffer (main camera)
 		//-----------------------------------------------------------------------------------
-		//OpenGLRenderer::SetLineWidth(2.0);
-		//m_framebuffer.Bind();
-		//m_scene->BeginScene("Main Camera"s, glm::vec4{ 0.13f,0.13f,0.13f,1.0f }); //Set the same view and proj mat in all the shaders again!
-		//m_scene->RenderScene();
-		//m_scene->EndScene();
-		//m_framebuffer.Unbind();
+		OpenGLRenderer::SetLineWidth(2.0);
+		m_framebuffer.Bind();
+		m_scene->BeginScene(clear_color);
+		m_scene->RenderScene();
+		m_scene->EndScene();
+		m_framebuffer.Unbind();
 
 		//-----------------------------------------------------------------------------------
 		//Render to framebuffer (Alt camera)
 		//-----------------------------------------------------------------------------------
-
-		/*auto& main_camera_entity = m_scene->FindEntityByName("Main Camera"s);
-		auto& alt_camera_entity = m_scene->FindEntityByName("Alt Camera"s);
-		auto& main_mesh_comp = main_camera_entity.GetComponent<MeshRendererComponent>();
-		auto& alt_mesh_comp = alt_camera_entity.GetComponent<MeshRendererComponent>();
-		main_mesh_comp.SetEnableRender(true);
-		alt_mesh_comp.SetEnableRender(false);
-
+		/*m_scene->SetControlledCameraEntity(m_alt_camera_entity);
+		m_scene->SetRenderable(m_alt_camera_entity, false);
+		m_scene->SetRenderable(m_main_camera_entity, true);
 		OpenGLRenderer::SetLineWidth(2.0);
 		m_framebuffer_alt.Bind();
-		m_scene->BeginScene("Alt Camera"s, glm::vec4{ 0.13f,0.13f,0.13f,1.0f });
+		m_scene->BeginScene(clear_color);
 		m_scene->RenderScene();
 		m_scene->EndScene();
 		m_framebuffer_alt.Unbind();
-
-		main_mesh_comp.SetEnableRender(false);
-		alt_mesh_comp.SetEnableRender(true);*/
+		m_scene->SetControlledCameraEntity(m_main_camera_entity);
+		m_scene->SetRenderable(m_alt_camera_entity, true);
+		m_scene->SetRenderable(m_main_camera_entity, false);*/
 	}
 
 	void TestLayer4::OnEvent(ely::Event& e)
 	{
 		EventDispatcher dispatcher(e);
+
+		/*switch (e.Type())
+		{
+			case EventType::KeyPressed: OnKeyPressed(dynamic_cast<EventKeyPressed&>(e)); return;
+		}*/
+
 
 		dispatcher.Dispatch<ely::EventKeyPressed>(std::bind(&TestLayer4::OnKeyPressed, this, std::placeholders::_1));
 		dispatcher.Dispatch<ely::EventMouseMoved>(std::bind(&TestLayer4::OnMouseMoved, this, std::placeholders::_1));
@@ -141,14 +124,14 @@ namespace ely {
 			if (m_scene->GetControlledCameraEntity() == m_main_camera_entity)
 			{
 				m_scene->SetControlledCameraEntity(m_alt_camera_entity);
-				m_scene->SetRenderable_V2(m_alt_camera_entity, false);
-				m_scene->SetRenderable_V2(m_main_camera_entity, true);
+				m_scene->SetRenderable(m_alt_camera_entity, false);
+				m_scene->SetRenderable(m_main_camera_entity, true);
 			}
 			else
 			{
 				m_scene->SetControlledCameraEntity(m_main_camera_entity);
-				m_scene->SetRenderable_V2(m_alt_camera_entity, true);
-				m_scene->SetRenderable_V2(m_main_camera_entity, false);
+				m_scene->SetRenderable(m_alt_camera_entity, true);
+				m_scene->SetRenderable(m_main_camera_entity, false);
 			}
 		}
 
@@ -212,23 +195,23 @@ namespace ely {
 		//	//ImGui::SliderFloat3("Box Pos ", &(m_cube_pos[0]), -5.0f, 5.0f);
 		//	//ImGui::SliderFloat("Shininess ", &(m_cube_shininess), 1.0f, 256.0f);
 		//}
-		//if (ImGui::CollapsingHeader("Framebuffer - main camera"))
-		//{
-		//	float tex_height = 400.0f;
-		//	float tex_width = tex_height * m_window.MonitorAspectRatio();
-		//	uint64_t color_attachment_id = (uint64_t)m_framebuffer.GetColourAttachmentID(); //uint64_t to stop compiler warning
-		//	ImTextureID tex_id = (void*)color_attachment_id;
-		//	ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
-		//}
-		//if (ImGui::CollapsingHeader("Framebuffer - alt camera"))
-		//{
-		//	float tex_height = 400.0f;
-		//	float tex_width = tex_height * m_window.MonitorAspectRatio();
-		//	//float tex_width = tex_height * m_window.AspectRatio();
-		//	uint64_t color_attachment_id = (uint64_t)m_framebuffer_alt.GetColourAttachmentID();
-		//	ImTextureID tex_id = (void*)color_attachment_id;
-		//	ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
-		//}
+		if (ImGui::CollapsingHeader("Framebuffer - main camera"))
+		{
+			float tex_height = 600.0f;
+			float tex_width = tex_height * m_window.MonitorAspectRatio();
+			uint64_t color_attachment_id = (uint64_t)m_framebuffer.GetColourAttachmentID(); //uint64_t to stop compiler warning
+			ImTextureID tex_id = (void*)color_attachment_id;
+			ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
+		}
+		if (ImGui::CollapsingHeader("Framebuffer - alt camera"))
+		{
+			float tex_height = 600.0f;
+			float tex_width = tex_height * m_window.MonitorAspectRatio();
+			//float tex_width = tex_height * m_window.AspectRatio();
+			uint64_t color_attachment_id = (uint64_t)m_framebuffer_alt.GetColourAttachmentID();
+			ImTextureID tex_id = (void*)color_attachment_id;
+			ImGui::Image(tex_id, ImVec2(tex_width, tex_height), ImVec2{ 0,1 }, ImVec2{ 1,0 }); //need to flip uv's
+		}
 
 		ImGui::End();
 

@@ -27,8 +27,8 @@ GammaTestLayer::GammaTestLayer(ely::Window& window) :
 
 	m_window.SetClearColour(glm::vec4(0.6f, 0.6, 0.0f, 1.0f));
 
-	m_camera_entity = m_scene->CreateCameraEntity_V2(glm::vec3(4.0, 1.0, 7.0), "Camera"s);
-	m_scene->SetRenderable_V2(m_camera_entity, false);
+	m_camera_entity = m_scene->CreateCameraEntity(glm::vec3(4.0, 1.0, 7.0), "Camera"s);
+	m_scene->SetRenderable(m_camera_entity, false);
 	m_scene->SetControlledCameraEntity(m_camera_entity);
 
 	//buffer setup
@@ -89,6 +89,7 @@ void GammaTestLayer::OnUpdate(double time_step)
 
 	auto& camera = (ely::Camera&)(m_camera_entity.GetComponent<ely::CameraComponent>());
 	auto& camera_transform = (glm::mat4)(m_camera_entity.GetComponent<ely::TransformComponent>());
+	//camera.SetProjectionType(ely::Camera::ProjectionType::Ortho);
 
 	m_gamma_test_shader->Bind();
 	m_gamma_test_shader->SetUniformMat4f("u_model", glm::mat4(1.0f));
@@ -106,7 +107,7 @@ void GammaTestLayer::OnUpdate(double time_step)
 
 	//Uncorrected gray-scale script (res: appears linear on screen, but isn't)
 	vs_gamma_enabled = false;
-	glDisable(GL_FRAMEBUFFER_SRGB);
+	//glDisable(GL_FRAMEBUFFER_SRGB);
 	m_vao_gray_scale.Bind();
 	glm::mat4 gray_scale_model_mat = glm::mat4(1.0f);
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
@@ -130,7 +131,7 @@ void GammaTestLayer::OnUpdate(double time_step)
 	glDrawArrays(GL_TRIANGLES, 0, m_vbo_gray_scale.GetVertexCount());
 
 	//gamma corrected in the mesh colours themselves (res: same as above)
-	glDisable(GL_FRAMEBUFFER_SRGB);
+	//glDisable(GL_FRAMEBUFFER_SRGB);
 	m_vao_gray_scale_gc.Bind();
 	gray_scale_model_mat = glm::translate(gray_scale_model_mat, glm::vec3(0, 0, 2.0f));
 	m_gamma_test_shader->SetUniformMat4f("u_model", gray_scale_model_mat);
@@ -141,7 +142,6 @@ void GammaTestLayer::OnUpdate(double time_step)
 	m_framebuffer->Bind();
 	m_window.Clear();
 	
-
 	//Uncorrected gray-scale script (res: appears linear on screen, but isn't)
 	vs_gamma_enabled = false;
 	glDisable(GL_FRAMEBUFFER_SRGB);
